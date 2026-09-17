@@ -1,0 +1,45 @@
+@import url('https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'Kanit_300Light';
+  src: local('Kanit Light'), local('Kanit-Light'), url('https://fonts.gstatic.com/s/kanit/v15/4UaGrENHsxJlGDuVc5pnn3w.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Kanit_400Regular';
+  src: local('Kanit'), local('Kanit-Regular'), url('https://fonts.gstatic.com/s/kanit/v15/4UaHrENHsxJlGDuM91w.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Kanit_500Medium';
+  src: local('Kanit Medium'), local('Kanit-Medium'), url('https://fonts.gstatic.com/s/kanit/v15/4UaGrENHsxJlGDuVz5tnn3w.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Kanit_600SemiBold';
+  src: local('Kanit SemiBold'), local('Kanit-SemiBold'), url('https://fonts.gstatic.com/s/kanit/v15/4UaGrENHsxJlGDuVr5pnn3w.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Kanit_700Bold';
+  src: local('Kanit Bold'), local('Kanit-Bold'), url('https://fonts.gstatic.com/s/kanit/v15/4UaGrENHsxJlGDuVqZpnn3w.woff2') format('woff2');
+}
+
+/*
+  Force Kanit on all elements using !important to override React Native Web's
+  injected CSS classes (e.g. .css-text-175oi2r).
+  We use :not() to carefully exclude vector icon elements so their fonts don't break.
+*/
+*:not([style*="Ionicons"]):not([style*="ionicons"]):not([style*="FontAwesome"]):not([style*="MaterialIcons"]):not([style*="Feather"]):not([style*="feather"]):not([style*="MaterialCommunityIcons"]):not([style*="material"]):not([style*="Entypo"]):not([style*="AntDesign"]):not([style*="Octicons"]):not([style*="anticon"]):not(i) {
+  font-family: 'Kanit_400Regular', 'Kanit', sans-serif !important;
+}
+
+/* Explicit fail-safes to guarantee icon fonts are preserved */
+[style*="Ionicons"], [style*="ionicons"] { font-family: Ionicons !important; }
+[style*="FontAwesome"] { font-family: FontAwesome !important; }
+[style*="Feather"], [style*="feather"] { font-family: feather !important; }
+[style*="MaterialIcons"], [style*="material"] { font-family: MaterialIcons !important; }

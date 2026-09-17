@@ -1,0 +1,46 @@
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: ["./app/**/*.{js,jsx,ts,tsx}", "./components/**/*.{js,jsx,ts,tsx}"],
+  presets: [require("nativewind/preset")],
+  darkMode: "class",
+  theme: {
+    extend: {
+      fontFamily: {
+        kanit: ["Kanit_400Regular", "sans-serif"],
+        "kanit-light": ["Kanit_300Light", "sans-serif"],
+        "kanit-medium": ["Kanit_500Medium", "sans-serif"],
+        "kanit-semibold": ["Kanit_600SemiBold", "sans-serif"],
+        "kanit-bold": ["Kanit_700Bold", "sans-serif"],
+        sans: ["Kanit_400Regular", "sans-serif"],
+        heading: ["Prompt-Regular", "sans-serif"],
+        body: ["IBMPlexSansThai-Regular", "sans-serif"],
+      },
+      colors: {
+        primary: "#D62828",
+        secondary: "#F77F00",
+        tertiary: "#FCBF49",
+        quaternary: "#E9D8A6",
+        bg: "#F8F9FA",
+        "text-dark": "#333333",
+        "text-light": "#888888",
+        "pill-inactive": "#F1F3F5",
+        success: "#2D6A4F",
+        info: "#0077B6",
+        warning: "#E85D04",
+        "app-border": "#E9ECEF",
+        status: {
+          "waiting-check": "#F77F00",
+          checking: "#F77F00",
+          quoting: "#F77F00",
+          cancelled: "#888888",
+          repaired: "#F77F00",
+          approved: "#F77F00",
+          "waiting-pickup": "#2D6A4F",
+          "pending-payment": "#F77F00",
+          completed: "#2D6A4F",
+        },
+      },
+    },
+  },
+  plugins: [],
+};

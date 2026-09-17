@@ -1,0 +1,87 @@
+# ==========================================
+# 1. Environment & Secrets (ห้ามขึ้นเด็ดขาด)
+# ==========================================
+.env
+.env*.local
+*.env
+**/.env
+**/.env.*
+!**/.env.example
+
+# ==========================================
+# 2. Dependencies (ห้ามนำ node_modules ขึ้น)
+# ==========================================
+node_modules/
+**/node_modules/
+.pnp
+.pnp.js
+
+# ==========================================
+# 3. Back-end Specific
+# ==========================================
+# โฟลเดอร์ไฟล์อัปโหลด (ยกเว้น .gitkeep เพื่อคงโครงสร้างโฟลเดอร์ไว้)
+back-end/uploads/*
+!back-end/uploads/.gitkeep
+back-end/pubilc/slips/*
+!back-end/pubilc/slips/.gitkeep
+back-end/pubilc/signatures/*
+!back-end/pubilc/signatures/.gitkeep
+back-end/public/slips/*
+!back-end/public/slips/.gitkeep
+back-end/public/signatures/*
+!back-end/public/signatures/.gitkeep
+
+# ฐานข้อมูล Local
+*.sqlite
+*.sqlite3
+*.db
+
+# ==========================================
+# 4. Frontend / Expo / Mobile Specific
+# ==========================================
+.expo/
+**/.expo/
+.expo-shared/
+**/.expo-shared/
+dist/
+**/dist/
+web-build/
+**/web-build/
+
+# Native Builds (กรณีมี prebuild ios/android)
+ios/
+**/ios/
+android/
+**/android/
+
+# Mobile certificates and keystores
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.keystore
+
+# Metro & TypeScript Cache
+.metro-health-check*
+*.tsbuildinfo
+
+# ==========================================
+# 5. IDE, AI Agents & System files
+# ==========================================
+.vscode/
+**/.vscode/
+.idea/
+**/.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# AI Assistant configs
+**/.agents/
+**/.impeccable/

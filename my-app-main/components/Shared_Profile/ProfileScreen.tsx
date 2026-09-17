@@ -1,0 +1,221 @@
+// 1. React & React Native
+import { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Platform,
+  ScrollView,
+  StatusBar,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+
+// 2. Third-party / Expo
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter, Stack } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+// 3. Auth helpers
+import { getCurrentUser, logout } from '@/lib/auth';
+
+// ── Role configuration type ──
+export interface RoleConfig {
+  /** Badge text e.g. "Technician", "Staff" */
+  roleBadge: string;
+  /** Thai label e.g. "ช่างซ่อม / ตรวจเช็ค (Technician)" */
+  roleLabel: string;
+  /** Ionicons icon name for header badge */
+  roleIcon: keyof typeof Ionicons.glyphMap;
+  /** Tailwind classes for role badge in info card e.g. "text-blue-600 bg-blue-50" */
+  badgeColorClass: string;
+  /** Fallback initial when user has no name */
+  fallbackInitial: string;
+  /** Fallback display name */
+  fallbackName: string;
+  /** Show back button (for shared/standalone profile route) */
+  showBackButton?: boolean;
+  /** Fallback route when back is pressed but can't go back */
+  fallbackBackRoute?: string;
+}
+
+interface SharedProfileScreenProps {
+  roleConfig: RoleConfig;
+}
+
+export default function SharedProfileScreen({ roleConfig }: SharedProfileScreenProps) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  async function fetchProfile() {
+    try {
+      setLoading(true);
+      const currentUser = await getCurrentUser();
+      if (!currentUser) {
+        router.replace('/(auth)/login');
+        return;
+      }
+      setUser(currentUser);
+    } catch (e) {
+      console.error('Error fetching profile:', e);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace((roleConfig.fallbackBackRoute || '/(customer)') as any);
+    }
+  };
+
+  const handleLogout = async () => {
+    const confirmLogout = async () => {
+      await logout();
+      router.replace('/(auth)/login');
+    };
+
+    if (Platform.OS === 'web') {
+      if (window.confirm('คุณต้องการออกจากระบบใช่หรือไม่?')) {
+        confirmLogout();
+      }
+    } else {
+      Alert.alert('ออกจากระบบ', 'คุณต้องการออกจากระบบใช่หรือไม่?', [
+        { text: 'ยกเลิก', style: 'cancel' },
+        { text: 'ออกจากระบบ', style: 'destructive', onPress: confirmLogout },
+      ]);
+    }
+  };
+
+  const getInitials = () => {
+    if (!user) return roleConfig.fallbackInitial;
+    const first = user.first_name?.[0] || '';
+    const last = user.last_name?.[0] || '';
+    return (first + last).toUpperCase() || roleConfig.fallbackInitial;
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView className="flex-1 justify-center items-center bg-slate-50">
+        <ActivityIndicator size="large" color="#D32F2F" />
+        <Text className="mt-3 text-slate-500 text-sm">กำลังโหลดข้อมูลโปรไฟล์...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <View className="flex-1 bg-slate-50">
+      <Stack.Screen options={{ headerShown: false }} />
+      <StatusBar barStyle="light-content" backgroundColor="#D32F2F" />
+
+      <ScrollView className="flex-1" bounces={false} contentContainerStyle={{ paddingBottom: 40 }}>
+        {/* Header Section */}
+        <View className="bg-[#D32F2F] pb-10 pt-2 px-5 rounded-b-3xl">
+          <SafeAreaView edges={['top']}>
+            <View className="flex-row items-center justify-between mb-4">
+              {roleConfig.showBackButton ? (
+                <TouchableOpacity
+                  onPress={handleBack}
+                  activeOpacity={0.7}
+                  className="flex-row items-center py-2 pr-4 self-start"
+                >
+                  <Ionicons name="chevron-back" size={24} color="#fff" />
+                  <Text className="text-white text-base font-semibold ml-0.5">กลับ</Text>
+                </TouchableOpacity>
+              ) : (
+                <Text className="text-white text-2xl font-bold">IT VERTEX</Text>
+              )}
+              <View className="bg-white/20 px-3 py-1 rounded-full flex-row items-center">
+                <Ionicons
+                  name={roleConfig.roleIcon}
+                  size={14}
+                  color="#fff"
+                  style={{ marginRight: 4 }}
+                />
+                <Text className="text-white text-xs font-bold">{roleConfig.roleBadge}</Text>
+              </View>
+            </View>
+
+            <View className="items-center mt-2">
+              <View className="w-20 h-20 rounded-full bg-white justify-center items-center mb-3 shadow-md shadow-black/10">
+                <Text className="text-2xl font-bold text-[#D32F2F]">{getInitials()}</Text>
+              </View>
+              <Text className="text-xl font-bold text-white mb-1">
+                {user?.first_name || roleConfig.fallbackName} {user?.last_name || ''}
+              </Text>
+              <Text className="text-red-100 text-sm">{user?.email || '-'}</Text>
+            </View>
+          </SafeAreaView>
+        </View>
+
+        {/* Profile Info Card */}
+        <View className="px-5 -mt-6">
+          <View className="bg-white rounded-2xl p-5 mb-4 shadow-sm border border-slate-100">
+            <Text className="text-base font-bold text-slate-800 mb-4">ข้อมูลส่วนตัว</Text>
+
+            {/* Name */}
+            <View className="py-2.5 border-b border-slate-100 flex-row justify-between items-center">
+              <View className="flex-row items-center gap-2.5">
+                <Ionicons name="person-outline" size={18} color="#64748b" />
+                <Text className="text-sm text-slate-500">ชื่อ-นามสกุล</Text>
+              </View>
+              <Text className="text-sm font-semibold text-slate-800">
+                {user?.first_name || '-'} {user?.last_name || ''}
+              </Text>
+            </View>
+
+            {/* Role */}
+            <View className="py-2.5 border-b border-slate-100 flex-row justify-between items-center">
+              <View className="flex-row items-center gap-2.5">
+                <Ionicons name="shield-outline" size={18} color="#64748b" />
+                <Text className="text-sm text-slate-500">บทบาท</Text>
+              </View>
+              <Text className={`text-sm font-semibold px-2.5 py-0.5 rounded-full ${roleConfig.badgeColorClass}`}>
+                {roleConfig.roleLabel}
+              </Text>
+            </View>
+
+            {/* Phone */}
+            <View className="py-2.5 border-b border-slate-100 flex-row justify-between items-center">
+              <View className="flex-row items-center gap-2.5">
+                <Ionicons name="call-outline" size={18} color="#64748b" />
+                <Text className="text-sm text-slate-500">เบอร์โทรศัพท์</Text>
+              </View>
+              <Text className="text-sm font-semibold text-slate-800">
+                {user?.phone || 'ไม่ระบุ'}
+              </Text>
+            </View>
+
+            {/* Email */}
+            <View className="py-2.5 flex-row justify-between items-center">
+              <View className="flex-row items-center gap-2.5">
+                <Ionicons name="mail-outline" size={18} color="#64748b" />
+                <Text className="text-sm text-slate-500">อีเมล</Text>
+              </View>
+              <Text className="text-sm font-semibold text-slate-800">
+                {user?.email || '-'}
+              </Text>
+            </View>
+          </View>
+
+          {/* Logout Button */}
+          <TouchableOpacity
+            className="w-full bg-red-50 border border-red-200 py-3.5 rounded-2xl flex-row justify-center items-center shadow-sm"
+            onPress={handleLogout}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="log-out-outline" size={20} color="#dc2626" style={{ marginRight: 8 }} />
+            <Text className="text-red-600 font-bold text-base">ออกจากระบบ</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </View>
+  );
+}

@@ -1,0 +1,46 @@
+// 1. React & React Native
+import { TouchableOpacity } from 'react-native';
+
+// 2. Third-party / Expo
+import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+interface FloatingActionButtonProps {
+  onPress: () => void;
+  /** Ionicons icon name. Default: 'add' */
+  icon?: keyof typeof Ionicons.glyphMap;
+  /** Whether the button is visible. Default: true */
+  visible?: boolean;
+  /** Bottom offset override. Uses safe area bottom + 24 by default. */
+  bottomOffset?: number;
+  /** Background color. Default: '#00B4D8' */
+  bgColor?: string;
+}
+
+/**
+ * Shared floating action button.
+ * Replaces Meneger_item/FloatingButton and Technicain_detail/FloatingEditButton.
+ */
+export default function FloatingActionButton({
+  onPress,
+  icon = 'add',
+  visible = true,
+  bottomOffset,
+  bgColor = '#00B4D8',
+}: FloatingActionButtonProps) {
+  const insets = useSafeAreaInsets();
+  if (!visible) return null;
+
+  const bottom = bottomOffset ?? insets.bottom + 24;
+
+  return (
+    <TouchableOpacity
+      className="absolute right-6 w-[60px] h-[60px] rounded-[30px] justify-center items-center shadow-md shadow-black/30 elevation-8 z-20"
+      style={{ bottom, backgroundColor: bgColor }}
+      activeOpacity={0.8}
+      onPress={onPress}
+    >
+      <Ionicons name={icon} size={28} color="#ffffff" />
+    </TouchableOpacity>
+  );
+}
