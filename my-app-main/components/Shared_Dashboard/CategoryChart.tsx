@@ -1,6 +1,6 @@
 // 1. React & React Native
 import React from 'react';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { ActivityIndicator, Text, View, useWindowDimensions } from 'react-native';
 
 // 2. Third-party / Expo
 import { Ionicons } from '@expo/vector-icons';
@@ -29,128 +29,202 @@ export default function CategoryChart({
   laptopPercent,
   printerPercent,
 }: CategoryChartProps) {
+  const { width } = useWindowDimensions();
+  const isWide = width >= 640;
+
   const actualPc = pcCount ?? pcPercent ?? 0;
   const actualLaptop = laptopCount ?? laptopPercent ?? 0;
   const actualPrinter = printerCount ?? printerPercent ?? 0;
+
   const chartColors = {
-    pc: '#D62828',       // Red
-    laptop: '#F77F00',   // Orange
-    printer: '#0077B6',  // Blue
-    other: '#6C757D',    // Gray
+    laptop: '#F97316',   // Orange
+    pc: '#DC2626',       // Red
+    printer: '#0284C7',  // Sky
+    other: '#64748B',    // Slate
   };
 
   const calculatedTotal = total ?? (actualPc + actualLaptop + actualPrinter + otherCount);
 
-  const pieData: { value: number; color: string; text?: string }[] = [];
+  // Build PieChart data with clean slices without cramped overlapping text
+  const pieData: { value: number; color: string }[] = [];
 
   if (calculatedTotal > 0) {
-    if (actualPc > 0) {
-      pieData.push({
-        value: actualPc,
-        color: chartColors.pc,
-        text: `${Math.round((actualPc / calculatedTotal) * 100)}%`,
-      });
-    }
     if (actualLaptop > 0) {
       pieData.push({
         value: actualLaptop,
         color: chartColors.laptop,
-        text: `${Math.round((actualLaptop / calculatedTotal) * 100)}%`,
+      });
+    }
+    if (actualPc > 0) {
+      pieData.push({
+        value: actualPc,
+        color: chartColors.pc,
       });
     }
     if (actualPrinter > 0) {
       pieData.push({
         value: actualPrinter,
         color: chartColors.printer,
-        text: `${Math.round((actualPrinter / calculatedTotal) * 100)}%`,
       });
     }
     if (otherCount > 0) {
       pieData.push({
         value: otherCount,
         color: chartColors.other,
-        text: `${Math.round((otherCount / calculatedTotal) * 100)}%`,
       });
     }
   } else {
     // Empty state placeholder ring
-    pieData.push({ value: 1, color: '#F1F5F9', text: '' });
+    pieData.push({ value: 1, color: '#F1F5F9' });
   }
 
-  const getPercentText = (count: number) => {
-    if (calculatedTotal === 0) return '0 เครื่อง (0%)';
-    const pct = Math.round((count / calculatedTotal) * 100);
-    return `${count} เครื่อง (${pct}%)`;
+  const getPercent = (count: number) => {
+    if (calculatedTotal === 0) return 0;
+    return Math.round((count / calculatedTotal) * 100);
   };
 
   const allCategories = [
-    { label: 'คอมพิวเตอร์ (PC)', color: chartColors.pc, count: actualPc },
-    { label: 'โน๊ตบุ๊ค (Laptop)', color: chartColors.laptop, count: actualLaptop },
-    { label: 'ปริ้นเตอร์ (Printer)', color: chartColors.printer, count: actualPrinter },
-    { label: 'อื่นๆ', color: chartColors.other, count: otherCount },
+    {
+      id: 'laptop',
+      label: 'โน๊ตบุ๊ค (Laptop)',
+      color: chartColors.laptop,
+      count: actualLaptop,
+      percent: getPercent(actualLaptop),
+      icon: 'laptop-outline',
+    },
+    {
+      id: 'pc',
+      label: 'คอมพิวเตอร์ (PC)',
+      color: chartColors.pc,
+      count: actualPc,
+      percent: getPercent(actualPc),
+      icon: 'desktop-outline',
+    },
+    {
+      id: 'printer',
+      label: 'ปริ้นเตอร์ (Printer)',
+      color: chartColors.printer,
+      count: actualPrinter,
+      percent: getPercent(actualPrinter),
+      icon: 'print-outline',
+    },
+    {
+      id: 'other',
+      label: 'อุปกรณ์อื่นๆ',
+      color: chartColors.other,
+      count: otherCount,
+      percent: getPercent(otherCount),
+      icon: 'hardware-chip-outline',
+    },
   ];
 
-  // แสดงเฉพาะหมวดหมู่ที่มีงานจริงในระบบ (ไม่แสดง 0 เครื่อง) เพื่อไม่ให้สับสน
-  const legends = allCategories.filter((item) => item.count > 0);
+  // Show categories with active counts, or all if empty
+  const displayCategories = calculatedTotal > 0
+    ? allCategories.filter((item) => item.count > 0)
+    : allCategories.slice(0, 3);
 
   return (
-    <View className="bg-white p-4 mx-4 mb-4 rounded-xl border border-app-border shadow-xs">
-      <View className="flex-row items-center justify-between mb-4">
-        <View className="flex-row items-center gap-1.5">
-          <Ionicons name="pie-chart-outline" size={18} color="#D62828" />
-          <Text className="text-sm font-bold text-text-dark font-heading">
-            สัดส่วนอุปกรณ์ตามประเภท
+    <View className="bg-white p-4 mx-4 mb-4 rounded-2xl border border-slate-200 shadow-sm">
+      {/* Header Row */}
+      <View className="flex-row items-center justify-between mb-4 pb-3 border-b border-slate-100">
+        <View className="flex-row items-center gap-2">
+          <View className="w-8 h-8 rounded-xl bg-red-50 border border-red-100 items-center justify-center">
+            <Ionicons name="pie-chart" size={16} color="#DC2626" />
+          </View>
+          <View>
+            <Text className="text-sm font-bold text-slate-800 font-heading">
+              สัดส่วนอุปกรณ์ตามประเภท
+            </Text>
+            <Text className="text-[11px] text-slate-400 font-body">
+              จำแนกตามชนิดของอุปกรณ์ที่ส่งซ่อม
+            </Text>
+          </View>
+        </View>
+
+        <View className="bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200">
+          <Text className="text-xs font-bold text-slate-700 font-heading">
+            {calculatedTotal} เครื่อง
           </Text>
         </View>
-        <Text className="text-xs text-slate-400 font-body">
-          {calculatedTotal} เครื่อง
-        </Text>
       </View>
 
       {isLoading ? (
-        <View className="h-[160px] justify-center items-center">
-          <ActivityIndicator size="large" color="#D62828" />
-          <Text className="mt-2 font-body text-xs text-text-light">กำลังประมวลผลสัดส่วน...</Text>
+        <View className="h-[180px] justify-center items-center">
+          <ActivityIndicator size="large" color="#DC2626" />
+          <Text className="mt-2.5 font-body text-xs text-slate-400">
+            กำลังประมวลผลสัดส่วน...
+          </Text>
         </View>
       ) : (
-        <View className="flex-row items-center justify-around py-2">
-          {/* Donut Chart */}
-          <View className="justify-center items-center">
-            <PieChart
-              donut
-              data={pieData}
-              radius={72}
-              innerRadius={50}
-              showText={calculatedTotal > 0}
-              textColor="#FFFFFF"
-              textSize={10}
-              font="Prompt-Regular"
-              focusOnPress
-              centerLabelComponent={() => (
-                <View className="justify-center items-center">
-                  <Text className="text-lg font-heading text-text-dark font-bold">
-                    {calculatedTotal}
-                  </Text>
-                  <Text className="text-[10px] font-body text-text-light">
-                    {calculatedTotal > 0 ? 'เครื่องทั้งหมด' : 'ไม่มีข้อมูล'}
-                  </Text>
-                </View>
-              )}
-            />
+        <View className={`${isWide ? 'flex-row items-center justify-between gap-6' : 'flex-col'}`}>
+          {/* Donut Chart Showcase */}
+          <View className={`items-center justify-center ${isWide ? 'flex-1' : 'mb-5 py-2'}`}>
+            <View className="relative items-center justify-center">
+              <PieChart
+                donut
+                data={pieData}
+                radius={76}
+                innerRadius={54}
+                showText={false}
+                focusOnPress
+                centerLabelComponent={() => (
+                  <View className="justify-center items-center">
+                    <Text className="text-2xl font-extrabold text-slate-800 font-heading">
+                      {calculatedTotal}
+                    </Text>
+                    <Text className="text-[10px] font-medium text-slate-400 font-body -mt-0.5">
+                      {calculatedTotal > 0 ? 'เครื่องทั้งหมด' : 'ไม่มีงาน'}
+                    </Text>
+                  </View>
+                )}
+              />
+            </View>
           </View>
 
-          {/* Legends */}
-          <View className="gap-2.5 max-w-[50%]">
-            {legends.map((item) => (
-              <View key={item.label} className="flex-row items-center gap-2">
-                <View className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-                <View>
-                  <Text className="text-[11px] font-bold text-text-dark font-heading">
-                    {item.label}
-                  </Text>
-                  <Text className="text-[10px] text-slate-500 font-body">
-                    {getPercentText(item.count)}
-                  </Text>
+          {/* Clean Category Breakdown Cards */}
+          <View className={`${isWide ? 'flex-1' : 'w-full'}`}>
+            {displayCategories.map((item) => (
+              <View
+                key={item.id}
+                className="bg-slate-50/80 border border-slate-100 rounded-xl p-2.5 mb-2"
+              >
+                <View className="flex-row items-center justify-between mb-1.5">
+                  {/* Left: Icon & Label */}
+                  <View className="flex-row items-center gap-2 flex-1 mr-2">
+                    <View
+                      className="w-6 h-6 rounded-lg items-center justify-center"
+                      style={{ backgroundColor: `${item.color}18` }}
+                    >
+                      <Ionicons name={item.icon as any} size={13} color={item.color} />
+                    </View>
+                    <Text
+                      className="text-xs font-bold text-slate-800 font-heading"
+                      numberOfLines={1}
+                    >
+                      {item.label}
+                    </Text>
+                  </View>
+
+                  {/* Right: Count & Percentage */}
+                  <View className="flex-row items-baseline gap-1.5">
+                    <Text className="text-xs font-bold text-slate-900 font-heading">
+                      {item.count} เครื่อง
+                    </Text>
+                    <Text className="text-[11px] font-semibold text-slate-400 font-body min-w-[32px] text-right">
+                      {item.percent}%
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Proportion Progress Bar */}
+                <View className="w-full h-1.5 bg-slate-200/80 rounded-full overflow-hidden">
+                  <View
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${item.percent}%`,
+                      backgroundColor: item.color,
+                    }}
+                  />
                 </View>
               </View>
             ))}
