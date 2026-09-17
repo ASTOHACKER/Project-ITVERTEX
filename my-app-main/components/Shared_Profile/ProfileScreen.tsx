@@ -48,6 +48,7 @@ export default function SharedProfileScreen({ roleConfig }: SharedProfileScreenP
   const [user, setUser] = useState<any>(null);
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [logoutSuccess, setLogoutSuccess] = useState(false);
 
   useEffect(() => {
     fetchProfile();
@@ -78,6 +79,7 @@ export default function SharedProfileScreen({ roleConfig }: SharedProfileScreenP
   };
 
   const handleLogout = () => {
+    setLogoutSuccess(false);
     setLogoutModalVisible(true);
   };
 
@@ -85,10 +87,17 @@ export default function SharedProfileScreen({ roleConfig }: SharedProfileScreenP
     setLoggingOut(true);
     try {
       await logout();
-      router.replace('/(auth)/login');
+      setLogoutSuccess(true);
+      setTimeout(() => {
+        router.replace('/(auth)/login');
+        setTimeout(() => {
+          setLogoutModalVisible(false);
+          setLogoutSuccess(false);
+          setLoggingOut(false);
+        }, 500);
+      }, 1200);
     } catch (err) {
       console.error('Logout error:', err);
-    } finally {
       setLoggingOut(false);
       setLogoutModalVisible(false);
     }
@@ -227,8 +236,9 @@ export default function SharedProfileScreen({ roleConfig }: SharedProfileScreenP
         }
         userRole={roleConfig.roleLabel || user?.role_name}
         loading={loggingOut}
+        success={logoutSuccess}
         onConfirm={confirmLogout}
-        onCancel={() => !loggingOut && setLogoutModalVisible(false)}
+        onCancel={() => !loggingOut && !logoutSuccess && setLogoutModalVisible(false)}
       />
     </View>
   );
