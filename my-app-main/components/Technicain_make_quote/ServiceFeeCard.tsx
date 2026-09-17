@@ -153,7 +153,7 @@ export default function ServiceFeeCard({
           </View>
           {/* Row 2b: ปุ่ม + เพิ่ม (เต็มความกว้างตอนจอแคบ, inline ตอนจอใหญ่) */}
           <TouchableOpacity
-            className={`bg-[#0097A7] px-4 h-11 rounded-xl flex-row justify-center items-center min-w-[84px] ${isCompactScreen ? 'w-full min-w-0' : ''} ${!serviceInputName.trim() || !serviceInputPrice.trim() ? 'opacity-50' : ''}`}
+            className={`bg-amber-600 px-4 h-11 rounded-xl flex-row justify-center items-center min-w-[84px] shadow-sm active:bg-amber-700 ${isCompactScreen ? 'w-full min-w-0' : ''} ${!serviceInputName.trim() || !serviceInputPrice.trim() ? 'opacity-50' : ''}`}
             onPress={() => {
               if (!serviceInputName.trim() || !serviceInputPrice.trim()) return;
               onAddService();
@@ -162,7 +162,7 @@ export default function ServiceFeeCard({
             activeOpacity={0.8}
           >
             <Ionicons name="add-circle" size={18} color="#FFFFFF" style={{ marginRight: 4 }} />
-            <Text className="text-white font-bold text-sm">เพิ่ม</Text>
+            <Text className="text-white font-bold text-sm font-heading">เพิ่ม</Text>
           </TouchableOpacity>
         </View>
 

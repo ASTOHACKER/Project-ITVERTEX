@@ -105,8 +105,8 @@ export default function RepairListScreen({
       {showHeader && <Header title="IT VERTEX" subtitle={subtitle} />}
 
       <View className="flex-1 w-full max-w-4xl mx-auto p-4 pt-2">
-        {/* Search & Date Filter Bar */}
-        <View className="flex-row items-center gap-2 mb-2">
+        {/* Search & Date Filter Bar — aligned 48px targets */}
+        <View className="flex-row items-start gap-2 mb-2">
           <View className="flex-1">
             <SearchFilterBar
               value={searchText}
@@ -117,43 +117,55 @@ export default function RepairListScreen({
           <TouchableOpacity
             onPress={() => setShowDatePicker(true)}
             activeOpacity={0.7}
-            className={`h-11 px-3 rounded-lg border flex-row items-center justify-center gap-1.5 -mt-4 ${
+            accessibilityRole="button"
+            accessibilityLabel={filterDate ? 'เปลี่ยนวันที่กรอง' : 'เลือกวันที่กรอง'}
+            className={`min-h-[48px] px-3.5 rounded-2xl border flex-row items-center justify-center gap-1.5 ${
               filterDate
-                ? 'bg-red-50 border-red-300'
+                ? 'bg-red-50 border-[#DC2626]'
                 : 'bg-white border-slate-200'
             }`}
           >
             <Ionicons
               name="calendar-outline"
-              size={18}
-              color={filterDate ? '#D32F2F' : '#64748B'}
+              size={19}
+              color={filterDate ? '#DC2626' : '#64748B'}
             />
             <Text
-              className={`text-xs font-bold ${
+              className={`text-[13px] font-bold ${
                 filterDate ? 'text-red-700' : 'text-slate-600'
               }`}
             >
               {filterDate
                 ? `${filterDate.getDate()} ${['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'][filterDate.getMonth()]}`
-                : 'เลือกวันที่'}
+                : 'วันที่'}
             </Text>
+            {filterDate && (
+              <TouchableOpacity
+                onPress={() => setFilterDate(null)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                accessibilityLabel="ล้างวันที่กรอง"
+              >
+                <Ionicons name="close-circle" size={16} color="#DC2626" />
+              </TouchableOpacity>
+            )}
           </TouchableOpacity>
         </View>
 
         {/* Date Filter Active Chip */}
         {filterDate && (
-          <View className="flex-row items-center justify-between bg-red-50 border border-red-200 rounded-xl px-3 py-2 mb-3">
+          <View className="flex-row items-center justify-between bg-red-50 border border-red-200 rounded-2xl px-3.5 py-2.5 mb-3">
             <View className="flex-row items-center gap-1.5">
-              <Ionicons name="filter-circle" size={18} color="#D32F2F" />
-              <Text className="text-xs text-red-800 font-medium font-body">
+              <Ionicons name="filter-circle" size={19} color="#DC2626" />
+              <Text className="text-[13px] text-red-800 font-medium">
                 กรองเฉพาะวันที่: {filterDate.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })}
               </Text>
             </View>
             <TouchableOpacity
               onPress={() => setFilterDate(null)}
-              className="p-1"
+              className="p-2 -mr-1"
+              accessibilityLabel="ล้างตัวกรองวันที่"
             >
-              <Ionicons name="close-circle" size={18} color="#EF4444" />
+              <Ionicons name="close-circle" size={20} color="#DC2626" />
             </TouchableOpacity>
           </View>
         )}
@@ -169,26 +181,28 @@ export default function RepairListScreen({
             <TouchableOpacity
               onPress={() => setSelectedStatusTab('all')}
               activeOpacity={0.7}
-              className={`flex-row items-center gap-1.5 px-3.5 py-2 rounded-xl border ${
+              accessibilityRole="button"
+              accessibilityLabel={`งานทั้งหมด ${totalJobsCount} รายการ`}
+              className={`flex-row items-center gap-1.5 px-4 min-h-[44px] rounded-2xl border ${
                 selectedStatusTab === 'all'
                   ? 'bg-slate-900 border-slate-900 shadow-sm'
                   : 'bg-white border-slate-200'
               }`}
             >
               <Text
-                className={`text-xs font-bold font-heading ${
+                className={`text-[13px] font-bold ${
                   selectedStatusTab === 'all' ? 'text-white' : 'text-slate-700'
                 }`}
               >
                 ทั้งหมด
               </Text>
               <View
-                className={`px-1.5 py-0.2 rounded-full ${
+                className={`px-2 py-0.5 rounded-full ${
                   selectedStatusTab === 'all' ? 'bg-slate-700' : 'bg-slate-100'
                 }`}
               >
                 <Text
-                  className={`text-[10px] font-bold ${
+                  className={`text-[11px] font-bold ${
                     selectedStatusTab === 'all' ? 'text-white' : 'text-slate-600'
                   }`}
                 >
@@ -209,7 +223,9 @@ export default function RepairListScreen({
                   key={group.id}
                   onPress={() => setSelectedStatusTab(group.statusId)}
                   activeOpacity={0.7}
-                  className={`flex-row items-center gap-1.5 px-3 py-2 rounded-xl border ${
+                  accessibilityRole="button"
+                  accessibilityLabel={`${group.title} ${group.items.length} รายการ`}
+                  className={`flex-row items-center gap-1.5 px-3.5 min-h-[44px] rounded-2xl border ${
                     isSelected
                       ? 'border-transparent shadow-sm'
                       : hasItems
@@ -223,11 +239,11 @@ export default function RepairListScreen({
                   }
                 >
                   <View
-                    className="w-2 h-2 rounded-full"
+                    className="w-2.5 h-2.5 rounded-full"
                     style={{ backgroundColor: isSelected ? '#FFFFFF' : group.color }}
                   />
                   <Text
-                    className={`text-xs font-bold ${
+                    className={`text-[13px] font-bold ${
                       isSelected
                         ? 'text-white'
                         : hasItems
@@ -238,7 +254,7 @@ export default function RepairListScreen({
                     {group.title}
                   </Text>
                   <View
-                    className={`px-1.5 py-0.2 rounded-full ${
+                    className={`px-2 py-0.5 rounded-full ${
                       isSelected
                         ? 'bg-black/20'
                         : hasItems
@@ -247,7 +263,7 @@ export default function RepairListScreen({
                     }`}
                   >
                     <Text
-                      className={`text-[10px] font-bold ${
+                      className={`text-[11px] font-bold ${
                         isSelected
                           ? 'text-white'
                           : hasItems
@@ -297,8 +313,8 @@ export default function RepairListScreen({
         {/* Main List Area */}
         {isLoading ? (
           <View className="flex-1 justify-center items-center py-10">
-            <ActivityIndicator size="large" color="#D32F2F" />
-            <Text className="mt-3 text-sm text-slate-500 font-body">
+            <ActivityIndicator size="large" color="#DC2626" />
+            <Text className="mt-3 text-[15px] text-slate-500">
               กำลังโหลดรายการซ่อม...
             </Text>
           </View>
@@ -310,7 +326,7 @@ export default function RepairListScreen({
               <RefreshControl
                 refreshing={isRefreshing}
                 onRefresh={handleRefresh}
-                colors={['#D32F2F']}
+                colors={['#DC2626']}
               />
             }
           >

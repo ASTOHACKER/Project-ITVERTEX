@@ -41,7 +41,7 @@ export default function RepairSummaryCard({
       <View className="flex-row justify-between items-center">
         <Text className="text-[13px] text-slate-500">ยอดชำระ</Text>
         <View className="flex-row items-center gap-1">
-          <Text className="text-base font-bold text-[#00B4D8]">{totalPrice.toLocaleString()} บาท</Text>
+          <Text className="text-base font-bold text-[#DC2626] font-heading">{totalPrice.toLocaleString()} บาท</Text>
           <Ionicons name="checkmark" size={18} color="#16A34A" />
         </View>
       </View>

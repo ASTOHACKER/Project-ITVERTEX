@@ -178,7 +178,7 @@ export default function ForgotPasswordScreen() {
 
             {/* Submit Button */}
             <TouchableOpacity
-              className={`rounded-xl py-4 justify-center items-center mt-4 ${(!email.trim() || !phone.trim() || loading) ? 'bg-[#D32F2F]/40' : 'bg-[#D32F2F] shadow-lg shadow-[#D32F2F]/20 elevation-4'}`}
+              className={`rounded-xl h-[52px] justify-center items-center mt-4 ${(!email.trim() || !phone.trim() || loading) ? 'bg-[#DC2626]/40' : 'bg-[#DC2626] shadow-lg shadow-[#DC2626]/20 elevation-4'}`}
               onPress={handleVerifyIdentity}
               disabled={!email.trim() || !phone.trim() || loading}
               activeOpacity={0.8}
@@ -186,17 +186,18 @@ export default function ForgotPasswordScreen() {
               {loading ? (
                 <ActivityIndicator color="#ffffff" />
               ) : (
-                <Text className="text-white text-base font-bold">
+                <Text className="text-white text-base font-bold font-heading">
                   ยืนยันข้อมูล
                 </Text>
               )}
             </TouchableOpacity>
 
             <TouchableOpacity
-              className="mt-5 items-center py-2"
+              className="mt-4 items-center py-2.5 min-h-[44px] justify-center"
               onPress={() => router.replace('/(auth)/login')}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Text className="text-slate-500 text-sm font-medium">ยกเลิกและกลับไปหน้าเข้าสู่ระบบ</Text>
+              <Text className="text-slate-600 text-sm font-medium font-body">ยกเลิกและกลับไปหน้าเข้าสู่ระบบ</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

@@ -548,14 +548,17 @@ export default function MakeQuoteScreen() {
 
               {/* Submit Button */}
               <TouchableOpacity
-                className={`bg-[#D32F2F] h-12 rounded-lg justify-center items-center shadow-sm ${saving ? 'opacity-70' : ''}`}
+                className={`bg-[#DC2626] h-[52px] rounded-xl flex-row justify-center items-center gap-2 shadow-lg shadow-[#DC2626]/20 elevation-3 active:opacity-90 ${saving ? 'opacity-70' : ''}`}
                 onPress={handleSubmitQuote}
                 disabled={saving}
               >
                 {saving ? (
                   <ActivityIndicator size="small" color="#ffffff" />
                 ) : (
-                  <Text className="text-white text-[15px] font-bold">บันทึกและส่งใบเสนอราคา</Text>
+                  <>
+                    <Ionicons name="paper-plane" size={18} color="#FFFFFF" />
+                    <Text className="text-white text-base font-bold font-heading">บันทึกและส่งใบเสนอราคา</Text>
+                  </>
                 )}
               </TouchableOpacity>
             </>

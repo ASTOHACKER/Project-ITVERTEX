@@ -101,18 +101,18 @@ export default function TechnicianQuoteCard({
       {/* Action Buttons */}
       <View className="p-4 pt-0">
         {isSent ? (
-          <View className="bg-green-100 h-[46px] rounded-xl flex-row items-center justify-center gap-2 border border-green-300">
-            <Ionicons name="checkmark-circle-outline" size={20} color="#16A34A" />
-            <Text className="text-sm font-bold text-green-700">ส่งให้ลูกค้าแล้ว (รอการอนุมัติ)</Text>
+          <View className="bg-emerald-50 h-[52px] rounded-xl flex-row items-center justify-center gap-2 border border-emerald-200">
+            <Ionicons name="checkmark-circle" size={20} color="#059669" />
+            <Text className="text-sm font-bold text-emerald-800 font-heading">ส่งให้ลูกค้าแล้ว (รอการอนุมัติ)</Text>
           </View>
         ) : (
           <TouchableOpacity
-            className="w-full bg-[#D32F2F] h-[48px] rounded-xl flex-row items-center justify-center gap-2 shadow-lg shadow-[#D32F2F]/25 elevation-3 active:opacity-90"
+            className="w-full bg-[#DC2626] h-[52px] rounded-xl flex-row items-center justify-center gap-2 shadow-lg shadow-[#DC2626]/25 elevation-3 active:opacity-90"
             activeOpacity={0.85}
             onPress={onForwardToCustomer}
           >
-            <Ionicons name="paper-plane-outline" size={18} color="#FFFFFF" />
-            <Text className="text-sm font-bold text-white">ตรวจสอบแล้ว ส่งต่อให้ลูกค้า</Text>
+            <Ionicons name="paper-plane" size={18} color="#FFFFFF" />
+            <Text className="text-base font-bold text-white font-heading">ตรวจสอบแล้ว ส่งต่อให้ลูกค้า</Text>
           </TouchableOpacity>
         )}
       </View>

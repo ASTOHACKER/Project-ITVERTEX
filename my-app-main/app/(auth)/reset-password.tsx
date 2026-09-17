@@ -183,7 +183,7 @@ export default function ResetPasswordScreen() {
 
             {/* Submit Button */}
             <TouchableOpacity
-              className={`bg-[#D32F2F] rounded-xl py-4 justify-center items-center mt-3 shadow-lg shadow-[#D32F2F]/20 elevation-4 ${loading ? 'opacity-80' : ''}`}
+              className={`bg-[#DC2626] rounded-xl h-[52px] justify-center items-center mt-3 shadow-lg shadow-[#DC2626]/20 elevation-4 ${loading ? 'opacity-80' : ''}`}
               onPress={handleResetPassword}
               disabled={loading}
               activeOpacity={0.8}
@@ -191,16 +191,17 @@ export default function ResetPasswordScreen() {
               {loading ? (
                 <ActivityIndicator color="#ffffff" />
               ) : (
-                <Text className="text-white text-base font-bold">เปลี่ยนรหัสผ่าน</Text>
+                <Text className="text-white text-base font-bold font-heading">เปลี่ยนรหัสผ่าน</Text>
               )}
             </TouchableOpacity>
 
             {/* Back to Login */}
             <TouchableOpacity
               onPress={() => router.replace('/(auth)/login')}
-              className="mt-5 items-center"
+              className="mt-4 items-center py-2.5 min-h-[44px] justify-center"
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Text className="text-slate-500 text-sm font-medium">ยกเลิกและกลับไปหน้าเข้าสู่ระบบ</Text>
+              <Text className="text-slate-600 text-sm font-medium font-body">ยกเลิกและกลับไปหน้าเข้าสู่ระบบ</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

@@ -13,8 +13,10 @@ interface FloatingActionButtonProps {
   visible?: boolean;
   /** Bottom offset override. Uses safe area bottom + 24 by default. */
   bottomOffset?: number;
-  /** Background color. Default: '#00B4D8' */
+  /** Background color. Default: '#DC2626' (brand) */
   bgColor?: string;
+  /** Accessibility label. Default: 'เพิ่มรายการใหม่' */
+  label?: string;
 }
 
 /**
@@ -26,7 +28,8 @@ export default function FloatingActionButton({
   icon = 'add',
   visible = true,
   bottomOffset,
-  bgColor = '#00B4D8',
+  bgColor = '#DC2626',
+  label = 'เพิ่มรายการใหม่',
 }: FloatingActionButtonProps) {
   const insets = useSafeAreaInsets();
   if (!visible) return null;
@@ -35,12 +38,14 @@ export default function FloatingActionButton({
 
   return (
     <TouchableOpacity
-      className="absolute right-6 w-[60px] h-[60px] rounded-[30px] justify-center items-center shadow-md shadow-black/30 elevation-8 z-20"
+      className="absolute right-6 w-16 h-16 rounded-full justify-center items-center shadow-md shadow-black/30 elevation-8 z-20"
       style={{ bottom, backgroundColor: bgColor }}
       activeOpacity={0.8}
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
     >
-      <Ionicons name={icon} size={28} color="#ffffff" />
+      <Ionicons name={icon} size={30} color="#ffffff" />
     </TouchableOpacity>
   );
 }

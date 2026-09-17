@@ -329,8 +329,8 @@ export default function CustomerQuotationCard({
                 </View>
               ) : (
                 <TouchableOpacity
-                  className={`w-full py-3.5 px-6 rounded-2xl items-center justify-center shadow-sm shadow-emerald-700/25 ${
-                    isProcessing ? 'bg-emerald-400 opacity-60' : 'bg-emerald-600 active:opacity-90'
+                  className={`w-full h-[52px] px-6 rounded-xl items-center justify-center shadow-md shadow-emerald-700/25 ${
+                    isProcessing ? 'bg-emerald-400 opacity-60' : 'bg-emerald-600 active:bg-emerald-700'
                   }`}
                   activeOpacity={0.85}
                   onPress={onApprove}
@@ -354,7 +354,7 @@ export default function CustomerQuotationCard({
                 {/* ปุ่มขอแก้ไข / เพิ่มเติมรายการ */}
                 {onRequestModification && (
                   <TouchableOpacity
-                    className={`flex-1 border py-3 px-2.5 rounded-xl items-center justify-center flex-row gap-1.5 ${
+                    className={`flex-1 border min-h-[46px] py-2.5 px-3 rounded-xl items-center justify-center flex-row gap-1.5 ${
                       isProcessing ? 'bg-amber-50/50 border-amber-200 opacity-60' : 'bg-amber-50 border-amber-300 active:bg-amber-100'
                     }`}
                     activeOpacity={0.8}
@@ -370,7 +370,7 @@ export default function CustomerQuotationCard({
 
                 {/* ปุ่มไม่ซ่อม / ขอยกเลิก */}
                 <TouchableOpacity
-                  className={`flex-1 border py-3 px-2.5 rounded-xl items-center justify-center flex-row gap-1.5 ${
+                  className={`flex-1 border min-h-[46px] py-2.5 px-3 rounded-xl items-center justify-center flex-row gap-1.5 ${
                     isProcessing ? 'bg-slate-50/50 border-slate-200 opacity-60' : 'bg-slate-50 border-slate-200 active:bg-red-50'
                   }`}
                   activeOpacity={0.8}

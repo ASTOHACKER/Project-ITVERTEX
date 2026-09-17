@@ -11,6 +11,7 @@ import type { RepairItem } from './types';
 interface RepairItemRowProps {
   item: RepairItem;
   statusColor?: string;
+  statusId?: number;
   showQuoteBtn?: boolean;
   showHandoverBtn?: boolean;
   showPaymentCheckBtn?: boolean;
@@ -22,7 +23,8 @@ interface RepairItemRowProps {
 
 export default function RepairItemRow({
   item,
-  statusColor = '#D32F2F',
+  statusColor = '#DC2626',
+  statusId,
   showQuoteBtn = false,
   showHandoverBtn = false,
   showPaymentCheckBtn = false,
@@ -56,19 +58,25 @@ export default function RepairItemRow({
     return 'laptop-outline';
   };
 
+  // Badge text needs dark tone on light tints (lime/yellow) for contrast
+  const badgeTextColor =
+    statusId === 1 ? '#4D5E00' : statusId === 3 ? '#92400E' : statusId === 7 ? '#854D0E' : statusColor;
+
   return (
     <TouchableOpacity
       activeOpacity={0.85}
       onPress={() => onPressDetails?.(item)}
+      accessibilityRole="button"
+      accessibilityLabel={`งาน ${item.job_no} ${item.status ?? ''}`}
       className="bg-white rounded-2xl p-4 mb-3 border border-slate-200 shadow-sm shadow-black/5 elevation-2"
     >
       {/* Top Header: Job ID & Status Badge */}
       <View className="flex-row items-center justify-between pb-2.5 border-b border-slate-100 mb-2.5">
         <View className="flex-row items-center gap-1.5">
           {/* <View className="w-6 h-6 rounded-lg bg-red-50 border border-red-100 items-center justify-center">
-            <Ionicons name="build" size={12} color="#D32F2F" />
+            <Ionicons name="build" size={12} color="#DC2626" />
           </View> */}
-          <Text className="text-sm font-bold text-slate-800 font-heading tracking-wide">
+          <Text className="text-[15px] font-bold text-slate-900 tracking-wide">
             {item.job_no}
           </Text>
         </View>
@@ -76,16 +84,16 @@ export default function RepairItemRow({
         {/* Status Pill Badge */}
         {item.status && (
           <View
-            className="px-2.5 py-1 rounded-full flex-row items-center gap-1"
-            style={{ backgroundColor: `${statusColor}15` }}
+            className="px-3 py-1.5 rounded-full flex-row items-center gap-1.5 border"
+            style={{ backgroundColor: `${statusColor}14`, borderColor: `${statusColor}30` }}
           >
             <View
-              className="w-1.5 h-1.5 rounded-full"
+              className="w-2 h-2 rounded-full"
               style={{ backgroundColor: statusColor }}
             />
             <Text
-              className="text-xs font-bold"
-              style={{ color: statusColor }}
+              className="text-[13px] font-bold"
+              style={{ color: badgeTextColor }}
             >
               {item.status}
             </Text>
@@ -97,7 +105,7 @@ export default function RepairItemRow({
       <View className="flex-row items-center gap-2 mb-2">
         {/* <Ionicons name={getDeviceIcon() as any} size={18} color="#0284C7" /> */}
         <Text
-          className="text-[15px] font-bold text-slate-900 flex-1 font-heading"
+          className="text-[16px] font-bold text-slate-900 flex-1 leading-6"
           numberOfLines={1}
         >
           {displayDevice}
@@ -107,9 +115,9 @@ export default function RepairItemRow({
       {/* Customer Name & Phone in one clean line */}
       <View className="flex-row items-center gap-3 mb-2.5 px-0.5">
         <View className="flex-row items-center gap-1.5 flex-1">
-          <Ionicons name="person-outline" size={13} color="#64748B" />
+          <Ionicons name="person-outline" size={14} color="#475569" />
           <Text
-            className={`text-xs font-body ${
+            className={`text-[13px] ${
               item.customer_name && item.customer_name !== 'ไม่ระบุชื่อ'
                 ? 'font-medium text-slate-700'
                 : 'text-slate-400 italic'
@@ -123,9 +131,9 @@ export default function RepairItemRow({
         </View>
 
         {Boolean(item.phone && item.phone !== '-' && item.phone !== 'ไม่ระบุเบอร์') && (
-          <View className="flex-row items-center gap-1 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100">
-            <Ionicons name="call-outline" size={11} color="#64748B" />
-            <Text className="text-xs font-body text-slate-600">
+          <View className="flex-row items-center gap-1 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100">
+            <Ionicons name="call-outline" size={12} color="#475569" />
+            <Text className="text-[13px] font-medium text-slate-700">
               {item.phone}
             </Text>
           </View>
@@ -133,51 +141,53 @@ export default function RepairItemRow({
       </View>
 
       {/* Symptom Bubble (Easy to read at a glance) */}
-      <View className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 mb-3">
-        <View className="flex-row items-start gap-1.5">
-          <Ionicons name="alert-circle-outline" size={14} color="#D97706" style={{ marginTop: 2 }} />
+      <View className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2.5 mb-3">
+        <View className="flex-row items-start gap-2">
+          <Ionicons name="alert-circle-outline" size={15} color="#92400E" style={{ marginTop: 2 }} />
           <Text
-            className="text-xs text-slate-600 flex-1 leading-4 font-body"
+            className="text-[13px] text-slate-700 flex-1 leading-5"
             numberOfLines={2}
           >
-            <Text className="font-bold text-slate-700 font-heading">อาการ: </Text>
+            <Text className="font-bold text-slate-800">อาการ: </Text>
             {displaySymptom}
           </Text>
         </View>
       </View>
 
       {/* Footer Row: Date / Price & Action Button */}
-      <View className="flex-row items-center justify-between pt-1">
+      <View className="flex-row items-center justify-between pt-1 flex-wrap gap-2">
         {/* Left: Date or Price */}
         <View className="flex-col">
           {(item.total_amount && Number(item.total_amount) > 0) || (item.price && Number(item.price) > 0) ? (
             <View className="flex-row items-baseline gap-1">
-              <Text className="text-xs text-slate-500 font-body">ยอดค่าซ่อม:</Text>
-              <Text className="text-base font-bold text-[#D32F2F] font-heading">
+              <Text className="text-[13px] text-slate-500">ยอดค่าซ่อม:</Text>
+              <Text className="text-[17px] font-bold text-[#DC2626]">
                 ฿{Number(item.total_amount || item.price).toLocaleString()}
               </Text>
             </View>
           ) : (
             <View className="flex-row items-center gap-1">
-              <Ionicons name="calendar-outline" size={13} color="#94A3B8" />
-              <Text className="text-xs text-slate-400 font-body">
+              <Ionicons name="calendar-outline" size={14} color="#64748B" />
+              <Text className="text-[13px] text-slate-500">
                 {item.date && item.date !== '-' ? item.date : 'รอประเมินราคา'}
               </Text>
             </View>
           )}
         </View>
 
-        {/* Right: Quick Action Buttons */}
-        <View className="flex-row items-center gap-2">
+        {/* Right: Quick Action Buttons — min 44px touch target */}
+        <View className="flex-row items-center gap-2 flex-wrap">
           {/* Specific status actions */}
           {showHandoverBtn && (
             <TouchableOpacity
               onPress={() => onPressHandover?.(item)}
               activeOpacity={0.8}
-              className="flex-row items-center gap-1 bg-amber-500 px-3 py-1.5 rounded-xl shadow-sm"
+              accessibilityRole="button"
+              accessibilityLabel={`ส่งมอบ ${item.job_no}`}
+              className="flex-row items-center gap-1.5 bg-amber-500 min-h-[44px] px-4 rounded-xl shadow-sm"
             >
-              <Ionicons name="create-outline" size={13} color="#FFFFFF" />
-              <Text className="text-xs font-bold text-white font-heading">ส่งมอบ</Text>
+              <Ionicons name="create-outline" size={15} color="#FFFFFF" />
+              <Text className="text-sm font-bold text-white">ส่งมอบ</Text>
             </TouchableOpacity>
           )}
 
@@ -185,10 +195,12 @@ export default function RepairItemRow({
             <TouchableOpacity
               onPress={() => onPressPaymentCheck?.(item)}
               activeOpacity={0.8}
-              className="flex-row items-center gap-1 bg-emerald-600 px-3 py-1.5 rounded-xl shadow-sm"
+              accessibilityRole="button"
+              accessibilityLabel={`ตรวจชำระ ${item.job_no}`}
+              className="flex-row items-center gap-1.5 bg-emerald-600 min-h-[44px] px-4 rounded-xl shadow-sm"
             >
-              <Ionicons name="card-outline" size={13} color="#FFFFFF" />
-              <Text className="text-xs font-bold text-white font-heading">ตรวจชำระ</Text>
+              <Ionicons name="card-outline" size={15} color="#FFFFFF" />
+              <Text className="text-sm font-bold text-white">ตรวจชำระ</Text>
             </TouchableOpacity>
           )}
 
@@ -196,10 +208,12 @@ export default function RepairItemRow({
             <TouchableOpacity
               onPress={() => onPressMakeQuote?.(item)}
               activeOpacity={0.8}
-              className="flex-row items-center gap-1 bg-sky-600 px-3 py-1.5 rounded-xl shadow-sm"
+              accessibilityRole="button"
+              accessibilityLabel={`ทำใบเสนอราคา ${item.job_no}`}
+              className="flex-row items-center gap-1.5 bg-sky-600 min-h-[44px] px-4 rounded-xl shadow-sm"
             >
-              <Ionicons name="receipt-outline" size={13} color="#FFFFFF" />
-              <Text className="text-xs font-bold text-white font-heading">ใบเสนอราคา</Text>
+              <Ionicons name="receipt-outline" size={15} color="#FFFFFF" />
+              <Text className="text-sm font-bold text-white">ใบเสนอราคา</Text>
             </TouchableOpacity>
           )}
 
@@ -207,10 +221,12 @@ export default function RepairItemRow({
           <TouchableOpacity
             onPress={() => onPressDetails?.(item)}
             activeOpacity={0.7}
-            className="flex-row items-center gap-1 bg-red-50 border border-red-200 px-3 py-1.5 rounded-xl active:bg-red-100"
+            accessibilityRole="button"
+            accessibilityLabel={`ดูรายละเอียด ${item.job_no}`}
+            className="flex-row items-center gap-1 bg-red-50 border border-red-200 min-h-[44px] px-4 rounded-xl active:bg-red-100"
           >
-            <Text className="text-xs font-bold text-[#D32F2F] font-heading">ดูรายละเอียด</Text>
-            <Ionicons name="chevron-forward" size={12} color="#D32F2F" />
+            <Text className="text-sm font-bold text-[#DC2626]">ดูรายละเอียด</Text>
+            <Ionicons name="chevron-forward" size={14} color="#DC2626" />
           </TouchableOpacity>
         </View>
       </View>

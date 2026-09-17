@@ -31,14 +31,14 @@ export default function ReceiptPreviewModal({
         <View className="bg-white rounded-t-3xl p-5 gap-4">
           {/* Header Icon + Title */}
           <View className="flex-row items-center gap-2">
-            <Ionicons name="document-text" size={24} color="#00B4D8" />
-            <Text className="text-base font-bold text-slate-800">ตัวอย่างใบรับซ่อม</Text>
+            <Ionicons name="document-text" size={24} color="#DC2626" />
+            <Text className="text-base font-bold text-slate-800 font-heading">ตัวอย่างใบรับซ่อม</Text>
           </View>
 
           {/* Receipt Preview Card */}
           <View className="bg-slate-50 border border-slate-200 rounded-2xl p-4 items-center">
             {/* IT VERTEX Brand Title */}
-            <Text className="text-xl font-bold text-[#00B4D8]">IT VERTEX</Text>
+            <Text className="text-xl font-bold text-[#DC2626] font-heading">IT VERTEX</Text>
             <Text className="text-[11px] text-slate-500 mt-0.5 mb-2.5">ใบรับซ่อมอุปกรณ์ IT</Text>
 
             <View className="w-full h-px bg-slate-200 mb-3" />
@@ -46,7 +46,7 @@ export default function ReceiptPreviewModal({
             {/* Fields */}
             <View className="w-full flex-row justify-between py-1">
               <Text className="text-[13px] text-slate-500">เลขใบซ่อม:</Text>
-              <Text className="text-[13px] font-bold text-slate-800">{jobNo}</Text>
+              <Text className="text-[13px] font-bold text-slate-800 font-heading">{jobNo}</Text>
             </View>
 
             <View className="w-full flex-row justify-between py-1">
@@ -72,12 +72,12 @@ export default function ReceiptPreviewModal({
 
           {/* Actions Row */}
           <View className="flex-row gap-3 mt-2">
-            <TouchableOpacity className="flex-1 h-11 border border-slate-200 rounded-full justify-center items-center bg-white" onPress={onEdit}>
-              <Text className="text-sm font-bold text-slate-800">แก้ไข</Text>
+            <TouchableOpacity className="flex-1 h-12 border border-slate-200 rounded-xl justify-center items-center bg-white active:bg-slate-50" onPress={onEdit}>
+              <Text className="text-sm font-bold text-slate-700 font-heading">แก้ไข</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity className="flex-[1.5] h-11 bg-[#00B4D8] rounded-full justify-center items-center" onPress={onConfirmAndPrint}>
-              <Text className="text-sm font-bold text-white">ยืนยันและพิมพ์</Text>
+            <TouchableOpacity className="flex-[1.5] h-12 bg-[#DC2626] rounded-xl justify-center items-center shadow-sm active:opacity-90" onPress={onConfirmAndPrint}>
+              <Text className="text-sm font-bold text-white font-heading">ยืนยันและออกใบรับซ่อม</Text>
             </TouchableOpacity>
           </View>
         </View>

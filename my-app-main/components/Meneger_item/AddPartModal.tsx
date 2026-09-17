@@ -118,35 +118,35 @@ export default function AddPartModal({ visible, itemToEdit, onClose, onSuccess }
             <Text className="text-sm text-slate-800 mb-2">ประเภท</Text>
             <View className="flex-row items-center py-1">
               <TouchableOpacity
-                className="flex-row items-center mr-6"
+                className="flex-row items-center mr-6 py-1"
                 activeOpacity={0.7}
                 onPress={() => setItemType('parts')}
                 disabled={loading}
               >
-                <View className={`w-5 h-5 rounded-full border-2 items-center justify-center mr-2 ${itemType === 'parts' ? 'border-[#00B4D8]' : 'border-slate-200'}`}>
-                  {itemType === 'parts' && <View className="w-2.5 h-2.5 rounded-full bg-[#00B4D8]" />}
+                <View className={`w-5 h-5 rounded-full border-2 items-center justify-center mr-2 ${itemType === 'parts' ? 'border-[#DC2626]' : 'border-slate-300'}`}>
+                  {itemType === 'parts' && <View className="w-2.5 h-2.5 rounded-full bg-[#DC2626]" />}
                 </View>
-                <Text className="text-[15px] text-slate-800">อะไหล่</Text>
+                <Text className="text-sm font-medium text-slate-800 font-heading">อะไหล่</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                className="flex-row items-center mr-6"
+                className="flex-row items-center mr-6 py-1"
                 activeOpacity={0.7}
                 onPress={() => setItemType('services')}
                 disabled={loading}
               >
-                <View className={`w-5 h-5 rounded-full border-2 items-center justify-center mr-2 ${itemType === 'services' ? 'border-[#00B4D8]' : 'border-slate-200'}`}>
-                  {itemType === 'services' && <View className="w-2.5 h-2.5 rounded-full bg-[#00B4D8]" />}
+                <View className={`w-5 h-5 rounded-full border-2 items-center justify-center mr-2 ${itemType === 'services' ? 'border-[#DC2626]' : 'border-slate-300'}`}>
+                  {itemType === 'services' && <View className="w-2.5 h-2.5 rounded-full bg-[#DC2626]" />}
                 </View>
-                <Text className="text-[15px] text-slate-800">ค่าบริการ</Text>
+                <Text className="text-sm font-medium text-slate-800 font-heading">ค่าบริการ</Text>
               </TouchableOpacity>
             </View>
           </View>
 
           <View className="mb-4">
-            <Text className="text-sm text-slate-800 mb-2">ชื่อรายการ</Text>
+            <Text className="text-sm font-medium text-slate-800 mb-1.5 font-heading">ชื่อรายการ</Text>
             <TextInput
-              className="border border-slate-200 rounded-lg px-3 h-11 bg-slate-50 text-slate-800"
+              className="border border-slate-200 rounded-xl px-3.5 h-12 bg-slate-50 text-slate-800 font-body text-sm"
               placeholder="กรอกชื่อรายการ"
               placeholderTextColor="#94a3b8"
               value={itemName}
@@ -156,9 +156,9 @@ export default function AddPartModal({ visible, itemToEdit, onClose, onSuccess }
           </View>
 
           <View className="mb-4">
-            <Text className="text-sm text-slate-800 mb-2">ราคาขาย (บาท)</Text>
+            <Text className="text-sm font-medium text-slate-800 mb-1.5 font-heading">ราคาขาย (บาท)</Text>
             <TextInput
-              className="border border-slate-200 rounded-lg px-3 h-11 bg-slate-50 text-slate-800"
+              className="border border-slate-200 rounded-xl px-3.5 h-12 bg-slate-50 text-slate-800 font-body text-sm"
               placeholder="กรอกราคาขาย"
               keyboardType="numeric"
               placeholderTextColor="#94a3b8"
@@ -169,14 +169,14 @@ export default function AddPartModal({ visible, itemToEdit, onClose, onSuccess }
           </View>
 
           <TouchableOpacity
-            className={`bg-[#00B4D8] py-3.5 rounded-lg items-center mt-2.5 ${loading ? 'opacity-70' : ''}`}
+            className={`bg-[#DC2626] h-12 rounded-xl justify-center items-center mt-2.5 shadow-sm active:opacity-90 ${loading ? 'opacity-70' : ''}`}
             onPress={handleSave}
             disabled={loading}
           >
             {loading ? (
               <ActivityIndicator color="#ffffff" />
             ) : (
-              <Text className="text-white font-bold text-base">
+              <Text className="text-white font-bold text-base font-heading">
                 {itemToEdit ? 'บันทึกการแก้ไข' : 'บันทึกข้อมูล'}
               </Text>
             )}

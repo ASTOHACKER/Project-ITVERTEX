@@ -53,7 +53,7 @@ export default function PartDetailsModal({ visible, item, onClose, onEdit, onDel
 
             <View className="flex-row justify-between items-start py-2.5">
               <Text className="text-sm text-slate-500 flex-1">ราคา</Text>
-              <Text className="text-[16px] font-bold text-[#00B4D8] flex-[2] text-right">
+              <Text className="text-base font-bold text-[#DC2626] flex-[2] text-right font-heading">
                 {item.selling_price !== undefined && item.selling_price !== null
                   ? `${Number(item.selling_price).toLocaleString()} บาท`
                   : '-'}
@@ -63,26 +63,26 @@ export default function PartDetailsModal({ visible, item, onClose, onEdit, onDel
 
           <View className="flex-row justify-between gap-2.5">
             <TouchableOpacity
-              className="flex-1 flex-row h-11 rounded-lg justify-center items-center border border-[#FFCDD2] bg-[#FFEBEE]"
+              className="flex-1 flex-row h-12 rounded-xl justify-center items-center border border-red-200 bg-red-50 active:bg-red-100"
               onPress={() => onDelete?.(item)}
             >
-              <Ionicons name="trash-outline" size={18} color="#D32F2F" />
-              <Text className="text-[#D32F2F] font-bold text-sm ml-1">ลบ</Text>
+              <Ionicons name="trash-outline" size={18} color="#DC2626" />
+              <Text className="text-[#DC2626] font-bold text-sm ml-1 font-heading">ลบ</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              className="flex-1 flex-row h-11 rounded-lg justify-center items-center border border-slate-200 bg-slate-50"
+              className="flex-1 flex-row h-12 rounded-xl justify-center items-center border border-sky-200 bg-sky-50 active:bg-sky-100"
               onPress={() => onEdit?.(item)}
             >
-              <Ionicons name="create-outline" size={18} color="#00B4D8" />
-              <Text className="text-[#00B4D8] font-bold text-sm ml-1">แก้ไข</Text>
+              <Ionicons name="create-outline" size={18} color="#0284C7" />
+              <Text className="text-[#0284C7] font-bold text-sm ml-1 font-heading">แก้ไข</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              className="flex-1 flex-row h-11 rounded-lg justify-center items-center border border-[#00B4D8] bg-[#00B4D8]"
+              className="flex-1 flex-row h-12 rounded-xl justify-center items-center bg-slate-800 active:bg-slate-900 shadow-sm"
               onPress={onClose}
             >
-              <Text className="text-white font-bold text-sm">ปิด</Text>
+              <Text className="text-white font-bold text-sm font-heading">ปิด</Text>
             </TouchableOpacity>
           </View>
         </View>

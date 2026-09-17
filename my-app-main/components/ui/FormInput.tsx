@@ -28,14 +28,14 @@ export default function FormInput({
 }: FormInputProps) {
   return (
     <View className="mb-5">
-      <Text className="text-sm text-slate-500 mb-2 font-semibold">{label}</Text>
+      <Text className="text-[15px] text-slate-800 mb-2 font-bold">{label}</Text>
       <View
-        className={`flex-row items-center bg-white border rounded-xl px-4 h-[52px] ${
-          isFocused ? 'border-[#D32F2F]' : error ? 'border-red-500' : 'border-slate-200'
+        className={`flex-row items-center bg-white border-2 rounded-2xl px-4 min-h-[56px] ${
+          error ? 'border-red-500 bg-red-50/40' : isFocused ? 'border-[#DC2626] bg-white shadow-sm shadow-red-100' : 'border-slate-200'
         }`}
       >
         <TextInput
-          className="flex-1 h-full text-slate-800 text-base"
+          className="flex-1 py-3 text-slate-900 text-[16px] leading-6"
           placeholderTextColor="#94a3b8"
           onFocus={onFieldFocus}
           onBlur={onFieldBlur}
@@ -43,20 +43,25 @@ export default function FormInput({
         />
         {showPasswordToggle && (
           <TouchableOpacity
-            className="p-2 justify-center items-center"
+            className="p-3 -mr-2 justify-center items-center"
             onPress={onTogglePassword}
             activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={showPassword ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}
           >
             <Ionicons
               name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-              size={20}
-              color="#cbd5e1"
+              size={22}
+              color="#64748B"
             />
           </TouchableOpacity>
         )}
       </View>
       {error && (
-        <Text className="text-red-500 text-xs mt-1 ml-1">{error}</Text>
+        <View className="flex-row items-center gap-1 mt-1.5 ml-1">
+          <Ionicons name="alert-circle" size={14} color="#DC2626" />
+          <Text className="text-[#B91C1C] text-[13px] font-medium">{error}</Text>
+        </View>
       )}
     </View>
   );

@@ -29,13 +29,26 @@ export default function CustomAlert({
   const getIcon = () => {
     switch (type) {
       case 'success':
-        return <Ionicons name="checkmark-circle" size={48} color="#2CBA42" />;
+        return <Ionicons name="checkmark-circle" size={48} color="#16A34A" />;
       case 'warning':
-        return <Ionicons name="warning" size={48} color="#CAB036" />;
+        return <Ionicons name="warning" size={48} color="#D97706" />;
       case 'danger':
-        return <Ionicons name="alert-circle" size={48} color="#E61C3C" />;
+        return <Ionicons name="alert-circle" size={48} color="#DC2626" />;
       default:
-        return <Ionicons name="information-circle" size={48} color="#0097A7" />;
+        return <Ionicons name="information-circle" size={48} color="#0284C7" />;
+    }
+  };
+
+  const getConfirmBg = () => {
+    switch (type) {
+      case 'danger':
+        return 'bg-[#DC2626]';
+      case 'success':
+        return 'bg-emerald-600';
+      case 'warning':
+        return 'bg-amber-600';
+      default:
+        return 'bg-[#DC2626]';
     }
   };
 
@@ -49,24 +62,24 @@ export default function CustomAlert({
       <View className="flex-1 bg-black/40 justify-center items-center p-6">
         <View className="w-full max-w-[320px] bg-white rounded-2xl p-6 items-center shadow-lg shadow-black/15 elevation-8">
           {/* Header Icon */}
-          <View className="mb-4">{getIcon()}</View>
+          <View className="mb-3">{getIcon()}</View>
 
           {/* Texts */}
-          <Text className="text-lg font-bold text-slate-800 text-center mb-2">{title}</Text>
-          <Text className="text-sm text-slate-500 text-center mb-6 leading-5">{message}</Text>
+          <Text className="text-lg font-bold text-slate-800 text-center mb-1.5 font-heading">{title}</Text>
+          <Text className="text-sm text-slate-600 text-center mb-5 leading-5 font-body">{message}</Text>
 
           {/* Action Buttons */}
-          <View className="flex-row gap-3 w-full">
+          <View className="flex-row gap-2.5 w-full">
             {onCancel && cancelText && (
-              <TouchableOpacity className="flex-1 bg-slate-100 border border-slate-200 h-10 rounded-lg justify-center items-center" onPress={onCancel}>
-                <Text className="text-slate-800 text-sm font-bold">{cancelText}</Text>
+              <TouchableOpacity className="flex-1 bg-slate-100 border border-slate-200 h-11 rounded-xl justify-center items-center active:bg-slate-200" onPress={onCancel}>
+                <Text className="text-slate-700 text-sm font-bold font-heading">{cancelText}</Text>
               </TouchableOpacity>
             )}
             <TouchableOpacity
-              className={`flex-1 h-10 rounded-lg justify-center items-center ${type === 'danger' ? 'bg-[#E61C3C]' : 'bg-[#0097A7]'}`}
+              className={`flex-1 h-11 rounded-xl justify-center items-center shadow-sm active:opacity-90 ${getConfirmBg()}`}
               onPress={onConfirm}
             >
-              <Text className="text-white text-sm font-bold">{confirmText}</Text>
+              <Text className="text-white text-sm font-bold font-heading">{confirmText}</Text>
             </TouchableOpacity>
           </View>
         </View>

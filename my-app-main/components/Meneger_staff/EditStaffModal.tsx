@@ -139,19 +139,19 @@ export default function EditStaffModal({ visible, item, isSaving, onClose, onSav
 
           {/* Actions */}
           <View className="flex-row gap-2.5 mt-2.5">
-            <TouchableOpacity className="flex-1 h-11 rounded-lg border border-slate-200 bg-white justify-center items-center" onPress={onClose} disabled={isSaving}>
-              <Text className="text-[15px] font-bold text-slate-500">ยกเลิก</Text>
+            <TouchableOpacity className="flex-1 h-12 rounded-xl border border-slate-200 bg-white justify-center items-center active:bg-slate-50" onPress={onClose} disabled={isSaving}>
+              <Text className="text-sm font-bold text-slate-600 font-heading">ยกเลิก</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              className={`flex-[1.3] h-11 rounded-lg bg-[#00B4D8] justify-center items-center ${isSaving ? 'opacity-70' : ''}`}
+              className={`flex-[1.3] h-12 rounded-xl bg-[#DC2626] justify-center items-center shadow-sm active:opacity-90 ${isSaving ? 'opacity-70' : ''}`}
               onPress={handleSave}
               disabled={isSaving}
             >
               {isSaving ? (
                 <ActivityIndicator color="#ffffff" size="small" />
               ) : (
-                <Text className="text-[15px] font-bold text-white">บันทึกการแก้ไข</Text>
+                <Text className="text-sm font-bold text-white font-heading">บันทึกการแก้ไข</Text>
               )}
             </TouchableOpacity>
           </View>
