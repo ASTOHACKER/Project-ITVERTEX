@@ -39,29 +39,29 @@ export const Colors: Record<string, any> = {
     badge: primaryRedDark,
   },
   // ── Flat color aliases for Manager Dashboard ──
-  primary: '#D62828',
-  secondary: '#F77F00',
+  primary: '#DC2626',
+  secondary: '#F97316',
   tertiary: '#FCBF49',
   quaternary: '#E9D8A6',
   background: '#F8F9FA',
   white: '#FFFFFF',
-  textDark: '#333333',
-  textLight: '#888888',
+  textDark: '#0F172A',
+  textLight: '#64748B',
   pillInactive: '#F1F3F5',
-  success: '#2D6A4F',
-  info: '#0077B6',
-  warning: '#E85D04',
-  border: '#E9ECEF',
+  success: '#16A34A',
+  info: '#0284C7',
+  warning: '#D97706',
+  border: '#E2E8F0',
   status: {
-    status1: '#BAD80A', // 1 รอตรวจเช็ค
-    status2: '#D97706', // 2 ดำเนินการตรวจเช็ค
-    status3: '#F59E0B', // 3 ดำเนินการเสนอราคา
-    status4: '#A855F7', // 4 รอการอนุมัติ
-    status5: '#3B82F6', // 5 อนุมัติแล้ว/รอซ่อม
-    status6: '#0EA5E9', // 6 กำลังซ่อม
-    status7: '#EAB308', // 7 รอชำระ
-    status8: '#22C55E', // 8 เสร็จสิ้น
-    status9: '#EF4444', // 9 ยกเลิกซ่อม
+    status1: '#65A30D', // 1 รอตรวจเช็ค (Lime-600: legible, high contrast on light bg)
+    status2: '#D97706', // 2 ดำเนินการตรวจเช็ค (Amber-600)
+    status3: '#EA580C', // 3 ดำเนินการเสนอราคา (Orange-600: distinct from Amber)
+    status4: '#9333EA', // 4 รอการอนุมัติ (Purple-600)
+    status5: '#2563EB', // 5 อนุมัติแล้ว/รอซ่อม (Blue-600)
+    status6: '#0284C7', // 6 กำลังซ่อม (Sky-600: distinct from Blue)
+    status7: '#CA8A04', // 7 รอชำระ (Yellow-600: legible contrast on light)
+    status8: '#16A34A', // 8 เสร็จสิ้น (Green-600)
+    status9: '#DC2626', // 9 ยกเลิกซ่อม (Red-600)
   } as const,
 };
 

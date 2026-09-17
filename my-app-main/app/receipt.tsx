@@ -150,17 +150,17 @@ export default function ReceiptScreen() {
   return (
     <SafeAreaView className="flex-1 bg-slate-100">
       <Stack.Screen options={{ headerShown: false }} />
-      <StatusBar barStyle="light-content" backgroundColor="#D32F2F" />
+      <StatusBar barStyle="light-content" backgroundColor="#DC2626" />
 
       {/* Header */}
       <View
-        className="flex-row items-center justify-between px-4 pb-4 bg-[#D32F2F]"
+        className="flex-row items-center justify-between px-4 pb-4 bg-[#DC2626]"
         style={{ paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 12 : 12 }}
       >
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={24} color="#ffffff" />
         </TouchableOpacity>
-        <Text className="text-lg font-bold text-white">ใบเสร็จค่าซ่อม</Text>
+        <Text className="text-lg font-bold text-white font-heading">ใบเสร็จค่าซ่อม</Text>
         <View className="w-6" />
       </View>
 
@@ -171,27 +171,27 @@ export default function ReceiptScreen() {
           {isPaid && (
             <View className="absolute top-4 right-4 z-10">
               <View className="border-[2.5px] border-green-600 rounded-lg px-2 py-1 items-center bg-green-600/5 -rotate-12">
-                <Text className="text-green-600 text-base font-bold tracking-widest">PAID</Text>
-                <Text className="text-green-600 text-[10px] font-bold -mt-0.5">ชำระแล้ว</Text>
+                <Text className="text-green-600 text-base font-bold tracking-widest font-heading">PAID</Text>
+                <Text className="text-green-600 text-[10px] font-bold -mt-0.5 font-body">ชำระแล้ว</Text>
               </View>
             </View>
           )}
 
           <View className="items-center mb-2.5 pt-2.5">
-            <Text className="text-xl font-extrabold text-[#D32F2F] mb-1">IT VERTEX</Text>
-            <Text className="text-xs text-slate-500 text-center">ระบบจัดการร้านซ่อมคอมพิวเตอร์</Text>
+            <Text className="text-xl font-extrabold text-[#DC2626] mb-1 font-heading">IT VERTEX</Text>
+            <Text className="text-xs text-slate-500 text-center font-body">ระบบจัดการร้านซ่อมคอมพิวเตอร์</Text>
           </View>
 
           <View className="border-t border-dashed border-slate-200 my-4 w-full" />
 
           <View className="flex-row justify-between px-1">
             <View>
-              <Text className="text-[11px] text-slate-400 mb-0.5">เลขที่งานซ่อม</Text>
-              <Text className="text-sm font-semibold text-slate-800">{job.job_number || '-'}</Text>
+              <Text className="text-[11px] text-slate-400 mb-0.5 font-body">เลขที่งานซ่อม</Text>
+              <Text className="text-sm font-semibold text-slate-800 font-heading">{job.job_number || '-'}</Text>
             </View>
             <View className="items-end">
-              <Text className="text-[11px] text-slate-400 mb-0.5">วันที่</Text>
-              <Text className="text-sm font-semibold text-slate-800">{formatDate(job.created_at)}</Text>
+              <Text className="text-[11px] text-slate-400 mb-0.5 font-body">วันที่</Text>
+              <Text className="text-sm font-semibold text-slate-800 font-body">{formatDate(job.created_at)}</Text>
             </View>
           </View>
 
@@ -199,26 +199,26 @@ export default function ReceiptScreen() {
 
           {/* Customer & Device */}
           <View className="px-1">
-            <Text className="text-sm font-bold text-[#D32F2F] mb-2.5">ข้อมูลลูกค้า & อุปกรณ์</Text>
-            <Text className="text-[13px] text-slate-700 leading-5 mb-1"><Text className="text-slate-400 font-medium">ชื่อลูกค้า:</Text> {job.customer_name || '-'}</Text>
-            <Text className="text-[13px] text-slate-700 leading-5 mb-1"><Text className="text-slate-400 font-medium">เบอร์โทร:</Text> {job.phone || '-'}</Text>
-            <Text className="text-[13px] text-slate-700 leading-5 mb-1"><Text className="text-slate-400 font-medium">อุปกรณ์:</Text> {job.device_type || '-'} {job.brand || ''} {job.model || ''}</Text>
-            <Text className="text-[13px] text-slate-700 leading-5 mb-1"><Text className="text-slate-400 font-medium">S/N:</Text> {job.serial_number || '-'}</Text>
-            <Text className="text-[13px] text-slate-700 leading-5 mb-1"><Text className="text-slate-400 font-medium">อาการเสีย:</Text> {job.symptoms || '-'}</Text>
+            <Text className="text-sm font-bold text-[#DC2626] mb-2.5 font-heading">ข้อมูลลูกค้า & อุปกรณ์</Text>
+            <Text className="text-[13px] text-slate-700 leading-5 mb-1 font-body"><Text className="text-slate-400 font-medium">ชื่อลูกค้า:</Text> {job.customer_name || '-'}</Text>
+            <Text className="text-[13px] text-slate-700 leading-5 mb-1 font-body"><Text className="text-slate-400 font-medium">เบอร์โทร:</Text> {job.phone || '-'}</Text>
+            <Text className="text-[13px] text-slate-700 leading-5 mb-1 font-body"><Text className="text-slate-400 font-medium">อุปกรณ์:</Text> {job.device_type || '-'} {job.brand || ''} {job.model || ''}</Text>
+            <Text className="text-[13px] text-slate-700 leading-5 mb-1 font-body"><Text className="text-slate-400 font-medium">S/N:</Text> {job.serial_number || '-'}</Text>
+            <Text className="text-[13px] text-slate-700 leading-5 mb-1 font-body"><Text className="text-slate-400 font-medium">อาการเสีย:</Text> {job.symptoms || '-'}</Text>
           </View>
 
           <View className="border-t border-dashed border-slate-200 my-4 w-full" />
 
           {/* Items */}
           <View className="px-1">
-            <Text className="text-sm font-bold text-[#D32F2F] mb-2.5">รายการบริการ / อะไหล่</Text>
+            <Text className="text-sm font-bold text-[#DC2626] mb-2.5 font-heading">รายการบริการ / อะไหล่</Text>
             {items.length > 0 ? items.map((item: any, i: number) => (
               <View key={i} className="flex-row justify-between items-center mb-2">
-                <Text className="text-[13px] text-slate-700 flex-1 pr-2">{i + 1}. {item.name || item.item_name || item.description || 'รายการ'}</Text>
-                <Text className="text-[13px] font-semibold text-slate-800">{formatNumber(Number(item.price || item.unit_price) || 0)} ฿</Text>
+                <Text className="text-[13px] text-slate-700 flex-1 pr-2 font-body">{i + 1}. {item.name || item.item_name || item.description || 'รายการ'}</Text>
+                <Text className="text-[13px] font-semibold text-slate-800 font-heading">{formatNumber(Number(item.price || item.unit_price) || 0)} ฿</Text>
               </View>
             )) : (
-              <Text className="text-slate-400 text-[13px] text-center py-3">ยังไม่มีรายการ</Text>
+              <Text className="text-slate-400 text-[13px] text-center py-3 font-body">ยังไม่มีรายการ</Text>
             )}
           </View>
 
@@ -227,16 +227,16 @@ export default function ReceiptScreen() {
           {/* Totals */}
           <View className="px-1">
             <View className="flex-row justify-between items-center my-1">
-              <Text className="text-[13px] text-slate-500">รวมเป็นเงิน</Text>
-              <Text className="text-[13px] font-medium text-slate-800">{formatNumber(subtotal)} บาท</Text>
+              <Text className="text-[13px] text-slate-500 font-body">รวมเป็นเงิน</Text>
+              <Text className="text-[13px] font-medium text-slate-800 font-heading">{formatNumber(subtotal)} บาท</Text>
             </View>
             <View className="flex-row justify-between items-center my-1">
-              <Text className="text-[13px] text-slate-500">ภาษีมูลค่าเพิ่ม (VAT 7%)</Text>
-              <Text className="text-[13px] font-medium text-slate-800">{formatNumber(vat)} บาท</Text>
+              <Text className="text-[13px] text-slate-500 font-body">ภาษีมูลค่าเพิ่ม (VAT 7%)</Text>
+              <Text className="text-[13px] font-medium text-slate-800 font-heading">{formatNumber(vat)} บาท</Text>
             </View>
-            <View className="flex-row justify-between items-center bg-red-50 p-3 rounded-lg mt-2">
-              <Text className="text-[15px] font-bold text-[#D32F2F]">ยอดชำระสุทธิ</Text>
-              <Text className="text-lg font-bold text-[#D32F2F]">{formatNumber(grandTotal)} บาท</Text>
+            <View className="flex-row justify-between items-center bg-red-50 p-3 rounded-xl mt-2 border border-red-100">
+              <Text className="text-[15px] font-bold text-[#DC2626] font-heading">ยอดชำระสุทธิ</Text>
+              <Text className="text-lg font-bold text-[#DC2626] font-heading">{formatNumber(grandTotal)} บาท</Text>
             </View>
           </View>
         </View>
@@ -245,20 +245,20 @@ export default function ReceiptScreen() {
         <View className="w-full gap-3 pb-8">
           {!isPaid && (
             <TouchableOpacity
-              className="bg-green-600 py-3.5 rounded-xl items-center flex-row justify-center shadow-sm shadow-green-600/20 elevation-2"
+              className="bg-emerald-600 h-12 rounded-xl items-center flex-row justify-center shadow-sm active:bg-emerald-700"
               onPress={handleConfirmPayment}
             >
-              <Ionicons name="checkmark-circle-outline" size={20} color="#fff" className="mr-2" />
-              <Text className="text-white text-[15px] font-bold">ยืนยันการชำระเงิน</Text>
+              <Ionicons name="checkmark-circle-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
+              <Text className="text-white text-sm font-bold font-heading">ยืนยันการชำระเงิน</Text>
             </TouchableOpacity>
           )}
 
           <TouchableOpacity
-            className="bg-[#D32F2F] py-3.5 rounded-xl items-center flex-row justify-center shadow-sm shadow-[#D32F2F]/20 elevation-2"
+            className="bg-[#DC2626] h-12 rounded-xl items-center flex-row justify-center shadow-sm active:opacity-90"
             onPress={printToPDF}
           >
-            <Ionicons name="print-outline" size={20} color="#fff" className="mr-2" />
-            <Text className="text-white text-[15px] font-bold">พิมพ์ใบเสร็จ</Text>
+            <Ionicons name="print-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
+            <Text className="text-white text-sm font-bold font-heading">พิมพ์ใบเสร็จ</Text>
           </TouchableOpacity>
 
           <TouchableOpacity

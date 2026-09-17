@@ -233,7 +233,7 @@ export default function StaffReceiveScreen() {
     <View className="flex-1 bg-slate-50">
       {/* Top Bar */}
       <View 
-        className="bg-[#D32F2F] px-5 pb-4" 
+        className="bg-[#DC2626] px-5 pb-4" 
         style={{ paddingTop: insets.top + 10 }}
       >
         <Text className="text-white text-xl font-bold font-heading">รับเครื่องซ่อมใหม่</Text>
@@ -302,7 +302,7 @@ export default function StaffReceiveScreen() {
 
         {/* Submit & Generate PDF Button */}
         <TouchableOpacity
-          className={`bg-[#D32F2F] h-12 rounded-full flex-row items-center justify-center gap-2 mt-2 shadow-md shadow-red-500/30 elevation-4 ${
+          className={`bg-[#DC2626] h-12 rounded-full flex-row items-center justify-center gap-2 mt-2 shadow-md shadow-red-500/30 elevation-4 ${
             isSubmitting ? 'opacity-60' : ''
           }`}
           activeOpacity={0.8}

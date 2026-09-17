@@ -31,12 +31,24 @@ export function getStatusDefinitions(filterStatusIds?: number[]) {
  */
 export function getStatusOnTintColor(statusId: number): string {
   switch (statusId) {
-    case 1: // lime #BAD80A tint -> dark olive text
-      return '#4D5E00';
-    case 3: // amber tint
-      return '#92400E';
+    case 1: // lime tint -> dark olive text
+      return '#365314';
+    case 2: // amber tint
+      return '#78350F';
+    case 3: // orange tint
+      return '#7C2D12';
+    case 4: // purple tint
+      return '#581C87';
+    case 5: // blue tint
+      return '#1E3A8A';
+    case 6: // sky tint
+      return '#075985';
     case 7: // yellow tint
-      return '#854D0E';
+      return '#713F12';
+    case 8: // emerald tint
+      return '#14532D';
+    case 9: // red tint
+      return '#7F1D1D';
     default:
       return '#0F172A';
   }

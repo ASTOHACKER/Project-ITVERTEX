@@ -445,7 +445,7 @@ export default function TechnicianDetailScreen() {
   if (loading) {
     return (
       <View className="flex-1 bg-slate-100">
-        <View className="bg-[#D32F2F] px-5 pb-4 z-10" style={{ paddingTop: insets.top + 10 }}>
+        <View className="bg-[#DC2626] px-5 pb-4 z-10" style={{ paddingTop: insets.top + 10 }}>
           <View className="flex-row items-center">
             <TouchableOpacity onPress={() => router.back()} className="mr-3">
               <Ionicons name="chevron-back" size={28} color="#ffffff" />
@@ -454,7 +454,7 @@ export default function TechnicianDetailScreen() {
           </View>
         </View>
         <View className="flex-1 justify-center items-center py-10">
-          <ActivityIndicator size="large" color="#D32F2F" />
+          <ActivityIndicator size="large" color="#DC2626" />
           <Text className="mt-3 text-sm text-slate-500">กำลังโหลดข้อมูล...</Text>
         </View>
       </View>
@@ -464,7 +464,7 @@ export default function TechnicianDetailScreen() {
   if (!job) {
     return (
       <View className="flex-1 bg-slate-100">
-        <View className="bg-[#D32F2F] px-5 pb-4 z-10" style={{ paddingTop: insets.top + 10 }}>
+        <View className="bg-[#DC2626] px-5 pb-4 z-10" style={{ paddingTop: insets.top + 10 }}>
           <View className="flex-row items-center">
             <TouchableOpacity onPress={() => router.back()} className="mr-3">
               <Ionicons name="chevron-back" size={28} color="#ffffff" />
@@ -483,7 +483,7 @@ export default function TechnicianDetailScreen() {
   return (
     <View className="flex-1 bg-slate-100">
       {/* Top Header */}
-      <View className="bg-[#D32F2F] px-5 pb-4 z-10" style={{ paddingTop: insets.top + 10 }}>
+      <View className="bg-[#DC2626] px-5 pb-4 z-10" style={{ paddingTop: insets.top + 10 }}>
         <View className="flex-row items-center">
           <TouchableOpacity
             onPress={() => {
@@ -808,7 +808,7 @@ export default function TechnicianDetailScreen() {
       <FloatingActionButton
         onPress={() => setIsEditing(true)}
         icon="create-outline"
-        bgColor="#D32F2F"
+        bgColor="#DC2626"
         visible={
           !isEditing &&
           currentRole !== 'manager' &&

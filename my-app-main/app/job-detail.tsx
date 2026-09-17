@@ -19,10 +19,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 // 3. API helpers
 import { updateQuotationStatus, updateRepairStatus, getRepair } from '@/lib/api';
 
-// 4. Components
+// 4. Components & Theme
 import CustomerProgressBar from '@/components/Customer/CustomerProgressBar';
 import CustomerQuotationCard from '@/components/Customer/CustomerQuotationCard';
 import PickupCalendarCard from '@/components/Shared_Repairs/PickupCalendarCard';
+import { Colors } from '@/constants/theme';
+import { getStatusOnTintColor } from '@/components/Shared_Repairs/statusConfig';
 
 interface QuotationItem {
   name?: string;
@@ -221,9 +223,9 @@ export default function JobDetailScreen() {
   if (loading) {
     return (
       <SafeAreaView className="flex-1 bg-slate-50">
-        <StatusBar style="light" backgroundColor="#D32F2F" />
+        <StatusBar style="light" backgroundColor="#DC2626" />
         <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color="#D32F2F" />
+          <ActivityIndicator size="large" color="#DC2626" />
           <Text className="mt-4 text-slate-500 font-body">กำลังโหลดข้อมูล...</Text>
         </View>
       </SafeAreaView>
@@ -233,7 +235,7 @@ export default function JobDetailScreen() {
   if (!job) {
     return (
       <SafeAreaView className="flex-1 bg-slate-50">
-        <StatusBar style="light" backgroundColor="#D32F2F" />
+        <StatusBar style="light" backgroundColor="#DC2626" />
         <View className="flex-1 justify-center items-center">
           <Ionicons name="alert-circle-outline" size={60} color="#cbd5e1" />
           <Text className="text-slate-500 font-body mt-4 mb-4">ไม่พบข้อมูลงานซ่อม</Text>
@@ -268,10 +270,10 @@ export default function JobDetailScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-slate-50">
-      <StatusBar style="light" backgroundColor="#D32F2F" />
+      <StatusBar style="light" backgroundColor="#DC2626" />
       
       {/* Header */}
-      <View className="bg-[#D32F2F] pt-4 pb-6 px-4 flex-row items-center">
+      <View className="bg-[#DC2626] pt-4 pb-6 px-4 flex-row items-center">
         <TouchableOpacity onPress={() => router.back()} className="mr-3">
           <Ionicons name="chevron-back" size={24} color="#ffffff" />
         </TouchableOpacity>
@@ -296,9 +298,23 @@ export default function JobDetailScreen() {
             )}
             
             <View className="flex-row items-center justify-between">
-              <View className="px-3 py-1 bg-lime-400 rounded-full flex-row items-center">
-                <View className="w-1.5 h-1.5 rounded-full bg-white mr-1.5" />
-                <Text className="text-[11px] text-white font-bold">{job.status}</Text>
+              <View
+                className="px-2.5 py-1 rounded-full flex-row items-center border"
+                style={{
+                  backgroundColor: `${(Colors.status as any)[`status${job.status_id}`] || '#DC2626'}18`,
+                  borderColor: `${(Colors.status as any)[`status${job.status_id}`] || '#DC2626'}35`,
+                }}
+              >
+                <View
+                  className="w-1.5 h-1.5 rounded-full mr-1.5"
+                  style={{ backgroundColor: (Colors.status as any)[`status${job.status_id}`] || '#DC2626' }}
+                />
+                <Text
+                  className="text-[11px] font-bold font-heading"
+                  style={{ color: getStatusOnTintColor(job.status_id) }}
+                >
+                  {job.status}
+                </Text>
               </View>
             </View>
           </View>
@@ -463,7 +479,7 @@ export default function JobDetailScreen() {
               </View>
             ) : (
               <TouchableOpacity 
-                className="w-full bg-[#D32F2F] py-3.5 rounded-2xl items-center justify-center shadow-md shadow-red-700/20 flex-row gap-2 active:opacity-90"
+                className="w-full bg-[#DC2626] h-[52px] rounded-xl items-center justify-center shadow-md shadow-red-700/20 flex-row gap-2 active:opacity-90"
                 activeOpacity={0.85}
                 onPress={() => router.push({ pathname: '/verify-payment', params: { jobId: job.id, amount: total } })}
               >

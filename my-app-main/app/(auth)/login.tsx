@@ -136,9 +136,9 @@ export default function LoginScreen() {
   // ════════════════════════════════════════════════════════
 
   return (
-    <SafeAreaView className="flex-1 bg-[#D32F2F]">
+    <SafeAreaView className="flex-1 bg-[#DC2626]">
       <Stack.Screen options={{ headerShown: false }} />
-      <StatusBar barStyle="light-content" backgroundColor="#cc292b" />
+      <StatusBar barStyle="light-content" backgroundColor="#DC2626" />
 
       <SuccessToast
         visible={showToast}
@@ -161,7 +161,7 @@ export default function LoginScreen() {
         >
           {/* ═══ Red Header ═══ */}
           <View 
-            className="bg-[#D32F2F] pb-10 px-6 relative overflow-hidden"
+            className="bg-[#DC2626] pb-10 px-6 relative overflow-hidden"
             style={{ paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) + 40 : 60 }}
           >
             <View className="absolute w-[250px] h-[250px] rounded-full bg-white/5 -top-[50px] -right-[80px]" />

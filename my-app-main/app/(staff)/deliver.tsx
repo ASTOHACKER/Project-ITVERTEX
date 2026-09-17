@@ -299,8 +299,8 @@ export default function StaffDeliverScreen() {
                 key={tab.key}
                 activeOpacity={0.8}
                 onPress={() => setActiveSegment(tab.key as DeliverFilter)}
-                className={`px-3 py-1.5 rounded-full border ${
-                  isSelected ? 'bg-slate-900 border-slate-900' : 'bg-white border-slate-200'
+                className={`min-h-[44px] justify-center px-4 py-2 rounded-full border ${
+                  isSelected ? 'bg-slate-900 border-slate-900' : 'bg-white border-slate-200 active:bg-slate-50'
                 }`}
               >
                 <Text

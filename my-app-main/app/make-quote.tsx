@@ -460,7 +460,7 @@ export default function MakeQuoteScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       {/* Red Header */}
-      <View className="bg-[#D32F2F] px-5 pb-4 z-10" style={{ paddingTop: insets.top + 10 }}>
+      <View className="bg-[#DC2626] px-5 pb-4 z-10" style={{ paddingTop: insets.top + 10 }}>
         <View className="flex-row items-center">
           <TouchableOpacity onPress={() => router.back()} className="mr-3">
             <Ionicons name="chevron-back" size={28} color="#ffffff" />
@@ -481,7 +481,7 @@ export default function MakeQuoteScreen() {
         <View className="w-full max-w-[600px]">
           {loading ? (
             <View className="flex-1 justify-center items-center py-20">
-              <ActivityIndicator size="large" color="#D32F2F" />
+              <ActivityIndicator size="large" color="#DC2626" />
               <Text className="mt-3 text-sm text-slate-500">กำลังโหลดข้อมูล...</Text>
             </View>
           ) : (

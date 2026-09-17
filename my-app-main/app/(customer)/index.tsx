@@ -544,10 +544,10 @@ export default function CustomerDashboard() {
                 key={tab.key}
                 activeOpacity={0.8}
                 onPress={() => setActiveTab(tab.key as FilterTab)}
-                className={`px-3 py-1.5 rounded-full border ${
+                className={`min-h-[44px] justify-center px-4 py-2 rounded-full border ${
                   isSelected
                     ? 'bg-[#DC2626] border-[#DC2626]'
-                    : 'bg-white border-slate-200'
+                    : 'bg-white border-slate-200 active:bg-slate-50'
                 }`}
               >
                 <Text
