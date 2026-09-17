@@ -197,9 +197,9 @@ export default function DashboardScreen({ role }: DashboardScreenProps) {
         <View className="mx-4 bg-white rounded-2xl p-4 mb-4 border border-slate-200 shadow-sm">
           <View className="flex-row items-center justify-between mb-3">
             <View className="flex-row items-center gap-2">
-              <View className="w-7 h-7 rounded-lg bg-blue-50 items-center justify-center">
+              {/* <View className="w-7 h-7 rounded-lg bg-blue-50 items-center justify-center">
                 <Ionicons name="time-outline" size={16} color="#0284C7" />
-              </View>
+              </View> */}
               <Text className="text-sm font-bold text-slate-800 font-heading">
                 งานซ่อมล่าสุด (Recent Jobs)
               </Text>
