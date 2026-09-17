@@ -34,7 +34,7 @@ import ItemFilterSheet, {
 } from '@/components/Meneger_item/ItemFilterSheet';
 
 export default function PartsScreen() {
-  const [devices, setDevices] = useState<any[]>([]);
+  const [allItems, setAllItems] = useState<any[]>([]);
   const [isModalVisible, setModalVisible] = useState(false);
   const [itemToEdit, setItemToEdit] = useState<any | null>(null);
   const [searchText, setSearchText] = useState('');
@@ -52,26 +52,31 @@ export default function PartsScreen() {
   const fetchDevices = useCallback(async () => {
     setIsLoading(true);
     try {
-      const typeId = activeTab === 'parts' ? 1 : 2;
-      const res = await getItems(typeId);
+      const res = await getItems();
       if (!res.success) throw new Error(res.message || 'เกิดข้อผิดพลาดในการโหลดข้อมูล');
-      
-      let data = res.data || [];
-      // กรองแยกประเภท อะไหล่ (1) และ ค่าบริการ (2) อย่างแม่นยำ
-      data = data.filter((item: any) => Number(item.item_type_id) === typeId);
-      setDevices(data);
+      setAllItems(res.data || []);
     } catch (err: any) {
-      console.error('Error fetching devices:', err.message);
+      console.error('Error fetching items:', err.message);
     } finally {
       setIsLoading(false);
     }
-  }, [activeTab]);
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
       fetchDevices();
     }, [fetchDevices])
   );
+
+  const partsList = useMemo(() => {
+    return allItems.filter((item: any) => Number(item.item_type_id) === 1);
+  }, [allItems]);
+
+  const servicesList = useMemo(() => {
+    return allItems.filter((item: any) => Number(item.item_type_id) === 2);
+  }, [allItems]);
+
+  const currentTabItems = activeTab === 'parts' ? partsList : servicesList;
 
   const handleTabChange = (tab: 'parts' | 'services') => {
     if (activeTab !== tab) {
@@ -83,7 +88,7 @@ export default function PartsScreen() {
 
   // Filtered & Sorted items
   const filteredDevices = useMemo(() => {
-    let list = [...devices];
+    let list = [...currentTabItems];
 
     // 1. Search text filter
     if (searchText.trim()) {
@@ -146,7 +151,7 @@ export default function PartsScreen() {
     });
 
     return list;
-  }, [devices, searchText, filters, activeTab]);
+  }, [currentTabItems, searchText, filters, activeTab]);
 
   // Active filters count
   const activeFilterCount = useMemo(() => {
@@ -298,9 +303,9 @@ export default function PartsScreen() {
             activeOpacity={0.8}
           >
             <Text className={`font-body text-sm ${
-              activeTab === 'parts' ? 'font-bold text-[#D32F2F] font-heading' : 'text-slate-600'
+              activeTab === 'parts' ? 'font-bold text-[#DC2626] font-heading' : 'text-slate-600'
             }`}>
-              อะไหล่ ({activeTab === 'parts' ? filteredDevices.length : devices.length})
+              อะไหล่ ({activeTab === 'parts' ? filteredDevices.length : partsList.length})
             </Text>
           </TouchableOpacity>
 
@@ -312,9 +317,9 @@ export default function PartsScreen() {
             activeOpacity={0.8}
           >
             <Text className={`font-body text-sm ${
-              activeTab === 'services' ? 'font-bold text-[#D32F2F] font-heading' : 'text-slate-600'
+              activeTab === 'services' ? 'font-bold text-[#DC2626] font-heading' : 'text-slate-600'
             }`}>
-              ค่าบริการ ({activeTab === 'services' ? filteredDevices.length : devices.length})
+              ค่าบริการ ({activeTab === 'services' ? filteredDevices.length : servicesList.length})
             </Text>
           </TouchableOpacity>
         </View>
@@ -322,7 +327,7 @@ export default function PartsScreen() {
         {/* Table Content */}
         {isLoading ? (
           <View className="flex-1 justify-center items-center py-10">
-            <ActivityIndicator size="large" color="#D32F2F" />
+            <ActivityIndicator size="large" color="#DC2626" />
             <Text className="mt-3 font-body text-sm text-slate-500">กำลังโหลดข้อมูล...</Text>
           </View>
         ) : (

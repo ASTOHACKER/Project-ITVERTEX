@@ -61,24 +61,154 @@ export const SERVICES_CATEGORIES = [
 export function getItemSubcategory(itemName: string, type: 'parts' | 'services'): string {
   const name = (itemName || '').toLowerCase();
   if (type === 'parts') {
-    if (name.includes('ram') || name.includes('ddr')) return 'ram';
-    if (name.includes('ssd') || name.includes('sata') || name.includes('nvme') || name.includes('m.2') || name.includes('hdd')) return 'storage';
-    if (name.includes('พาวเวอร์') || name.includes('power') || name.includes('psu') || name.includes('watt') || name.includes('650w') || name.includes('750w') || name.includes('บอร์ดจ่ายไฟ')) return 'psu';
-    if (name.includes('พัดลม') || name.includes('cooling') || name.includes('cooler') || name.includes('ซิลิโคน') || name.includes('ระบายความร้อน')) return 'cooling';
-    if (name.includes('จอ') || name.includes('display') || name.includes('monitor') || name.includes('ips') || name.includes('panel')) return 'display';
-    if (name.includes('แบตเตอรี่') || name.includes('battery') || name.includes('คีย์บอร์ด') || name.includes('keyboard') || name.includes('อะแดปเตอร์') || name.includes('adapter') || name.includes('ชาร์จ')) return 'peripherals';
-    if (name.includes('printer') || name.includes('พิมพ์') || name.includes('หมึก') || name.includes('roller') || name.includes('ลูกยาง') || name.includes('ซับหมึก')) return 'printer';
-    if (name.includes('wi-fi') || name.includes('wifi') || name.includes('bluetooth') || name.includes('ax200') || name.includes('ax210') || name.includes('lan')) return 'network';
+    // 1. Wi-Fi / Network (must precede storage because cards have M.2/PCIe slot terms)
+    if (
+      name.includes('wi-fi') ||
+      name.includes('wifi') ||
+      name.includes('bluetooth') ||
+      name.includes('ax200') ||
+      name.includes('ax210') ||
+      name.includes('lan') ||
+      name.includes('wireless') ||
+      name.includes('การ์ด wi-fi')
+    ) {
+      return 'network';
+    }
+    // 2. Power Supply (must precede cooling because of brand names like "Cooler Master PSU")
+    if (
+      name.includes('พาวเวอร์') ||
+      name.includes('power supply') ||
+      name.includes('บอร์ดจ่ายไฟ') ||
+      name.includes('psu') ||
+      name.includes('650w') ||
+      name.includes('750w')
+    ) {
+      return 'psu';
+    }
+    // 3. Printer & Consumables
+    if (
+      name.includes('printer') ||
+      name.includes('พิมพ์') ||
+      name.includes('หมึก') ||
+      name.includes('roller') ||
+      name.includes('ลูกยาง') ||
+      name.includes('ซับหมึก')
+    ) {
+      return 'printer';
+    }
+    // 4. Display & Monitors
+    if (
+      name.includes('จอแสดงผล') ||
+      name.includes('display') ||
+      name.includes('monitor') ||
+      name.includes('ips') ||
+      name.includes('panel')
+    ) {
+      return 'display';
+    }
+    // 5. Peripherals (Battery / Keyboard / Charger)
+    if (
+      name.includes('แบตเตอรี่') ||
+      name.includes('battery') ||
+      name.includes('คีย์บอร์ด') ||
+      name.includes('keyboard') ||
+      name.includes('อะแดปเตอร์') ||
+      name.includes('adapter') ||
+      name.includes('ชาร์จ')
+    ) {
+      return 'peripherals';
+    }
+    // 6. Cooling / Thermal
+    if (
+      name.includes('พัดลม') ||
+      name.includes('cooling') ||
+      name.includes('cooler') ||
+      name.includes('ซิลิโคน') ||
+      name.includes('ระบายความร้อน')
+    ) {
+      return 'cooling';
+    }
+    // 7. RAM
+    if (name.includes('ram') || name.includes('ddr4') || name.includes('ddr5')) {
+      return 'ram';
+    }
+    // 8. Storage (SSD / HDD)
+    if (
+      name.includes('ssd') ||
+      name.includes('sata') ||
+      name.includes('nvme') ||
+      name.includes('m.2') ||
+      name.includes('hdd')
+    ) {
+      return 'storage';
+    }
     return 'other';
   } else {
-    if (name.includes('windows') || name.includes('ไดรเวอร์') || name.includes('โปรแกรม') || name.includes('os')) return 'os';
-    if (name.includes('ตรวจเช็ค') || name.includes('diagnostic') || name.includes('วิเคราะห์')) return 'diagnostic';
-    if (name.includes('ทำความสะอาด') || name.includes('ทาซิลิโคน') || name.includes('ฝุ่น')) return 'cleaning';
-    if (name.includes('เปลี่ยนและติดตั้ง') || name.includes('ติดตั้งอุปกรณ์') || name.includes('ประกอบ')) return 'hardware';
-    if (name.includes('เปลี่ยนจอ') || name.includes('เปลี่ยนคีย์บอร์ด') || name.includes('ทัชแพด')) return 'display_kb';
-    if (name.includes('เมนบอร์ด') || name.includes('ระบบไฟ') || name.includes('ไอซี') || name.includes('ชิป') || name.includes('ซ่อมบอร์ด')) return 'board';
-    if (name.includes('ล้างหัวพิมพ์') || name.includes('ซับหมึก') || name.includes('กระดาษติด') || name.includes('printer')) return 'printer';
-    if (name.includes('กู้คืนข้อมูล') || name.includes('data recovery') || name.includes('เน็ตเวิร์ก') || name.includes('แชร์เครื่องพิมพ์')) return 'data_net';
+    // 1. Diagnostic Fee
+    if (name.includes('ตรวจเช็ค') || name.includes('diagnostic')) {
+      return 'diagnostic';
+    }
+    // 2. OS & Basic Programs (avoid raw 'os' substring collision with 'diagnostic')
+    if (
+      name.includes('windows') ||
+      name.includes('ไดรเวอร์') ||
+      name.includes('โปรแกรม') ||
+      name.includes('ระบบปฏิบัติการ')
+    ) {
+      return 'os';
+    }
+    // 3. Cleaning & Thermal paste
+    if (
+      name.includes('ทำความสะอาด') ||
+      name.includes('ทาซิลิโคน') ||
+      name.includes('ฝุ่น')
+    ) {
+      return 'cleaning';
+    }
+    // 4. Hardware Install & Replacement
+    if (
+      name.includes('เปลี่ยนและติดตั้ง') ||
+      name.includes('ติดตั้งอุปกรณ์') ||
+      name.includes('ประกอบ')
+    ) {
+      return 'hardware';
+    }
+    // 5. Display / Keyboard
+    if (
+      name.includes('เปลี่ยนจอ') ||
+      name.includes('เปลี่ยนคีย์บอร์ด') ||
+      name.includes('ทัชแพด')
+    ) {
+      return 'display_kb';
+    }
+    // 6. Board & Power IC Repair
+    if (
+      name.includes('เมนบอร์ด') ||
+      name.includes('ระบบไฟ') ||
+      name.includes('ไอซี') ||
+      name.includes('ชิป') ||
+      name.includes('ซ่อมบอร์ด')
+    ) {
+      return 'board';
+    }
+    // 7. Printer Service
+    if (
+      name.includes('ล้างหัวพิมพ์') ||
+      name.includes('ซับหมึก') ||
+      name.includes('กระดาษติด') ||
+      name.includes('printer')
+    ) {
+      return 'printer';
+    }
+    // 8. Data Recovery & Network
+    if (
+      name.includes('กู้คืนข้อมูล') ||
+      name.includes('data recovery') ||
+      name.includes('เน็ตเวิร์ก') ||
+      name.includes('แชร์เครื่องพิมพ์')
+    ) {
+      return 'data_net';
+    }
     return 'other';
   }
 }

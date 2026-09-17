@@ -29,15 +29,15 @@ export default function PartTable({ title, data, headerColor = '#0F172A', onPres
       </View>
 
       {/* Column Headers */}
-      <View className="flex-row bg-slate-50 py-2.5 px-4 border-b border-slate-200">
-        <Text className="font-bold text-xs text-slate-600 font-heading" style={{ flex: 2 }}>
+      <View className="flex-row items-center bg-slate-50 py-2.5 px-4 border-b border-slate-200">
+        <Text className="font-bold text-xs text-slate-600 font-heading flex-1 pr-2">
           ชื่อรายการ / หมวดหมู่
         </Text>
-        <Text className="font-bold text-xs text-slate-600 text-right font-heading" style={{ flex: 1.2 }}>
+        <Text className="font-bold text-xs text-slate-600 text-right font-heading min-w-[85px]">
           ราคาขาย (บาท)
         </Text>
         {onPressDetails && (
-          <Text className="font-bold text-xs text-slate-600 text-right w-[50px] font-heading">
+          <Text className="font-bold text-xs text-slate-600 text-right w-10 font-heading">
             จัดการ
           </Text>
         )}
@@ -62,23 +62,23 @@ export default function PartTable({ title, data, headerColor = '#0F172A', onPres
               key={item.item_id || index}
               activeOpacity={0.7}
               onPress={() => onPressDetails?.(item)}
-              className={`flex-row items-center py-3 px-4 bg-white ${
+              className={`flex-row items-center py-3.5 px-4 bg-white ${
                 index === data.length - 1 ? '' : 'border-b border-slate-100'
               }`}
             >
-              <View style={{ flex: 2 }}>
-                <Text className="text-sm font-bold text-slate-800 font-heading" numberOfLines={1}>
+              <View className="flex-1 pr-2">
+                <Text className="text-sm font-bold text-slate-800 font-heading leading-5" numberOfLines={2}>
                   {item.item_name}
                 </Text>
                 
-                <View className="flex-row items-center gap-1.5 mt-1 flex-wrap">
+                <View className="flex-row items-center gap-1.5 mt-1.5 flex-wrap">
                   {catLabel && (
-                    <View className="bg-slate-100 rounded px-1.5 py-0.5 border border-slate-200">
-                      <Text className="text-[10px] text-slate-600 font-body">{catLabel}</Text>
+                    <View className="bg-slate-100 rounded-md px-2 py-0.5 border border-slate-200">
+                      <Text className="text-[10px] font-medium text-slate-600 font-body">{catLabel}</Text>
                     </View>
                   )}
                   {Number(item.used_count) > 0 && (
-                    <View className="bg-blue-50 rounded px-1.5 py-0.5 border border-blue-200 flex-row items-center gap-0.5">
+                    <View className="bg-blue-50 rounded-md px-2 py-0.5 border border-blue-200 flex-row items-center gap-1">
                       <Ionicons name="receipt-outline" size={10} color="#2563EB" />
                       <Text className="text-[10px] text-blue-700 font-bold font-heading">
                         ใช้ {item.used_count} ครั้ง
@@ -93,12 +93,12 @@ export default function PartTable({ title, data, headerColor = '#0F172A', onPres
                 </View>
               </View>
 
-              <Text className="text-sm font-bold text-slate-900 text-right font-heading" style={{ flex: 1.2 }}>
+              <Text className="text-sm font-bold text-slate-900 text-right font-heading min-w-[85px]">
                 ฿{item.selling_price ? Number(item.selling_price).toLocaleString() : '-'}
               </Text>
 
               {onPressDetails && (
-                <View className="w-[50px] items-end justify-center">
+                <View className="w-10 items-end justify-center">
                   <View className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 items-center justify-center">
                     <Ionicons name="create-outline" size={16} color="#0284C7" />
                   </View>
