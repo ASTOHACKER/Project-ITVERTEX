@@ -154,21 +154,21 @@ export default function DashboardScreen({ role }: DashboardScreenProps) {
         />
 
         {/* ── Status Pipeline Distribution Card ── */}
-        <View className="mx-4 bg-white rounded-2xl p-4 mb-4 border border-slate-200 shadow-sm">
+        {/* <View className="mx-4 bg-white rounded-2xl p-4 mb-4 border border-slate-200 shadow-sm">
           <View className="flex-row items-center justify-between mb-3">
             <View className="flex-row items-center gap-2">
-              {/* <View className="w-7 h-7 rounded-lg bg-red-50 items-center justify-center">
+              <View className="w-7 h-7 rounded-lg bg-red-50 items-center justify-center">
                 <Ionicons name="git-network-outline" size={16} color="#DC2626" />
-              </View> */}
+              </View>
               <Text className="text-sm font-bold text-slate-800 font-heading">
                 สถานะงานซ่อมในระบบ (Operations Pipeline)
               </Text>
             </View>
             <Text className="text-xs text-slate-400 font-body">9 ขั้นตอน</Text>
-          </View>
+          </View> */}
 
           {/* Grid of 9 Statuses */}
-          <View className="flex-row flex-wrap gap-2">
+          {/* <View className="flex-row flex-wrap gap-2">
             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((sId) => {
               const cfg = STATUS_CONFIG[sId];
               const count = statusCounts[sId] || 0;
@@ -190,8 +190,8 @@ export default function DashboardScreen({ role }: DashboardScreenProps) {
                 </View>
               );
             })}
-          </View>
-        </View>
+          </View> */}
+        {/* </View> */}
 
         {/* ── Recent Repairs Feed ── */}
         <View className="mx-4 bg-white rounded-2xl p-4 mb-4 border border-slate-200 shadow-sm">
