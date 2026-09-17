@@ -17,6 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 // 3. Auth helpers & Components
 import { getCurrentUser, logout } from '@/lib/auth';
 import ConfirmLogoutModal from '@/components/ui/ConfirmLogoutModal';
+import SuccessToast from '@/components/ui/SuccessToast';
 
 // ── Role configuration type ──
 export interface RoleConfig {
@@ -48,7 +49,8 @@ export default function SharedProfileScreen({ roleConfig }: SharedProfileScreenP
   const [user, setUser] = useState<any>(null);
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
-  const [logoutSuccess, setLogoutSuccess] = useState(false);
+  const [showLogoutToast, setShowLogoutToast] = useState(false);
+  const [toastUserSubtitle, setToastUserSubtitle] = useState('');
 
   useEffect(() => {
     fetchProfile();
@@ -79,28 +81,33 @@ export default function SharedProfileScreen({ roleConfig }: SharedProfileScreenP
   };
 
   const handleLogout = () => {
-    setLogoutSuccess(false);
     setLogoutModalVisible(true);
   };
 
   const confirmLogout = async () => {
     setLoggingOut(true);
     try {
+      const displayName = user
+        ? `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email
+        : 'ผู้ใช้งาน';
+      const roleText = roleConfig.roleLabel || user?.role_name || '';
+      const sub = roleText ? `${displayName} • ${roleText}` : displayName;
+
+      setToastUserSubtitle(sub);
       await logout();
-      setLogoutSuccess(true);
-      setTimeout(() => {
-        router.replace('/(auth)/login');
-        setTimeout(() => {
-          setLogoutModalVisible(false);
-          setLogoutSuccess(false);
-          setLoggingOut(false);
-        }, 500);
-      }, 1200);
+      setLogoutModalVisible(false);
+      setShowLogoutToast(true);
     } catch (err) {
       console.error('Logout error:', err);
-      setLoggingOut(false);
       setLogoutModalVisible(false);
+    } finally {
+      setLoggingOut(false);
     }
+  };
+
+  const handleLogoutToastHide = () => {
+    setShowLogoutToast(false);
+    router.replace('/(auth)/login');
   };
 
   const getInitials = () => {
@@ -226,6 +233,18 @@ export default function SharedProfileScreen({ roleConfig }: SharedProfileScreenP
         </View>
       </ScrollView>
 
+      {/* Enhanced Success Toast on Logout */}
+      <SuccessToast
+        visible={showLogoutToast}
+        message="ออกจากระบบเสร็จสิ้น"
+        subtitle={toastUserSubtitle}
+        type="logout"
+        icon="log-out-outline"
+        duration={1500}
+        showProgress={true}
+        onHide={handleLogoutToastHide}
+      />
+
       {/* Confirm Logout Modal Component */}
       <ConfirmLogoutModal
         visible={logoutModalVisible}
@@ -236,9 +255,8 @@ export default function SharedProfileScreen({ roleConfig }: SharedProfileScreenP
         }
         userRole={roleConfig.roleLabel || user?.role_name}
         loading={loggingOut}
-        success={logoutSuccess}
         onConfirm={confirmLogout}
-        onCancel={() => !loggingOut && !logoutSuccess && setLogoutModalVisible(false)}
+        onCancel={() => !loggingOut && setLogoutModalVisible(false)}
       />
     </View>
   );

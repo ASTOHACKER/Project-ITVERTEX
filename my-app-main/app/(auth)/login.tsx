@@ -31,6 +31,7 @@ export default function LoginScreen() {
   // ── Toast ──
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [toastSubtitle, setToastSubtitle] = useState('');
   const [pendingRedirect, setPendingRedirect] = useState<string | null>(null);
 
   // ── Validation errors ──
@@ -82,6 +83,8 @@ export default function LoginScreen() {
 
   const handleAuthSuccess = (user: User) => {
     setToastMessage('เข้าสู่ระบบสำเร็จ');
+    const name = `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email;
+    setToastSubtitle(`ยินดีต้อนรับ ${name} (${user.role_name})`);
     setPendingRedirect(getRoleRedirectPath(user));
     setShowToast(true);
   };
@@ -140,8 +143,10 @@ export default function LoginScreen() {
       <SuccessToast
         visible={showToast}
         message={toastMessage}
+        subtitle={toastSubtitle}
         type="success"
-        duration={2000}
+        duration={1600}
+        showProgress={true}
         onHide={handleToastHide}
       />
 
