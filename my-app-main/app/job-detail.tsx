@@ -61,6 +61,16 @@ interface RepairJob {
   payment_date?: string | null;
 }
 
+function getDeviceIcon(deviceType?: string): keyof typeof Ionicons.glyphMap {
+  const type = (deviceType || '').toLowerCase();
+
+  if (type.includes('printer') || type.includes('พิมพ์')) return 'print-outline';
+  if (type.includes('desktop') || type.includes('pc') || type.includes('คอม')) return 'desktop-outline';
+  if (type.includes('phone') || type.includes('มือถือ') || type.includes('โทรศัพท์')) return 'phone-portrait-outline';
+  if (type.includes('tablet') || type.includes('แท็บเล็ต')) return 'tablet-portrait-outline';
+  return 'laptop-outline';
+}
+
 export default function JobDetailScreen() {
   const router = useRouter();
   const { id, jobId } = useLocalSearchParams<{ id?: string, jobId?: string }>();
@@ -279,7 +289,7 @@ export default function JobDetailScreen() {
         </TouchableOpacity>
         <View>
           <Text className="text-white text-lg font-bold font-heading">รายละเอียดการซ่อม</Text>
-          <Text className="text-red-200 text-xs font-body">{job.job_number}</Text>
+          <Text className="font-body text-xs text-red-200">{job.job_number}</Text>
         </View>
       </View>
 
@@ -287,7 +297,9 @@ export default function JobDetailScreen() {
         
         {/* Device Info Header Card */}
         <View className="bg-white rounded-2xl p-4 mb-4 shadow-sm border border-slate-100 flex-row">
-          <View className="w-14 h-14 bg-slate-100 rounded-xl mr-4" />
+          <View className="w-14 h-14 bg-sky-50 rounded-2xl mr-4 items-center justify-center border border-sky-100">
+            <Ionicons name={getDeviceIcon(job.device_type)} size={28} color="#0284C7" />
+          </View>
           <View className="flex-1">
             <Text className="text-base font-bold text-slate-800 font-heading">{job.brand} {job.model}</Text>
             <Text className="text-xs text-slate-500 font-body mt-0.5">อาการที่แจ้ง: {job.symptoms}</Text>
