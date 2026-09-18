@@ -21,33 +21,21 @@ interface MetricCardProps {
   borderColor: string;
 }
 
-function MetricCard({ title, value, icon, color, bgColor, borderColor }: MetricCardProps) {
+function MetricRow({ title, value, icon, color, bgColor, borderColor }: MetricCardProps) {
   return (
-    <View
-      className="relative mb-3 min-h-[112px] w-[48.5%] rounded-3xl border bg-white px-4 py-4"
-      style={{ borderColor }}
-    >
-      <View
-        className="absolute bottom-4 left-0 top-4 w-1 rounded-r-full"
-        style={{ backgroundColor: color }}
-      />
-
-      <View className="flex-row items-start justify-between gap-2">
-        <Text
-          className="flex-1 pt-1 font-heading text-xs font-medium text-slate-500"
-          numberOfLines={1}
-        >
-          {title}
-        </Text>
+    <View className="flex-row items-center py-3.5">
+      <View className="flex-1 flex-row items-center gap-3">
         <View
-          className="h-9 w-9 items-center justify-center rounded-2xl border"
+          className="h-9 w-9 items-center justify-center rounded-xl border"
           style={{ backgroundColor: bgColor, borderColor }}
         >
           <Ionicons name={icon} size={18} color={color} />
         </View>
+        <Text className="flex-1 font-heading text-xs font-medium text-slate-600" numberOfLines={2}>
+          {title}
+        </Text>
       </View>
-
-      <Text className="mt-4 font-heading text-[27px] font-bold tracking-tight text-slate-900">
+      <Text className="font-heading text-xl font-bold tracking-tight" style={{ color }}>
         {value}
       </Text>
     </View>
@@ -101,11 +89,37 @@ export default function MetricCards({
     },
   ];
 
+  const [primaryMetric, ...supportingMetrics] = metrics;
+
   return (
-    <View className="mx-4 flex-row flex-wrap justify-between">
-      {metrics.map((item) => (
-        <MetricCard key={item.title} {...item} />
-      ))}
+    <View className="mx-4 mb-4 overflow-hidden rounded-3xl border border-slate-200 bg-white">
+      <View className="bg-red-600 px-5 py-5">
+        <View className="flex-row items-center justify-between">
+          <View>
+            <Text className="font-heading text-xs font-medium text-red-100">
+              {primaryMetric.title}
+            </Text>
+            <Text className="mt-1 font-heading text-[32px] font-bold tracking-tight text-white">
+              {primaryMetric.value}
+            </Text>
+          </View>
+          <View className="h-12 w-12 items-center justify-center rounded-2xl bg-white/15">
+            <Ionicons name={primaryMetric.icon} size={24} color="#FFFFFF" />
+          </View>
+        </View>
+        <View className="mt-4 h-1 w-10 rounded-full bg-red-200" />
+      </View>
+
+      <View className="px-4">
+        {supportingMetrics.map((item, index) => (
+          <View
+            key={item.title}
+            className={index < supportingMetrics.length - 1 ? 'border-b border-slate-100' : ''}
+          >
+            <MetricRow {...item} />
+          </View>
+        ))}
+      </View>
     </View>
   );
 }
