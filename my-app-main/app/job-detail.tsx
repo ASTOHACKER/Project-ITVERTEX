@@ -1,13 +1,11 @@
 // 1. React & React Native
-import { useEffect, useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import {
   Text,
   View,
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
-  Alert,
-  Platform,
 } from 'react-native';
 
 // 2. Third-party / Expo
@@ -23,6 +21,8 @@ import { updateQuotationStatus, updateRepairStatus, getRepair } from '@/lib/api'
 import CustomerProgressBar from '@/components/Customer/CustomerProgressBar';
 import CustomerQuotationCard from '@/components/Customer/CustomerQuotationCard';
 import PickupCalendarCard from '@/components/Shared_Repairs/PickupCalendarCard';
+import CustomAlert from '@/components/ui/CustomAlert';
+import SuccessToast from '@/components/ui/SuccessToast';
 import { Colors } from '@/constants/theme';
 import { getStatusOnTintColor } from '@/components/Shared_Repairs/statusConfig';
 
@@ -61,6 +61,14 @@ interface RepairJob {
   payment_date?: string | null;
 }
 
+interface ToastState {
+  visible: boolean;
+  message: string;
+  subtitle?: string;
+  type: 'success' | 'info';
+  icon?: keyof typeof Ionicons.glyphMap;
+}
+
 function getDeviceIcon(deviceType?: string): keyof typeof Ionicons.glyphMap {
   const type = (deviceType || '').toLowerCase();
 
@@ -80,6 +88,13 @@ export default function JobDetailScreen() {
   const [job, setJob] = useState<RepairJob | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [showApproveConfirm, setShowApproveConfirm] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [toast, setToast] = useState<ToastState>({
+    visible: false,
+    message: '',
+    type: 'success',
+  });
 
   const fetchJob = useCallback(async (isSilent = false) => {
     if (!targetId) return;
@@ -138,16 +153,24 @@ export default function JobDetailScreen() {
     }, [fetchJob, targetId])
   );
 
-  const showAlert = (title: string, message: string) => {
-    if (Platform.OS === 'web') {
-      window.alert(`${title}\n\n${message}`);
-    } else {
-      Alert.alert(title, message);
-    }
+  const showToast = (title: string, message: string) => {
+    const isSuccess = title === 'สำเร็จ';
+    setToast({
+      visible: true,
+      message: title,
+      subtitle: message,
+      type: isSuccess ? 'success' : 'info',
+      icon: isSuccess ? 'checkmark-circle' : 'alert-circle',
+    });
   };
 
-  const handleApprove = async () => {
+  const hideToast = useCallback(() => {
+    setToast((current) => ({ ...current, visible: false }));
+  }, []);
+
+  const confirmApprove = async () => {
     if (actionLoading || !job?.quotation_id) return;
+    setShowApproveConfirm(false);
     setActionLoading(true);
     try {
       const numericJobId = parseInt(job.id, 10);
@@ -159,54 +182,46 @@ export default function JobDetailScreen() {
       }
 
       setJob((prev) => (prev ? { ...prev, status_id: 5, status: 'อนุมัติแล้ว/รอซ่อม', quotation_status_id: 2 } : null));
-      showAlert('สำเร็จ', 'อนุมัติการซ่อมเรียบร้อยแล้ว');
+      showToast('สำเร็จ', 'อนุมัติการซ่อมเรียบร้อยแล้ว');
       fetchJob(true);
     } catch (err: any) {
-      showAlert('ข้อผิดพลาด', err.message || 'ไม่สามารถอนุมัติได้');
+      showToast('ข้อผิดพลาด', err.message || 'ไม่สามารถอนุมัติได้');
     } finally {
       setActionLoading(false);
     }
   };
 
-  const handleCancel = async () => {
+  const handleApprove = () => {
     if (actionLoading || !job?.quotation_id) return;
+    setShowApproveConfirm(true);
+  };
 
-    const confirmCancel = async () => {
-      if (actionLoading) return;
-      setActionLoading(true);
-      try {
-        const numericJobId = parseInt(job.id, 10);
-        const res = await updateQuotationStatus(job.quotation_id as number, { quote_status_id: 3 });
-        if (!res.success) throw new Error(res.message);
+  const confirmCancel = async () => {
+    if (actionLoading || !job?.quotation_id) return;
+    setShowCancelConfirm(false);
+    setActionLoading(true);
+    try {
+      const numericJobId = parseInt(job.id, 10);
+      const res = await updateQuotationStatus(job.quotation_id as number, { quote_status_id: 3 });
+      if (!res.success) throw new Error(res.message);
 
-        if (!isNaN(numericJobId)) {
-          await updateRepairStatus(numericJobId, { status_id: 9 });
-        }
-
-        setJob((prev) => (prev ? { ...prev, status_id: 9, status: 'ยกเลิกซ่อม', quotation_status_id: 3 } : null));
-        showAlert('สำเร็จ', 'ยกเลิกการซ่อมเรียบร้อยแล้ว (มีค่าบริการตรวจเช็คสภาพเครื่อง 300 บาท)');
-        fetchJob(true);
-      } catch (err: any) {
-        showAlert('ข้อผิดพลาด', err.message || 'ไม่สามารถยกเลิกได้');
-      } finally {
-        setActionLoading(false);
+      if (!isNaN(numericJobId)) {
+        await updateRepairStatus(numericJobId, { status_id: 9 });
       }
-    };
 
-    if (Platform.OS === 'web') {
-      if (window.confirm('ยืนยันการยกเลิกการซ่อม?\n\nหากยกเลิก จะมีค่าบริการตรวจเช็คสภาพเครื่อง 300 บาท\nคุณต้องการยกเลิกใช่หรือไม่?')) {
-        confirmCancel();
-      }
-    } else {
-      Alert.alert(
-        'ยืนยันยกเลิกการซ่อม',
-        'หากยกเลิก จะมีค่าบริการตรวจเช็คสภาพเครื่อง 300 บาท\n\nคุณต้องการยกเลิกใช่หรือไม่?',
-        [
-          { text: 'ไม่ยกเลิก', style: 'cancel' },
-          { text: 'ใช่, ยกเลิกซ่อม', style: 'destructive', onPress: confirmCancel },
-        ]
-      );
+      setJob((prev) => (prev ? { ...prev, status_id: 9, status: 'ยกเลิกซ่อม', quotation_status_id: 3 } : null));
+      showToast('สำเร็จ', 'ยกเลิกการซ่อมเรียบร้อยแล้ว (มีค่าบริการตรวจเช็คสภาพเครื่อง 300 บาท)');
+      fetchJob(true);
+    } catch (err: any) {
+      showToast('ข้อผิดพลาด', err.message || 'ไม่สามารถยกเลิกได้');
+    } finally {
+      setActionLoading(false);
     }
+  };
+
+  const handleCancel = () => {
+    if (actionLoading || !job?.quotation_id) return;
+    setShowCancelConfirm(true);
   };
 
   const handleRequestModification = async (remark: string) => {
@@ -216,14 +231,14 @@ export default function JobDetailScreen() {
       // API call to update status to 5 (request modify) with remark
       const res = await updateQuotationStatus(job.quotation_id as number, { quote_status_id: 5, customer_remark: remark });
       if (res.success) {
-        showAlert('สำเร็จ', 'ส่งคำขอแก้ไขไปยังช่างเรียบร้อยแล้ว');
+        showToast('สำเร็จ', 'ส่งคำขอแก้ไขไปยังช่างเรียบร้อยแล้ว');
         setJob((prev) => (prev ? { ...prev, customer_remark: remark, quotation_status_id: 5, status_id: 3, status: 'ดำเนินการเสนอราคา' } : null));
         fetchJob(true);
       } else {
         throw new Error(res.message);
       }
     } catch (err: any) {
-      showAlert('ข้อผิดพลาด', err.message || 'ไม่สามารถส่งคำขอได้');
+      showToast('ข้อผิดพลาด', err.message || 'ไม่สามารถส่งคำขอได้');
       throw err;
     } finally {
       setActionLoading(false);
@@ -517,6 +532,38 @@ export default function JobDetailScreen() {
         )}
 
       </ScrollView>
+
+      <SuccessToast
+        visible={toast.visible}
+        message={toast.message}
+        subtitle={toast.subtitle}
+        type={toast.type}
+        icon={toast.icon}
+        duration={2800}
+        onHide={hideToast}
+      />
+
+      <CustomAlert
+        visible={showApproveConfirm}
+        title="ยืนยันอนุมัติการซ่อม"
+        message={`ยอดรวมค่าซ่อม ${total.toLocaleString()} บาท\n\nคุณต้องการอนุมัติการซ่อมใช่หรือไม่?`}
+        confirmText="ยืนยันอนุมัติ"
+        cancelText="ยกเลิก"
+        type="success"
+        onConfirm={confirmApprove}
+        onCancel={() => setShowApproveConfirm(false)}
+      />
+
+      <CustomAlert
+        visible={showCancelConfirm}
+        title="ยืนยันยกเลิกการซ่อม"
+        message={'หากยกเลิก จะมีค่าบริการตรวจเช็คสภาพเครื่อง 300 บาท\n\nคุณต้องการยกเลิกใช่หรือไม่?'}
+        confirmText="ใช่, ยกเลิกซ่อม"
+        cancelText="ไม่ยกเลิก"
+        type="danger"
+        onConfirm={confirmCancel}
+        onCancel={() => setShowCancelConfirm(false)}
+      />
     </SafeAreaView>
   );
 }
