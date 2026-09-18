@@ -23,6 +23,14 @@ import RepairDetailsModal from '@/components/Shared_Repairs/RepairDetailsModal';
 import { useRepairJobs } from './useRepairJobs';
 import type { RepairItem } from './types';
 
+type RepairSortMode = 'latest' | 'oldest' | 'price';
+
+const sortOptions: { key: RepairSortMode; label: string }[] = [
+  { key: 'latest', label: 'ล่าสุด' },
+  { key: 'oldest', label: 'เก่าสุด' },
+  { key: 'price', label: 'ยอดสูงสุด' },
+];
+
 interface RepairListScreenProps {
   filterStatusIds?: number[];
   subtitle?: string;
@@ -66,13 +74,11 @@ export default function RepairListScreen({
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedStatusTab, setSelectedStatusTab] = useState<number | 'all'>('all');
   const [hideEmptyStatuses, setHideEmptyStatuses] = useState(true);
+  const [sortMode, setSortMode] = useState<RepairSortMode>('latest');
+  const [expandAll, setExpandAll] = useState<boolean | null>(null);
 
   const totalJobsCount = useMemo(() => {
     return filteredGroups.reduce((acc, g) => acc + g.items.length, 0);
-  }, [filteredGroups]);
-
-  const activeGroupsCount = useMemo(() => {
-    return filteredGroups.filter((g) => g.items.length > 0).length;
   }, [filteredGroups]);
 
   const displayedGroups = useMemo(() => {
@@ -84,6 +90,42 @@ export default function RepairListScreen({
     }
     return filteredGroups;
   }, [filteredGroups, selectedStatusTab, hideEmptyStatuses]);
+
+  const sortedGroups = useMemo(() => {
+    return displayedGroups.map((group) => ({
+      ...group,
+      items: [...group.items].sort((a, b) => {
+        if (sortMode === 'price') {
+          return Number(b.total_amount || b.price || 0) - Number(a.total_amount || a.price || 0);
+        }
+
+        const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return sortMode === 'latest' ? bTime - aTime : aTime - bTime;
+      }),
+    }));
+  }, [displayedGroups, sortMode]);
+
+  const selectedStatusTitle = selectedStatusTab === 'all'
+    ? ''
+    : filteredGroups.find((group) => group.statusId === selectedStatusTab)?.title || 'สถานะที่เลือก';
+
+  const activeFilterSummary = [
+    searchText.trim() ? `ค้นหา: ${searchText.trim()}` : '',
+    filterDate
+      ? `วันที่: ${filterDate.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })}`
+      : '',
+    selectedStatusTitle ? `สถานะ: ${selectedStatusTitle}` : '',
+  ].filter(Boolean);
+
+  const clearAllFilters = () => {
+    setSearchText('');
+    setFilterDate(null);
+    setSelectedStatusTab('all');
+    setExpandAll(null);
+  };
+
+  const isShowingExpanded = expandAll !== false;
 
   const handlePressDetails = (item: RepairItem) => {
     if (customOnPressDetails) {
@@ -151,21 +193,22 @@ export default function RepairListScreen({
           </TouchableOpacity>
         </View>
 
-        {/* Date Filter Active Chip */}
-        {filterDate && (
-          <View className="flex-row items-center justify-between bg-red-50 border border-red-200 rounded-2xl px-3.5 py-2.5 mb-3">
-            <View className="flex-row items-center gap-1.5">
+        {/* Active filter summary */}
+        {activeFilterSummary.length > 0 && (
+          <View className="mb-3 flex-row items-center justify-between rounded-2xl border border-red-200 bg-red-50 px-3.5 py-2.5">
+            <View className="flex-1 flex-row items-center gap-1.5 pr-2">
               <Ionicons name="filter-circle" size={19} color="#DC2626" />
-              <Text className="text-[13px] text-red-800 font-medium">
-                กรองเฉพาะวันที่: {filterDate.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })}
+              <Text className="flex-1 text-[13px] font-medium text-red-800" numberOfLines={2}>
+                {activeFilterSummary.join(' · ')}
               </Text>
             </View>
             <TouchableOpacity
-              onPress={() => setFilterDate(null)}
-              className="p-2 -mr-1"
-              accessibilityLabel="ล้างตัวกรองวันที่"
+              onPress={clearAllFilters}
+              className="min-h-[36px] justify-center rounded-xl px-2"
+              accessibilityRole="button"
+              accessibilityLabel="ล้างตัวกรองทั้งหมด"
             >
-              <Ionicons name="close-circle" size={20} color="#DC2626" />
+              <Text className="text-[12px] font-bold text-red-700">ล้างทั้งหมด</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -310,6 +353,51 @@ export default function RepairListScreen({
           )}
         </View>
 
+        {/* List controls */}
+        <View className="mb-3 flex-row items-center justify-between gap-2">
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 6 }}
+          >
+            {sortOptions.map((option) => {
+              const isSelected = sortMode === option.key;
+              return (
+                <TouchableOpacity
+                  key={option.key}
+                  onPress={() => setSortMode(option.key)}
+                  activeOpacity={0.7}
+                  className={`min-h-[40px] justify-center rounded-xl border px-3 ${
+                    isSelected ? 'border-slate-900 bg-slate-900' : 'border-slate-200 bg-white'
+                  }`}
+                  accessibilityRole="button"
+                  accessibilityLabel={`เรียงงาน ${option.label}`}
+                >
+                  <Text className={`text-[12px] font-bold ${isSelected ? 'text-white' : 'text-slate-600'}`}>
+                    {option.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+
+          {selectedStatusTab === 'all' && (
+            <TouchableOpacity
+              onPress={() => setExpandAll(isShowingExpanded ? false : true)}
+              activeOpacity={0.7}
+              className="h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white"
+              accessibilityRole="button"
+              accessibilityLabel={isShowingExpanded ? 'ยุบทุกสถานะ' : 'ขยายทุกสถานะ'}
+            >
+              <Ionicons
+                name={isShowingExpanded ? 'chevron-up-circle-outline' : 'chevron-down-circle-outline'}
+                size={19}
+                color="#64748B"
+              />
+            </TouchableOpacity>
+          )}
+        </View>
+
         {/* Main List Area */}
         {isLoading ? (
           <View className="flex-1 justify-center items-center py-10">
@@ -330,16 +418,18 @@ export default function RepairListScreen({
               />
             }
           >
-            {displayedGroups.map((group) => (
+            {sortedGroups.map((group) => (
               <RepairStatusSection
-                key={group.id}
+                key={`${group.id}-${selectedStatusTab}-${expandAll ?? 'auto'}`}
                 statusId={group.statusId}
                 title={group.title}
                 count={group.items.length}
                 indicatorColor={group.color}
                 items={group.items}
                 defaultExpanded={
-                  selectedStatusTab !== 'all' ||
+                  expandAll !== null
+                    ? expandAll
+                    : selectedStatusTab !== 'all' ||
                   defaultExpandAll ||
                   group.items.length > 0
                 }
@@ -352,8 +442,8 @@ export default function RepairListScreen({
               />
             ))}
 
-            {displayedGroups.length === 0 ||
-              (displayedGroups.every((g) => g.items.length === 0) && (
+            {sortedGroups.length === 0 ||
+              (sortedGroups.every((g) => g.items.length === 0) && (
                 <View className="py-16 items-center justify-center bg-white rounded-2xl border border-dashed border-slate-200 mt-2">
                   <View className="w-16 h-16 rounded-full bg-slate-50 items-center justify-center mb-3">
                     <Ionicons name="file-tray-outline" size={32} color="#94A3B8" />
