@@ -18,6 +18,59 @@ import type { RepairItem } from '@/components/Shared_Repairs/types';
 
 type DeliverFilter = 'all' | 'payment' | 'pickup' | 'repairing';
 
+interface DeliverySegmentCardProps {
+  label: string;
+  count: number;
+  icon: keyof typeof Ionicons.glyphMap;
+  accentColor: string;
+  softColor: string;
+  isActive: boolean;
+  onPress: () => void;
+}
+
+function DeliverySegmentCard({
+  label,
+  count,
+  icon,
+  accentColor,
+  softColor,
+  isActive,
+  onPress,
+}: DeliverySegmentCardProps) {
+  return (
+    <TouchableOpacity
+      activeOpacity={0.82}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityState={{ selected: isActive }}
+      className="min-h-[96px] flex-1 rounded-3xl border px-3 py-3"
+      style={{
+        backgroundColor: isActive ? softColor : '#FFFFFF',
+        borderColor: isActive ? accentColor : '#E2E8F0',
+      }}
+    >
+      <View className="flex-row items-center justify-between">
+        <View
+          className="h-9 w-9 items-center justify-center rounded-2xl"
+          style={{ backgroundColor: isActive ? '#FFFFFF' : softColor }}
+        >
+          <Ionicons name={icon} size={19} color={accentColor} />
+        </View>
+        <Text className="font-heading text-2xl font-bold" style={{ color: accentColor }}>
+          {count}
+        </Text>
+      </View>
+
+      <View className="mt-3 flex-row items-center justify-between">
+        <Text className="flex-1 pr-1 font-heading text-xs text-slate-700" numberOfLines={1}>
+          {label}
+        </Text>
+        {isActive && <Ionicons name="checkmark-circle" size={16} color={accentColor} />}
+      </View>
+    </TouchableOpacity>
+  );
+}
+
 export default function StaffDeliverScreen() {
   const router = useRouter();
   const [searchText, setSearchText] = useState('');
@@ -179,103 +232,35 @@ export default function StaffDeliverScreen() {
       <Header title="IT VERTEX" subtitle="ส่งมอบงานซ่อม & ชำระเงิน (พนักงาน)" />
 
       <View className="flex-1 p-4 pt-2">
-        {/* KPI Counter Banners */}
-        <View className="flex-row items-center gap-2 mb-3">
-          <TouchableOpacity
-            activeOpacity={0.8}
+        {/* Work status shortcuts */}
+        <View className="mb-3 flex-row items-center gap-2.5">
+          <DeliverySegmentCard
+            label="รอชำระเงิน"
+            count={filteredPendingPayment.length}
+            icon="cash-outline"
+            accentColor="#B45309"
+            softColor="#FEF3C7"
+            isActive={activeSegment === 'payment'}
             onPress={() => setActiveSegment('payment')}
-            className={`flex-1 p-3 rounded-2xl border ${
-              activeSegment === 'payment'
-                ? 'bg-amber-500 border-amber-500 shadow-sm'
-                : 'bg-white border-slate-200'
-            }`}
-          >
-            <View className="flex-row items-center justify-between mb-1">
-              <Ionicons
-                name="cash-outline"
-                size={18}
-                color={activeSegment === 'payment' ? '#FFFFFF' : '#D97706'}
-              />
-              <Text
-                className={`text-lg font-bold font-heading ${
-                  activeSegment === 'payment' ? 'text-white' : 'text-amber-600'
-                }`}
-              >
-                {filteredPendingPayment.length}
-              </Text>
-            </View>
-            <Text
-              className={`text-xs font-heading ${
-                activeSegment === 'payment' ? 'text-white font-bold' : 'text-slate-600'
-              }`}
-            >
-              รอชำระเงิน
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            activeOpacity={0.8}
+          />
+          <DeliverySegmentCard
+            label="พร้อมส่งมอบ"
+            count={filteredWaitingPickup.length}
+            icon="cube-outline"
+            accentColor="#047857"
+            softColor="#D1FAE5"
+            isActive={activeSegment === 'pickup'}
             onPress={() => setActiveSegment('pickup')}
-            className={`flex-1 p-3 rounded-2xl border ${
-              activeSegment === 'pickup'
-                ? 'bg-emerald-600 border-emerald-600 shadow-sm'
-                : 'bg-white border-slate-200'
-            }`}
-          >
-            <View className="flex-row items-center justify-between mb-1">
-              <Ionicons
-                name="cube-outline"
-                size={18}
-                color={activeSegment === 'pickup' ? '#FFFFFF' : '#059669'}
-              />
-              <Text
-                className={`text-lg font-bold font-heading ${
-                  activeSegment === 'pickup' ? 'text-white' : 'text-emerald-700'
-                }`}
-              >
-                {filteredWaitingPickup.length}
-              </Text>
-            </View>
-            <Text
-              className={`text-xs font-heading ${
-                activeSegment === 'pickup' ? 'text-white font-bold' : 'text-slate-600'
-              }`}
-            >
-              พร้อมส่งมอบ
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            activeOpacity={0.8}
+          />
+          <DeliverySegmentCard
+            label="กำลังซ่อม"
+            count={filteredRepairedContact.length}
+            icon="hammer-outline"
+            accentColor="#1D4ED8"
+            softColor="#DBEAFE"
+            isActive={activeSegment === 'repairing'}
             onPress={() => setActiveSegment('repairing')}
-            className={`flex-1 p-3 rounded-2xl border ${
-              activeSegment === 'repairing'
-                ? 'bg-blue-600 border-blue-600 shadow-sm'
-                : 'bg-white border-slate-200'
-            }`}
-          >
-            <View className="flex-row items-center justify-between mb-1">
-              <Ionicons
-                name="hammer-outline"
-                size={18}
-                color={activeSegment === 'repairing' ? '#FFFFFF' : '#2563EB'}
-              />
-              <Text
-                className={`text-lg font-bold font-heading ${
-                  activeSegment === 'repairing' ? 'text-white' : 'text-blue-600'
-                }`}
-              >
-                {filteredRepairedContact.length}
-              </Text>
-            </View>
-            <Text
-              className={`text-xs font-heading ${
-                activeSegment === 'repairing' ? 'text-white font-bold' : 'text-slate-600'
-              }`}
-            >
-              กำลังซ่อม
-            </Text>
-          </TouchableOpacity>
+          />
         </View>
 
         <SearchFilterBar

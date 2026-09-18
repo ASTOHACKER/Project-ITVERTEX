@@ -12,6 +12,48 @@ interface MetricCardsProps {
   pendingJobs?: number;
 }
 
+interface MetricCardProps {
+  title: string;
+  value: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  color: string;
+  bgColor: string;
+  borderColor: string;
+}
+
+function MetricCard({ title, value, icon, color, bgColor, borderColor }: MetricCardProps) {
+  return (
+    <View
+      className="relative mb-3 min-h-[112px] w-[48.5%] rounded-3xl border bg-white px-4 py-4"
+      style={{ borderColor }}
+    >
+      <View
+        className="absolute bottom-4 left-0 top-4 w-1 rounded-r-full"
+        style={{ backgroundColor: color }}
+      />
+
+      <View className="flex-row items-start justify-between gap-2">
+        <Text
+          className="flex-1 pt-1 font-heading text-xs font-medium text-slate-500"
+          numberOfLines={1}
+        >
+          {title}
+        </Text>
+        <View
+          className="h-9 w-9 items-center justify-center rounded-2xl border"
+          style={{ backgroundColor: bgColor, borderColor }}
+        >
+          <Ionicons name={icon} size={18} color={color} />
+        </View>
+      </View>
+
+      <Text className="mt-4 font-heading text-[27px] font-bold tracking-tight text-slate-900">
+        {value}
+      </Text>
+    </View>
+  );
+}
+
 export default function MetricCards({
   totalRevenue = 0,
   totalJobs = 0,
@@ -24,7 +66,7 @@ export default function MetricCards({
     return `฿${amount.toLocaleString()}`;
   };
 
-  const metrics = [
+  const metrics: MetricCardProps[] = [
     {
       title: 'รายได้รวม',
       value: formatCurrency(totalRevenue),
@@ -60,27 +102,9 @@ export default function MetricCards({
   ];
 
   return (
-    <View className="flex-row flex-wrap mx-4 justify-between">
-      {metrics.map((item, index) => (
-        <View
-          key={index}
-          className="w-[48%] bg-white p-4 rounded-2xl border border-slate-200 shadow-sm mb-4"
-        >
-          <View className="flex-row justify-between items-center mb-2.5">
-            <Text className="text-xs text-slate-500 font-heading font-medium" numberOfLines={1}>
-              {item.title}
-            </Text>
-            <View
-              className="w-8 h-8 rounded-xl items-center justify-center border"
-              style={{ backgroundColor: item.bgColor, borderColor: item.borderColor }}
-            >
-              <Ionicons name={item.icon as any} size={18} color={item.color} />
-            </View>
-          </View>
-          <Text className="text-2xl font-bold text-slate-900 font-heading tracking-tight">
-            {item.value}
-          </Text>
-        </View>
+    <View className="mx-4 flex-row flex-wrap justify-between">
+      {metrics.map((item) => (
+        <MetricCard key={item.title} {...item} />
       ))}
     </View>
   );
