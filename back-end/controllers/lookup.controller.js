@@ -123,20 +123,53 @@ exports.getModels = async (req, res, next) => {
  */
 exports.searchProfiles = async (req, res, next) => {
   try {
-    const { q, type } = req.query; // type = 'name' | 'phone'
-    if (!q || q.length < 2) {
+    const { q, type, name, phone, email } = req.query; // type = 'all' | 'name' | 'phone' | 'email'
+    // Advanced combined filter: ?name=ใจ&phone=081&email=... (AND กัน)
+    const advName = (name || '').trim();
+    const advPhone = (phone || '').trim();
+    const advEmail = (email || '').trim();
+    if (advName || advPhone || advEmail) {
+      const conditions = ['role_id = 4'];
+      const params = [];
+      if (advName) {
+        params.push(`%${advName}%`);
+        conditions.push(`CONCAT(COALESCE(first_name, ''), ' ', COALESCE(last_name, '')) ILIKE $${params.length}`);
+      }
+      if (advPhone) {
+        params.push(`%${advPhone}%`);
+        conditions.push(`phone ILIKE $${params.length}`);
+      }
+      if (advEmail) {
+        params.push(`%${advEmail}%`);
+        conditions.push(`email ILIKE $${params.length}`);
+      }
+      const query = `SELECT id, first_name, last_name, phone, email FROM profiles WHERE ${conditions.join(' AND ')} LIMIT 10`;
+      const { rows } = await pool.query(query, params);
+      return res.json({ success: true, data: rows });
+    }
+
+    const trimmed = (q || '').trim();
+    if (!trimmed || trimmed.length < 1) {
       return res.json({ success: true, data: [] });
     }
 
     let query;
-    let params;
+    const params = [`%${trimmed}%`];
     if (type === 'phone') {
       query = `SELECT id, first_name, last_name, phone, email FROM profiles WHERE phone ILIKE $1 AND role_id = 4 LIMIT 10`;
-      params = [`%${q}%`];
-    } else {
+    } else if (type === 'name') {
       query = `SELECT id, first_name, last_name, phone, email FROM profiles
                WHERE CONCAT(COALESCE(first_name, ''), ' ', COALESCE(last_name, '')) ILIKE $1 AND role_id = 4 LIMIT 10`;
-      params = [`%${q}%`];
+    } else if (type === 'email') {
+      query = `SELECT id, first_name, last_name, phone, email FROM profiles WHERE email ILIKE $1 AND role_id = 4 LIMIT 10`;
+    } else {
+      // default 'all': single search box (name / phone / email)
+      query = `SELECT id, first_name, last_name, phone, email FROM profiles
+               WHERE role_id = 4 AND (
+                 CONCAT(COALESCE(first_name, ''), ' ', COALESCE(last_name, '')) ILIKE $1
+                 OR phone ILIKE $1
+                 OR email ILIKE $1
+               ) LIMIT 10`;
     }
 
     const { rows } = await pool.query(query, params);

@@ -367,9 +367,18 @@ export function deleteSlip(id: number | string) {
 }
 
 // --- Lookup ---
-// GET /api/lookup/profiles?q=...&type=...
-export function lookupProfiles(query: string, type: string) {
+// GET /api/lookup/profiles?q=...&type=all|name|phone|email
+export function lookupProfiles(query: string, type: string = 'all') {
   return api.get(`/lookup/profiles?q=${encodeURIComponent(query)}&type=${type}`);
+}
+
+// GET /api/lookup/profiles?name=...&phone=...&email=... (AND กัน — กรองละเอียด)
+export function lookupProfilesAdvanced(filters: { name?: string; phone?: string; email?: string }) {
+  const params = new URLSearchParams();
+  if (filters.name?.trim()) params.append('name', filters.name.trim());
+  if (filters.phone?.trim()) params.append('phone', filters.phone.trim());
+  if (filters.email?.trim()) params.append('email', filters.email.trim());
+  return api.get(`/lookup/profiles?${params.toString()}`);
 }
 
 export function getLookupDeviceTypes() {
