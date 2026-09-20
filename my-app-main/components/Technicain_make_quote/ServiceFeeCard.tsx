@@ -30,11 +30,8 @@ interface ServiceFeeCardProps {
   setServiceInputName: (text: string) => void;
   serviceInputPrice: string;
   setServiceInputPrice: (text: string) => void;
-  serviceInputQty: string;
-  setServiceInputQty: (text: string) => void;
   onAddService: (itemFromDb?: any) => void;
   onRemoveService: (id: string) => void;
-  onUpdateServiceQty?: (id: string, newQty: number) => void;
   totalServicesCost: number;
 }
 
@@ -44,11 +41,8 @@ export default function ServiceFeeCard({
   setServiceInputName,
   serviceInputPrice,
   setServiceInputPrice,
-  serviceInputQty,
-  setServiceInputQty,
   onAddService,
   onRemoveService,
-  onUpdateServiceQty,
   totalServicesCost,
 }: ServiceFeeCardProps) {
   const { width: windowWidth } = useWindowDimensions();
@@ -109,48 +103,15 @@ export default function ServiceFeeCard({
             value={serviceInputName}
             onChangeText={setServiceInputName}
           />
-          {/* Row 2a: ราคา + Stepper จำนวน (inline) */}
-          <View className="flex-row gap-2 items-center">
-            <TextInput
-              className="flex-[1.3] border border-slate-300 rounded-xl px-3 h-11 text-sm text-slate-800 bg-slate-50"
-              placeholder="ราคา (บาท)"
-              placeholderTextColor="#94A3B8"
-              keyboardType="numeric"
-              value={serviceInputPrice}
-              onChangeText={(text) => setServiceInputPrice(text.replace(/[^0-9.]/g, ''))}
-            />
-            <View className="flex-row items-center border border-slate-300 rounded-xl bg-white h-11 overflow-hidden">
-              <TouchableOpacity
-                className="w-9 h-11 justify-center items-center bg-slate-100"
-                onPress={() => {
-                  const current = parseInt(serviceInputQty, 10) || 1;
-                  setServiceInputQty(String(Math.max(1, current - 1)));
-                }}
-                activeOpacity={0.6}
-              >
-                <Ionicons name="remove" size={16} color="#C2410C" />
-              </TouchableOpacity>
-              <View className="w-10 h-11 justify-center items-center bg-white">
-                <TextInput
-                  className="text-sm font-bold text-slate-800 w-full text-center p-0 m-0"
-                  keyboardType="numeric"
-                  value={serviceInputQty}
-                  onChangeText={(text) => setServiceInputQty(text.replace(/[^0-9]/g, ''))}
-                  selectTextOnFocus
-                />
-              </View>
-              <TouchableOpacity
-                className="w-9 h-11 justify-center items-center bg-slate-100"
-                onPress={() => {
-                  const current = parseInt(serviceInputQty, 10) || 1;
-                  setServiceInputQty(String(current + 1));
-                }}
-                activeOpacity={0.6}
-              >
-                <Ionicons name="add" size={16} color="#C2410C" />
-              </TouchableOpacity>
-            </View>
-          </View>
+          {/* Row 2a: ราคา (เต็มความกว้าง — ค่าบริการไม่มีจำนวน ล็อก = 1 รายการ) */}
+          <TextInput
+            className="border border-slate-300 rounded-xl px-3 h-11 text-sm text-slate-800 bg-slate-50 w-full"
+            placeholder="ราคา (บาท)"
+            placeholderTextColor="#94A3B8"
+            keyboardType="numeric"
+            value={serviceInputPrice}
+            onChangeText={(text) => setServiceInputPrice(text.replace(/[^0-9.]/g, ''))}
+          />
           {/* Row 2b: ปุ่ม + เพิ่ม (เต็มความกว้างตอนจอแคบ, inline ตอนจอใหญ่) */}
           <TouchableOpacity
             className={`bg-amber-600 px-4 h-11 rounded-xl flex-row justify-center items-center min-w-[84px] shadow-sm active:bg-amber-700 ${isCompactScreen ? 'w-full min-w-0' : ''} ${!serviceInputName.trim() || !serviceInputPrice.trim() ? 'opacity-50' : ''}`}
@@ -185,44 +146,15 @@ export default function ServiceFeeCard({
                   </TouchableOpacity>
                 </View>
 
-                {/* Bottom Row: Unit Price + Mobile Touch Stepper + Total */}
+                {/* Bottom Row: Unit Price + Total (ค่าบริการไม่มีจำนวน — 1 รายการต่อ 1 ราคา) */}
                 <View className="flex-row justify-between items-center flex-wrap gap-2 pt-2 border-t border-slate-100">
                   <Text className="text-xs text-slate-500">
                     {item.price.toLocaleString()} บ./รายการ
                   </Text>
-                  <View className="flex-row items-center gap-2.5 ml-auto">
-                    <View className="flex-row items-center bg-slate-100 rounded-lg border border-slate-300 overflow-hidden">
-                      <TouchableOpacity
-                        className="px-2.5 h-[34px] justify-center items-center bg-slate-200"
-                        onPress={() => onUpdateServiceQty?.(item.id, Math.max(1, item.qty - 1))}
-                        activeOpacity={0.6}
-                      >
-                        <Ionicons name="remove" size={16} color="#C2410C" />
-                      </TouchableOpacity>
-                      <TextInput
-                        className="text-[13px] font-bold text-slate-900 min-w-[32px] text-center py-0 px-1 h-[34px]"
-                        keyboardType="numeric"
-                        value={String(item.qty)}
-                        onChangeText={(val) => {
-                          const num = parseInt(val, 10);
-                          if (!isNaN(num) && num > 0) {
-                            onUpdateServiceQty?.(item.id, num);
-                          }
-                        }}
-                      />
-                      <TouchableOpacity
-                        className="px-2.5 h-[34px] justify-center items-center bg-slate-200"
-                        onPress={() => onUpdateServiceQty?.(item.id, item.qty + 1)}
-                        activeOpacity={0.6}
-                      >
-                        <Ionicons name="add" size={16} color="#C2410C" />
-                      </TouchableOpacity>
-                    </View>
-                    <Text className="font-bold text-[15px] text-[#C2410C]">
-                      {(item.price * item.qty).toLocaleString()}
-                      <Text className="text-xs font-normal text-slate-500"> บาท</Text>
-                    </Text>
-                  </View>
+                  <Text className="font-bold text-[15px] text-[#C2410C] ml-auto">
+                    {item.price.toLocaleString()}
+                    <Text className="text-xs font-normal text-slate-500"> บาท</Text>
+                  </Text>
                 </View>
               </View>
             ))

@@ -69,7 +69,6 @@ export default function MakeQuoteScreen() {
   const [partInputQty, setPartInputQty] = useState('1');
   const [serviceInputName, setServiceInputName] = useState('');
   const [serviceInputPrice, setServiceInputPrice] = useState('');
-  const [serviceInputQty, setServiceInputQty] = useState('1');
 
   // Lists
   const [parts, setParts] = useState<PartItem[]>([]);
@@ -291,9 +290,8 @@ export default function MakeQuoteScreen() {
     );
   };
 
-  // Add Service
+  // Add Service (ค่าบริการไม่มีจำนวน — ล็อก qty = 1 เสมอ)
   const handleAddService = (itemFromDb?: any) => {
-    const qNum = Math.max(1, parseInt(serviceInputQty, 10) || 1);
     if (itemFromDb) {
       setServices((prev) => [
         ...prev,
@@ -301,11 +299,10 @@ export default function MakeQuoteScreen() {
           id: Date.now().toString(),
           name: itemFromDb.item_name,
           price: Math.max(0, parseFloat(itemFromDb.selling_price || itemFromDb.unit_price || 0)),
-          qty: qNum,
+          qty: 1,
           item_id: itemFromDb.item_id,
         },
       ]);
-      setServiceInputQty('1');
       return;
     }
 
@@ -327,25 +324,16 @@ export default function MakeQuoteScreen() {
         id: Date.now().toString(),
         name: serviceInputName.trim(),
         price: priceNum,
-        qty: qNum,
+        qty: 1,
       },
     ]);
     setServiceInputName('');
     setServiceInputPrice('');
-    setServiceInputQty('1');
   };
 
   // Remove Service (prompt confirmation)
   const handleRemoveService = (id: string) => {
     handlePromptDeleteService(id);
-  };
-
-  // Update Service Qty
-  const handleUpdateServiceQty = (id: string, newQty: number) => {
-    if (newQty <= 0) return;
-    setServices((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, qty: Math.max(1, newQty) } : s))
-    );
   };
 
   // Totals
@@ -530,11 +518,8 @@ export default function MakeQuoteScreen() {
                 setServiceInputName={setServiceInputName}
                 serviceInputPrice={serviceInputPrice}
                 setServiceInputPrice={setServiceInputPrice}
-                serviceInputQty={serviceInputQty}
-                setServiceInputQty={setServiceInputQty}
                 onAddService={handleAddService}
                 onRemoveService={handleRemoveService}
-                onUpdateServiceQty={handleUpdateServiceQty}
                 totalServicesCost={totalServicesCost}
               />
 
