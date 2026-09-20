@@ -115,7 +115,7 @@ export default function RepairItemRow({
       {/* Customer Name & Phone in one clean line */}
       <View className="flex-row items-center gap-3 mb-2.5 px-0.5">
         <View className="flex-row items-center gap-1.5 flex-1">
-          <Ionicons name="person-outline" size={14} color="#475569" />
+          {/* <Ionicons name="person-outline" size={14} color="#475569" /> */}
           <Text
             className={`text-[13px] ${
               item.customer_name && item.customer_name !== 'ไม่ระบุชื่อ'
@@ -143,7 +143,7 @@ export default function RepairItemRow({
       {/* Symptom Bubble (Easy to read at a glance) */}
       <View className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2.5 mb-3">
         <View className="flex-row items-start gap-2">
-          <Ionicons name="alert-circle-outline" size={15} color="#92400E" style={{ marginTop: 2 }} />
+          {/* <Ionicons name="alert-circle-outline" size={15} color="#92400E" style={{ marginTop: 2 }} /> */}
           <Text
             className="text-[13px] text-slate-700 flex-1 leading-5"
             numberOfLines={2}
@@ -212,7 +212,7 @@ export default function RepairItemRow({
               accessibilityLabel={`ทำใบเสนอราคา ${item.job_no}`}
               className="flex-row items-center gap-1.5 bg-sky-600 min-h-[44px] px-4 rounded-xl shadow-sm"
             >
-              <Ionicons name="receipt-outline" size={15} color="#FFFFFF" />
+              {/* <Ionicons name="receipt-outline" size={15} color="#FFFFFF" /> */}
               <Text className="text-sm font-bold text-white">ใบเสนอราคา</Text>
             </TouchableOpacity>
           )}

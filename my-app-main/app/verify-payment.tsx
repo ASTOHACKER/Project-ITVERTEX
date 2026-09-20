@@ -576,7 +576,7 @@ export default function VerifyPaymentScreen() {
                 <View className="flex-row items-center bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
                   <Ionicons name="lock-closed" size={12} color="#059669" style={{ marginRight: 4 }} />
                   <Text className="text-[11px] font-bold text-emerald-700">
-                    {paymentVerified ? 'ยืนยันแล้ว ✓' : 'รอตรวจสอบ'}
+                    {paymentVerified ? 'ยืนยันแล้ว' : 'รอตรวจสอบ'}
                   </Text>
                 </View>
               </View>
@@ -870,7 +870,7 @@ export default function VerifyPaymentScreen() {
                 ) : (
                   <View className="flex-row items-center gap-1.5">
                     <Ionicons name="cash-outline" size={18} color="#ffffff" />
-                    <Text className="text-white font-bold font-heading text-sm">รับชำระเงินสดหน้าร้าน (Cash 💵)</Text>
+                    <Text className="text-white font-bold font-heading text-sm">รับชำระเงินสดหน้าร้าน (Cash)</Text>
                   </View>
                 )}
               </TouchableOpacity>

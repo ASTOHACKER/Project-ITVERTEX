@@ -222,7 +222,7 @@ export default function DeliverHandoverScreen() {
         <View className="bg-white rounded-2xl p-5 mt-4 border border-slate-200 shadow-sm shadow-black/5 elevation-2">
           <View className="flex-row justify-between items-center mb-1">
             <Text className="text-base font-bold text-slate-800">
-              ✍️ ลายเซ็นลูกค้ารับเครื่อง
+              ลายเซ็นลูกค้ารับเครื่อง
             </Text>
             <TouchableOpacity
               onPress={() => setIsModalOpen(true)}

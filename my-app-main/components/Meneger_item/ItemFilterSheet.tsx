@@ -345,8 +345,8 @@ export default function ItemFilterSheet({
                 {[
                   { id: 'newest', label: 'ใหม่ล่าสุด', icon: 'time-outline' },
                   { id: 'popular', label: 'ใช้บ่อยสุด', icon: 'flame-outline' },
-                  { id: 'price_asc', label: 'ราคา: ต่ำ ➔ สูง', icon: 'arrow-up-outline' },
-                  { id: 'price_desc', label: 'ราคา: สูง ➔ ต่ำ', icon: 'arrow-down-outline' },
+    { id: 'price_asc', label: 'ราคา: ต่ำไปสูง', icon: 'arrow-up-outline' },
+    { id: 'price_desc', label: 'ราคา: สูงไปต่ำ', icon: 'arrow-down-outline' },
                   { id: 'name_asc', label: 'ชื่อ (ก - ฮ)', icon: 'text-outline' },
                 ].map((s) => {
                   const isSelected = draft.sortBy === s.id;

@@ -97,7 +97,7 @@ export default function QuotationDetailModal({
         bg: 'bg-amber-50',
         border: 'border-amber-300',
         text: 'text-amber-800',
-        label: 'ขอแก้ไข/เพิ่มเติมรายการ ⚠️',
+          label: 'ขอแก้ไข/เพิ่มเติมรายการ',
         icon: 'alert-circle-outline' as const,
       };
     }

@@ -566,7 +566,7 @@ export default function CustomerFormCard({
                   <View className="flex-1">
                     <Text className="text-[13px] font-bold text-slate-800 font-heading">{fullName}</Text>
                     <Text className="text-[11px] text-slate-500 font-body mt-0.5">
-                      📱 {item.phone || '-'}  •  ✉️ {item.email || '-'}
+                      โทร {item.phone || '-'}  •  อีเมล {item.email || '-'}
                     </Text>
                   </View>
                   <Ionicons name="checkmark-circle-outline" size={18} color="#059669" />
@@ -587,7 +587,7 @@ export default function CustomerFormCard({
               <View className="flex-col items-center p-4 gap-2">
                 <Ionicons name="person-add-outline" size={28} color="#94A3B8" />
                 <Text className="text-xs text-slate-600 font-body text-center">
-                  ไม่พบลูกค้า "{searchText.trim() || [advName.trim(), advPhone.trim(), advEmail.trim()].filter(Boolean).join(' • ')}"
+                  ไม่พบลูกค้า {"\""}{searchText.trim() || [advName.trim(), advPhone.trim(), advEmail.trim()].filter(Boolean).join(' • ')}{"\""}
                 </Text>
                 <TouchableOpacity
                   onPress={openQuickRegister}

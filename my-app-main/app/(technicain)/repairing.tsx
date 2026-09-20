@@ -213,17 +213,17 @@ export default function TechnicianQuotationScreen() {
     });
   };
 
-  // Device icon matching RepairItemRow
-  const getDeviceIcon = (deviceType?: string) => {
-    const type = (deviceType || '').toLowerCase();
-    if (type.includes('printer') || type.includes('พิมพ์')) {
-      return 'print-outline' as const;
-    }
-    if (type.includes('pc') || type.includes('desktop') || type.includes('คอม')) {
-      return 'desktop-outline' as const;
-    }
-    return 'laptop-outline' as const;
-  };
+  // Device icon matching RepairItemRow (commented out with its icons)
+  // const getDeviceIcon = (deviceType?: string) => {
+  //   const type = (deviceType || '').toLowerCase();
+  //   if (type.includes('printer') || type.includes('พิมพ์')) {
+  //     return 'print-outline' as const;
+  //   }
+  //   if (type.includes('pc') || type.includes('desktop') || type.includes('คอม')) {
+  //     return 'desktop-outline' as const;
+  //   }
+  //   return 'laptop-outline' as const;
+  // };
 
   // Status Badge matching RepairItemRow pill design
   const renderStatusBadge = (item: QuotationItem) => {
@@ -304,7 +304,7 @@ export default function TechnicianQuotationScreen() {
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               className="bg-red-50 self-start px-2 py-1 rounded-md mt-1.5 border border-red-100 flex-row items-center gap-1 active:bg-red-100"
             >
-              <Ionicons name="build" size={11} color="#D32F2F" />
+              {/* <Ionicons name="build" size={11} color="#D32F2F" /> */}
               <Text className="text-[11px] font-bold text-[#D32F2F] font-heading">
                 {item.job_no}
               </Text>
@@ -315,9 +315,9 @@ export default function TechnicianQuotationScreen() {
 
         {/* Row 2: device */}
         <View className="flex-row items-center gap-2 mb-1.5">
-          <View className="w-8 h-8 rounded-xl bg-sky-50 border border-sky-100 items-center justify-center shrink-0">
-            <Ionicons name={getDeviceIcon(item.device_type)} size={16} color="#0284C7" />
-          </View>
+          {/* <View className="w-8 h-8 rounded-xl bg-sky-50 border border-sky-100 items-center justify-center shrink-0"> */}
+            {/* <Ionicons name={getDeviceIcon(item.device_type)} size={16} color="#0284C7" /> */}
+          {/* </View> */}
           <Text className="text-[15px] font-bold text-slate-900 flex-1 font-heading" numberOfLines={1}>
             {deviceTitle}
           </Text>
@@ -325,13 +325,13 @@ export default function TechnicianQuotationScreen() {
 
         {/* Row 3: customer + phone */}
         <View className="flex-row items-center gap-2 mb-2.5">
-          <Ionicons name="person-outline" size={13} color="#64748B" />
+          {/* <Ionicons name="person-outline" size={13} color="#64748B" /> */}
           <Text className="text-[13px] font-medium text-slate-700 font-body flex-1" numberOfLines={1}>
             {item.customer_name || 'ลูกค้าทั่วไป'}
           </Text>
           {Boolean(item.phone && item.phone !== '-') && (
             <View className="flex-row items-center gap-1 bg-slate-50 px-2 py-1 rounded-md border border-slate-100 shrink-0">
-              <Ionicons name="call-outline" size={11} color="#64748B" />
+              {/* <Ionicons name="call-outline" size={11} color="#64748B" /> */}
               <Text className="text-xs text-slate-600 font-body">{item.phone}</Text>
             </View>
           )}
@@ -340,7 +340,7 @@ export default function TechnicianQuotationScreen() {
         {/* Row 4: symptom bubble */}
         <View className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 mb-2.5">
           <View className="flex-row items-start gap-1.5">
-            <Ionicons name="alert-circle-outline" size={14} color="#D97706" style={{ marginTop: 2 }} />
+            {/* <Ionicons name="alert-circle-outline" size={14} color="#D97706" style={{ marginTop: 2 }} /> */}
             <Text className="text-[13px] text-slate-600 flex-1 leading-5 font-body" numberOfLines={2}>
               <Text className="font-bold text-slate-700 font-heading">
                 {item.actual_symptom ? 'ตรวจพบ: ' : 'อาการ: '}
@@ -352,7 +352,7 @@ export default function TechnicianQuotationScreen() {
 
         {isModification && item.customer_remark ? (
           <View className="bg-amber-100/90 border border-amber-300 rounded-xl px-3 py-2 mb-2.5 flex-row items-start gap-1.5">
-            <Ionicons name="chatbubble-ellipses-outline" size={14} color="#92400E" style={{ marginTop: 2 }} />
+            {/* <Ionicons name="chatbubble-ellipses-outline" size={14} color="#92400E" style={{ marginTop: 2 }} /> */}
             <Text className="text-xs font-medium text-amber-900 flex-1 leading-4" numberOfLines={2}>
               ลูกค้าขอแก้ไข: &ldquo;{item.customer_remark}&rdquo;
             </Text>
@@ -377,7 +377,7 @@ export default function TechnicianQuotationScreen() {
             style={{ minHeight: 44 }}
             className="flex-1 bg-sky-50 border border-sky-200 rounded-xl flex-row items-center justify-center gap-1.5"
           >
-            <Ionicons name="document-text-outline" size={15} color="#0284c7" />
+            {/* <Ionicons name="document-text-outline" size={15} color="#0284c7" /> */}
             <Text className="text-[13px] font-bold text-sky-700 font-heading">รายละเอียด</Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -719,7 +719,7 @@ export default function TechnicianQuotationScreen() {
                               hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
                               className="bg-red-50 self-start px-2 py-1 rounded-md mt-1.5 border border-red-100 flex-row items-center gap-1 active:bg-red-100"
                             >
-                              <Ionicons name="build" size={11} color="#D32F2F" />
+                              {/* <Ionicons name="build" size={11} color="#D32F2F" /> */}
                               <Text className="text-[11px] font-bold text-[#D32F2F] font-heading">
                                 {item.job_no}
                               </Text>
@@ -739,7 +739,7 @@ export default function TechnicianQuotationScreen() {
                           {/* คอลัมน์ 3: อุปกรณ์ / อาการ */}
                           <View className="flex-1 min-w-[240px] pr-3">
                             <View className="flex-row items-center gap-1.5">
-                              <Ionicons name={getDeviceIcon(item.device_type)} size={14} color="#0284C7" />
+                              {/* <Ionicons name={getDeviceIcon(item.device_type)} size={14} color="#0284C7" /> */}
                               <Text className="text-[13px] font-bold text-slate-800 font-heading" numberOfLines={1}>
                                 {[item.brand, item.model].filter(Boolean).join(' ') || item.device_type || 'อุปกรณ์'}
                               </Text>
@@ -779,7 +779,7 @@ export default function TechnicianQuotationScreen() {
                               className="bg-sky-50 px-3 rounded-xl flex-row items-center gap-1 border border-sky-200 active:opacity-80"
                               onPress={() => handleOpenDetail(item)}
                             >
-                              <Ionicons name="document-text-outline" size={14} color="#0284c7" />
+                              {/* <Ionicons name="document-text-outline" size={14} color="#0284c7" /> */}
                               <Text className="text-xs font-bold text-sky-700 font-heading">รายละเอียด</Text>
                             </TouchableOpacity>
 

@@ -50,6 +50,7 @@ export default function ServiceFeeCard({
   const [dbServices, setDbServices] = useState<any[]>([]);
   const [showPicker, setShowPicker] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [pickerSearch, setPickerSearch] = useState('');
 
   useEffect(() => {
     fetchDbServices();
@@ -72,7 +73,23 @@ export default function ServiceFeeCard({
   const handleSelectServiceFromDb = (item: any) => {
     onAddService(item);
     setShowPicker(false);
+    setPickerSearch('');
   };
+
+  const openPicker = () => {
+    setPickerSearch('');
+    setShowPicker(true);
+  };
+
+  // ค้นหาในคลัง (ชื่อ + รหัส)
+  const filteredDbServices = (() => {
+    const q = pickerSearch.trim().toLowerCase();
+    if (!q) return dbServices;
+    return dbServices.filter((item) =>
+      String(item.item_name || '').toLowerCase().includes(q) ||
+      String(item.item_code || '').toLowerCase().includes(q)
+    );
+  })();
 
   return (
     <View className="bg-white rounded-xl overflow-hidden mb-4 border border-slate-200 shadow-sm shadow-black/5 elevation-2">
@@ -86,7 +103,7 @@ export default function ServiceFeeCard({
           </View>
           <TouchableOpacity
             className="flex-row items-center gap-1 bg-white px-2.5 py-1.5 rounded-2xl border border-[#C2410C]"
-            onPress={() => setShowPicker(true)}
+            onPress={openPicker}
           >
             <Ionicons name="build-outline" size={16} color="#C2410C" />
             <Text className="text-xs font-bold text-[#C2410C]">เลือกจากคลัง</Text>
@@ -175,20 +192,48 @@ export default function ServiceFeeCard({
                 <Text className="text-xs text-slate-500 mt-0.5">แตะเพื่อเลือกรายการบริการลงในใบเสนอราคา</Text>
               </View>
               <TouchableOpacity
-                onPress={() => setShowPicker(false)}
+                onPress={() => {
+                  setShowPicker(false);
+                  setPickerSearch('');
+                }}
                 className="p-1 min-w-[36px] min-h-[36px] items-center justify-center"
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
                 <Ionicons name="close" size={24} color="#0F172A" />
               </TouchableOpacity>
             </View>
+            {/* ช่องค้นหาในคลัง */}
+            <View className="flex-row items-center bg-slate-100 border border-slate-200 rounded-xl px-3 mb-2 min-h-[44px]">
+              <Ionicons name="search" size={18} color="#64748B" />
+              <TextInput
+                className="flex-1 ml-2 text-sm text-slate-800 py-2"
+                value={pickerSearch}
+                onChangeText={setPickerSearch}
+                placeholder="ค้นหาชื่อ/รหัสบริการ..."
+                placeholderTextColor="#94A3B8"
+                returnKeyType="search"
+              />
+              {pickerSearch.length > 0 && (
+                <TouchableOpacity
+                  onPress={() => setPickerSearch('')}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  accessibilityLabel="ล้างคำค้น"
+                >
+                  <Ionicons name="close-circle" size={18} color="#64748B" />
+                </TouchableOpacity>
+              )}
+            </View>
             <ScrollView style={{ maxHeight: 380 }} showsVerticalScrollIndicator={false}>
-              {dbServices.length === 0 ? (
+              {filteredDbServices.length === 0 ? (
                 <Text className="text-center my-7 text-slate-500">
-                  {loading ? 'กำลังโหลดข้อมูลคลัง...' : 'ไม่พบข้อมูลบริการในคลัง'}
+                  {loading
+                    ? 'กำลังโหลดข้อมูลคลัง...'
+                    : pickerSearch.trim()
+                      ? `ไม่พบ "${pickerSearch.trim()}" ในคลัง`
+                      : 'ไม่พบข้อมูลบริการในคลัง'}
                 </Text>
               ) : (
-                dbServices.map((item) => (
+                filteredDbServices.map((item) => (
                   <TouchableOpacity
                     key={item.item_id}
                     className="flex-row justify-between items-center py-3.5 px-2.5 border-b border-slate-50 min-h-[52px]"

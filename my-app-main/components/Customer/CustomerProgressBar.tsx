@@ -1,6 +1,9 @@
 // 1. React & React Native
 import { View, Text } from 'react-native';
 
+// 2. Third-party / Expo
+import { Ionicons } from '@expo/vector-icons';
+
 const NORMAL_STEPS = [
   'รับเครื่อง',
   'ตรวจเช็ค',
@@ -87,9 +90,9 @@ export default function CustomerProgressBar({ status, statusId, isCancelled }: C
               >
                 {isActive ? (
                   isCancelStep ? (
-                    <Text className="text-white text-[10px] font-bold">✕</Text>
+                    <Ionicons name="close" size={12} color="#FFFFFF" />
                   ) : (
-                    <Text className="text-white text-[10px] font-bold">✓</Text>
+                    <Ionicons name="checkmark" size={12} color="#FFFFFF" />
                   )
                 ) : (
                   <Text className="text-slate-500 text-[10px] font-bold">{index + 1}</Text>

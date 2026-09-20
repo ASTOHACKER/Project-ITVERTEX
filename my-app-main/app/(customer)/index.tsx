@@ -214,7 +214,7 @@ export default function CustomerDashboard() {
           <View className="flex-row items-center justify-between mb-2.5">
             <View className="flex-row items-center gap-2">
               <View className="w-8 h-8 rounded-lg bg-red-50 items-center justify-center border border-red-100">
-                <Ionicons name={getDeviceIcon(item.device_type) as any} size={18} color="#DC2626" />
+                {/* <Ionicons name={getDeviceIcon(item.device_type) as any} size={18} color="#DC2626" /> */}
               </View>
               <View>
                 <Text className="text-xs font-bold text-slate-400 font-body">รหัสงาน</Text>
@@ -345,7 +345,7 @@ export default function CustomerDashboard() {
               </Text>
             </View>
             <Text className="text-white text-xl font-bold font-heading mt-0.5">
-              สวัสดี, {customerName} 👋
+              สวัสดี, {customerName}
             </Text>
           </View>
         </View>

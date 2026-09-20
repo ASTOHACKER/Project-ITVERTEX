@@ -313,7 +313,7 @@ export default function JobDetailScreen() {
         {/* Device Info Header Card */}
         <View className="bg-white rounded-2xl p-4 mb-4 shadow-sm border border-slate-100 flex-row">
           <View className="w-14 h-14 bg-sky-50 rounded-2xl mr-4 items-center justify-center border border-sky-100">
-            <Ionicons name={getDeviceIcon(job.device_type)} size={28} color="#0284C7" />
+            {/* <Ionicons name={getDeviceIcon(job.device_type)} size={28} color="#0284C7" /> */}
           </View>
           <View className="flex-1">
             <Text className="text-base font-bold text-slate-800 font-heading">{job.brand} {job.model}</Text>

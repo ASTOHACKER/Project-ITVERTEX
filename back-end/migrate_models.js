@@ -60,7 +60,7 @@ async function migrate() {
     `;
 
     await pool.query(sql);
-    console.log('✅ device_models created and seeded successfully');
+    console.log('device_models created and seeded successfully');
     process.exit(0);
   } catch (err) {
     console.error('Migration error:', err);

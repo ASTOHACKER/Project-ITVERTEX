@@ -159,12 +159,12 @@ export default function SlipsPage() {
         <Image source={{ uri: item.image_url }} className="w-full h-[180px]" resizeMode="cover" />
       </TouchableOpacity>
       <View className="p-3">
-        <Text className="text-[13px] font-semibold text-slate-800 mb-1">👤 เจ้าของ: {currentUser?.email}</Text>
+        <Text className="text-[13px] font-semibold text-slate-800 mb-1">เจ้าของ: {currentUser?.email}</Text>
         <Text className="text-xs text-slate-500 mb-1">
-          📅 {new Date(item.uploaded_at).toLocaleString('th-TH')}
+          {new Date(item.uploaded_at).toLocaleString('th-TH')}
         </Text>
         <Text className="text-[11px] text-slate-400" numberOfLines={1}>
-          🔑 ID: {item.user_id?.slice(0, 8)}...
+          ID: {item.user_id?.slice(0, 8)}...
         </Text>
       </View>
       <TouchableOpacity className="bg-red-500 py-2.5 items-center" onPress={() => handleDeleteSlip(item)}>
@@ -210,7 +210,7 @@ export default function SlipsPage() {
         {/* ปุ่มเลือก/ถ่ายรูป */}
         <View className="flex-row justify-between w-full mb-3">
           <TouchableOpacity className="flex-1 mx-1 py-3.5 rounded-xl items-center bg-blue-500" onPress={takePhoto}>
-            <Text className="text-white font-semibold text-sm">📷 ถ่ายรูป</Text>
+            <Text className="text-white font-semibold text-sm">ถ่ายรูป</Text>
           </TouchableOpacity>
           <TouchableOpacity className="flex-1 mx-1 py-3.5 rounded-xl items-center bg-indigo-500" onPress={pickImage}>
             <Text className="text-white font-semibold text-sm">จากคลัง</Text>
@@ -225,7 +225,7 @@ export default function SlipsPage() {
         >
           {uploading
             ? <ActivityIndicator color="#ffffff" />
-            : <Text className="text-white font-bold text-base">☁️ อัปโหลดสลิป</Text>
+            : <Text className="text-white font-bold text-base">อัปโหลดสลิป</Text>
           }
         </TouchableOpacity>
 
@@ -261,7 +261,7 @@ export default function SlipsPage() {
       <Modal visible={!!previewUrl} transparent animationType="fade">
         <TouchableOpacity className="flex-1 bg-black/90 justify-center items-center" onPress={() => setPreviewUrl(null)}>
           <Image source={{ uri: previewUrl! }} className="w-[95%] h-[80%]" resizeMode="contain" />
-          <Text className="text-white mt-4 text-base">✕ ปิด</Text>
+          <Text className="text-white mt-4 text-base">ปิด</Text>
         </TouchableOpacity>
       </Modal>
 

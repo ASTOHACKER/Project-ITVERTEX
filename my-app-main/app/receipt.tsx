@@ -132,7 +132,7 @@ export default function ReceiptScreen() {
       <SafeAreaView className="flex-1 bg-slate-50">
         <Stack.Screen options={{ headerShown: false }} />
         <View className="flex-1 justify-center items-center bg-slate-50">
-          <Ionicons name="document-text-outline" size={60} color="#cbd5e1" />
+          {/* <Ionicons name="document-text-outline" size={60} color="#cbd5e1" /> */}
           <Text className="mt-4 text-slate-500 text-base">ไม่พบข้อมูลใบเสร็จ</Text>
           <TouchableOpacity
             className="mt-4 px-6 py-2.5 rounded-xl border border-[#D32F2F]"
