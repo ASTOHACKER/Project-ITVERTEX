@@ -20,7 +20,7 @@ interface AppNotification {
   title: string;
   message: string;
   time: string;
-  type: 'quote' | 'repair' | 'ready' | 'info';
+  type: 'quote' | 'repair' | 'ready' | 'info' | 'rejected';
   icon: keyof typeof Ionicons.glyphMap;
   color: string;
   bgColor: string;
@@ -55,6 +55,24 @@ export default function NotificationsScreen() {
             })
           : 'เมื่อเร็วๆ นี้';
 
+        // 0. Payment rejected — ต้องเช็กก่อน branch รอชำระ (reject ไม่เปลี่ยน status_id ค้าง 7 อยู่)
+        const rejectReason = String(job.payment_reject_reason || '').trim();
+        const isRejected = Boolean(rejectReason) && !job.payment_verified;
+        if (isRejected) {
+          notifs.push({
+            id: `rejected-${jobId}`,
+            jobId,
+            jobNo,
+            title: `การชำระเงินถูกปฏิเสธ (${jobNo})`,
+            message: `เหตุผล: ${rejectReason} — กรุณาตรวจสอบและส่งข้อมูลการชำระเงินใหม่`,
+            time: timeStr,
+            type: 'rejected',
+            icon: 'close-circle',
+            color: '#DC2626',
+            bgColor: '#FEE2E2',
+          });
+        }
+
         // 1. Quoting / Awaiting Approval
         if (statusId === 4 || status.includes('รอการอนุมัติ') || status.includes('รออนุมัติ')) {
           notifs.push({
@@ -87,8 +105,10 @@ export default function NotificationsScreen() {
           });
         }
 
-        // 3. Ready for pickup / Pending payment
-        if (statusId === 7 || status.includes('รอชำระ') || statusId === 8 || status.includes('เสร็จสิ้น')) {
+        // 3. Ready for pickup / Pending payment (ถ้าถูก reject ให้โชว์แค่แจ้งเตือนแดงด้านบน ไม่โชว์เขียวพร้อมรับที่ทำให้เข้าใจผิด)
+        const isPendingPayment = statusId === 7 || status.includes('รอชำระ');
+        const isDelivered = statusId === 8 || status.includes('เสร็จสิ้น');
+        if ((isPendingPayment && !isRejected) || isDelivered) {
           notifs.push({
             id: `ready-${jobId}`,
             jobId,
