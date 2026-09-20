@@ -1,8 +1,9 @@
 // 1. React & React Native
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 // 2. Third-party / Expo
+import { Ionicons } from '@expo/vector-icons';
 import { Dropdown } from 'react-native-element-dropdown';
 
 // 3. API helpers
@@ -11,6 +12,7 @@ import { getLookupBrands, getLookupDeviceTypes, getLookupModels } from '@/lib/ap
 // 4. Constants & UI
 import { FONTS } from '@/constants/theme';
 import SearchableDropdown from '@/components/ui/SearchableDropdown';
+import CalendarPicker from '@/components/ui/CalendarPicker';
 
 interface DeviceTypeItem {
   device_type_id: number;
@@ -80,6 +82,7 @@ export default function DeviceFormCard({
   const [models, setModels] = useState<DeviceModelItem[]>([]);
   const [loadingLookup, setLoadingLookup] = useState(false);
   const [loadingModels, setLoadingModels] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
 
   useEffect(() => {
     fetchLookupData();
@@ -265,14 +268,32 @@ export default function DeviceFormCard({
         {/* Warranty End Date */}
         <View className="flex-col gap-1">
           <Text className="text-xs text-slate-500">วันที่หมดประกัน (YYYY-MM-DD)</Text>
-          <TextInput
-            className="h-[42px] border border-slate-200 rounded-lg px-3 text-sm text-slate-800 bg-white"
-            value={warrantyEnd}
-            onChangeText={onChangeWarrantyEnd}
-            placeholder="เช่น 2027-12-31 (เว้นว่างได้)"
-            placeholderTextColor="#A0A0A0"
-          />
+          <View className="flex-row gap-2">
+            <TextInput
+              className="flex-1 h-[42px] border border-slate-200 rounded-lg px-3 text-sm text-slate-800 bg-white"
+              value={warrantyEnd}
+              onChangeText={onChangeWarrantyEnd}
+              placeholder="เช่น 2027-12-31 (เว้นว่างได้)"
+              placeholderTextColor="#A0A0A0"
+              autoCapitalize="none"
+            />
+            <TouchableOpacity
+              onPress={() => setShowCalendar(true)}
+              activeOpacity={0.7}
+              accessibilityLabel="เลือกวันที่จากปฏิทิน"
+              className="w-[42px] h-[42px] rounded-lg bg-red-50 border border-red-200 items-center justify-center"
+            >
+              <Ionicons name="calendar-outline" size={20} color="#DC2626" />
+            </TouchableOpacity>
+          </View>
         </View>
+
+        <CalendarPicker
+          visible={showCalendar}
+          initialDate={warrantyEnd}
+          onSelect={onChangeWarrantyEnd}
+          onClose={() => setShowCalendar(false)}
+        />
 
         {/* Important Software */}
         <View className="flex-col gap-1">
