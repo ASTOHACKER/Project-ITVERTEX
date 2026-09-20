@@ -348,17 +348,6 @@ export default function CustomerDashboard() {
               สวัสดี, {customerName} 👋
             </Text>
           </View>
-
-          <TouchableOpacity
-            onPress={() => router.push('/(customer)/notifications')}
-            activeOpacity={0.8}
-            className="w-10 h-10 rounded-full bg-white/15 items-center justify-center relative border border-white/20"
-          >
-            <Ionicons name="notifications-outline" size={20} color="#FFFFFF" />
-            {counts.pendingApproval > 0 && (
-              <View className="absolute top-1 right-1 w-3 h-3 rounded-full bg-amber-400 border-2 border-[#DC2626]" />
-            )}
-          </TouchableOpacity>
         </View>
 
         {/* Quick Lifecycle Counters */}

@@ -128,9 +128,14 @@ export default function VerifyPaymentScreen() {
         if (res.success && res.data) {
           const d = res.data;
           if (d.customer_name) setCustomerName(d.customer_name);
-          if (d.total_amount && !params.amount) {
-            setTotalAmount(Number(d.total_amount));
-          }
+          // ยอดที่ต้องชำระตัวจริง (source เดียวกับ staff):
+          // - งานยกเลิก (status 9) = ค่าตรวจเช็ค (cancel fee) ไม่ใช่ราคาเสนอซ่อม
+          // - งานปกติ = ราคาซ่อม → total_amount → ค่าที่ส่งมา → 300
+          const q = d.quotation;
+          const isCancelledJob = Number(d.status_id) === 9;
+          const cancelPrice = Number(q?.total_cancel_price) || 300;
+          const repairPrice = Number(q?.total_repair_price) || Number(d.total_amount) || 0;
+          setTotalAmount(isCancelledJob ? cancelPrice : (repairPrice || Number(params.amount) || 300));
           if (d.appointment_date && !params.pickupDate) {
             setAppointmentDate(d.appointment_date);
           }

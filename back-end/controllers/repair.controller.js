@@ -361,6 +361,18 @@ exports.updateStatus = async (req, res, next) => {
     let updateSql = 'UPDATE repair_job SET status_id = $1';
     const updateParams = [numStatus, numId];
 
+    if (numStatus === 9) {
+      // ยกเลิกซ่อม -> ยอดที่ต้องชำระคือค่าตรวจเช็ค (cancel fee) ไม่ใช่ราคาเสนอซ่อม
+      // (กันเคสเปลี่ยนสถานะจาก dropdown ที่ไม่ได้ผ่าน flow ยกเลิกของ quotation)
+      const qRes = await pool.query(
+        'SELECT total_cancel_price FROM quotation WHERE job_id = $1 ORDER BY created_at DESC LIMIT 1',
+        [numId]
+      );
+      const cancelPrice = Number(qRes.rows[0]?.total_cancel_price) || 300;
+      updateSql += `, total_amount = $${updateParams.length + 1}`;
+      updateParams.push(cancelPrice);
+    }
+
     if ((numStatus === 7 && (prevStatusId === 5 || prevStatusId === 6)) || (numStatus === 6 && prevStatusId === 5)) {
       if (currentUserId) {
         updateSql += ', repairer_id = $3';
