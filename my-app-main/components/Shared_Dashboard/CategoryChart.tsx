@@ -188,7 +188,7 @@ export default function CategoryChart({
                 key={item.id}
                 className="bg-slate-50/80 border border-slate-100 rounded-xl p-2.5 mb-2"
               >
-                <View className="flex-row items-center justify-between mb-1.5">
+                <View className="flex-row items-center justify-between">
                   {/* Left: Icon & Label */}
                   <View className="flex-row items-center gap-2 flex-1 mr-2">
                     <View
@@ -214,17 +214,6 @@ export default function CategoryChart({
                       {item.percent}%
                     </Text>
                   </View>
-                </View>
-
-                {/* Proportion Progress Bar */}
-                <View className="w-full h-1.5 bg-slate-200/80 rounded-full overflow-hidden">
-                  <View
-                    className="h-full rounded-full"
-                    style={{
-                      width: `${item.percent}%`,
-                      backgroundColor: item.color,
-                    }}
-                  />
                 </View>
               </View>
             ))}
