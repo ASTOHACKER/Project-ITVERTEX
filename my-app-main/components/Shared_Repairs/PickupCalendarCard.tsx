@@ -1,13 +1,12 @@
 // 1. React & React Native
 import React, { useState, useMemo } from 'react';
-import { View, Text, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 
 // 2. Third-party / Expo
 import { Ionicons } from '@expo/vector-icons';
 
 interface PickupCalendarCardProps {
   appointmentDate?: string | null;
-  onOpenFullScreen?: () => void;
   defaultExpanded?: boolean;
 }
 
@@ -26,8 +25,7 @@ const DAYS_OF_WEEK_SHORT = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส
 
 export default function PickupCalendarCard({
   appointmentDate,
-  onOpenFullScreen,
-  defaultExpanded = true,
+  defaultExpanded = false,
 }: PickupCalendarCardProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
@@ -119,7 +117,7 @@ export default function PickupCalendarCard({
   );
 
   return (
-    <View className="bg-white rounded-2xl mb-4 shadow-sm border border-slate-100 overflow-hidden">
+    <View className="bg-white rounded-2xl mb-4 shadow-sm border border-slate-100 overflow-hidden relative z-0">
       {/* Header Bar */}
       <TouchableOpacity
         activeOpacity={0.8}
@@ -143,22 +141,11 @@ export default function PickupCalendarCard({
           </View>
         </View>
 
-        <View className="flex-row items-center">
-          {onOpenFullScreen && (
-            <TouchableOpacity
-              onPress={onOpenFullScreen}
-              className="mr-2 p-1.5 rounded-lg bg-white border border-slate-200"
-              accessibilityLabel="ขยายปฏิทินเต็มจอ"
-            >
-              <Ionicons name="expand-outline" size={16} color="#475569" />
-            </TouchableOpacity>
-          )}
-          <Ionicons
-            name={isExpanded ? 'chevron-up' : 'chevron-down'}
-            size={20}
-            color="#64748b"
-          />
-        </View>
+        <Ionicons
+          name={isExpanded ? 'chevron-up' : 'chevron-down'}
+          size={20}
+          color="#64748b"
+        />
       </TouchableOpacity>
 
       {/* Calendar Body */}

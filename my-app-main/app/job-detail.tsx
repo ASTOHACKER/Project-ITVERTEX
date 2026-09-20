@@ -298,7 +298,7 @@ export default function JobDetailScreen() {
       <StatusBar style="light" backgroundColor="#DC2626" />
       
       {/* Header */}
-      <View className="bg-[#DC2626] pt-4 pb-6 px-4 flex-row items-center">
+      <View className="bg-[#DC2626] pt-4 pb-6 px-4 flex-row items-center relative z-10">
         <TouchableOpacity onPress={() => router.back()} className="mr-3">
           <Ionicons name="chevron-back" size={24} color="#ffffff" />
         </TouchableOpacity>
@@ -308,7 +308,7 @@ export default function JobDetailScreen() {
         </View>
       </View>
 
-      <ScrollView className="flex-1 -mt-4" contentContainerClassName="p-4 pb-10">
+      <ScrollView className="flex-1 relative z-0" contentContainerClassName="p-4 pb-10">
         
         {/* Device Info Header Card */}
         <View className="bg-white rounded-2xl p-4 mb-4 shadow-sm border border-slate-100 flex-row">
@@ -427,16 +427,7 @@ export default function JobDetailScreen() {
         {job.appointment_date ? (
           <PickupCalendarCard
             appointmentDate={job.appointment_date}
-            onOpenFullScreen={() => {
-              router.push({
-                pathname: '/schedule-pickup',
-                params: {
-                  jobId: String(job.id),
-                  appointmentDate: job.appointment_date,
-                  amount: String(total),
-                },
-              });
-            }}
+            defaultExpanded={false}
           />
         ) : (isWaitingRepair || isReadyForPayment || isCancelled) ? (
           <View className="bg-white rounded-2xl p-4 mb-4 border border-slate-100 shadow-sm flex-row items-center">
