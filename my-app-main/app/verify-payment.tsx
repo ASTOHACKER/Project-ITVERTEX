@@ -8,7 +8,6 @@ import {
   ScrollView,
   Image,
   ActivityIndicator,
-  Alert,
   Platform,
   Modal,
 } from 'react-native';
@@ -22,6 +21,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 // 3. API helpers
 import { createPayment, getRepair, verifyPayment, rejectPayment } from '@/lib/api';
+
+// 4. Components
+import CustomAlert from '@/components/ui/CustomAlert';
 
 export default function VerifyPaymentScreen() {
   const router = useRouter();
@@ -66,6 +68,50 @@ export default function VerifyPaymentScreen() {
   const [rejecting, setRejecting] = useState(false);
   const [showRejectInput, setShowRejectInput] = useState(false);
   const [rejectInputText, setRejectInputText] = useState('');
+
+  // In-app alert modal (ใช้แทน window.alert บนเว็บ — มีปุ่มยืนยัน)
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    type: 'success' | 'warning' | 'danger' | 'info';
+    confirmText?: string;
+    cancelText?: string;
+    onConfirm?: () => void;
+  }>({ visible: false, title: '', message: '', type: 'info' });
+
+  const hideAlert = () => setAlertConfig((prev) => ({ ...prev, visible: false }));
+
+  const showAppAlert = (
+    title: string,
+    message: string,
+    type: 'success' | 'warning' | 'danger' | 'info' = 'info',
+    opts?: { confirmText?: string; cancelText?: string; onConfirm?: () => void }
+  ) => {
+    setAlertConfig({
+      visible: true,
+      title,
+      message,
+      type,
+      confirmText: opts?.confirmText,
+      cancelText: opts?.cancelText,
+      onConfirm: opts?.onConfirm,
+    });
+  };
+
+  // ถามยืนยันก่อนบันทึก (มีปุ่มยืนยัน/ยกเลิก)
+  const askConfirmBeforeSave = (
+    title: string,
+    message: string,
+    onConfirmAction: () => void,
+    type: 'success' | 'warning' | 'danger' | 'info' = 'warning'
+  ) => {
+    showAppAlert(title, message, type, {
+      confirmText: 'ยืนยัน',
+      cancelText: 'ยกเลิก',
+      onConfirm: onConfirmAction,
+    });
+  };
 
   // ลูกค้าถือว่าส่งแล้วเมื่อมี payment_method_id และยังไม่ถูก reject
   const hasAlreadySubmitted = Boolean((existingPaymentMethodId || existingSlipUrl) && !rejectReason);
@@ -137,8 +183,7 @@ export default function VerifyPaymentScreen() {
   const handlePickImage = async () => {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) {
-      if (Platform.OS === 'web') window.alert('ต้องการสิทธิ์เข้าถึงคลังภาพ');
-      else Alert.alert('สิทธิ์การเข้าถึง', 'ต้องการสิทธิ์เข้าถึงคลังภาพ');
+      showAppAlert('สิทธิ์การเข้าถึง', 'ต้องการสิทธิ์เข้าถึงคลังภาพ', 'warning');
       return;
     }
 
@@ -155,20 +200,29 @@ export default function VerifyPaymentScreen() {
 
   const isBusy = verifying || rejecting || submitting;
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (isBusy) return;
     if (hasAlreadySubmitted && paymentVerified) {
-      if (Platform.OS === 'web') window.alert('ข้อมูลการชำระเงินได้รับการยืนยันแล้ว ไม่สามารถแก้ไขได้');
-      else Alert.alert('ข้อผิดพลาด', 'ข้อมูลการชำระเงินได้รับการยืนยันแล้ว ไม่สามารถแก้ไขได้');
+      showAppAlert('ข้อผิดพลาด', 'ข้อมูลการชำระเงินได้รับการยืนยันแล้ว ไม่สามารถแก้ไขได้', 'danger');
       return;
     }
 
     if (paymentMethod === 'transfer' && !slipImage) {
-      if (Platform.OS === 'web') window.alert('กรุณาอัปโหลดสลิปการโอนเงิน');
-      else Alert.alert('ข้อผิดพลาด', 'กรุณาอัปโหลดสลิปการโอนเงิน');
+      showAppAlert('ข้อผิดพลาด', 'กรุณาอัปโหลดสลิปการโอนเงิน', 'warning');
       return;
     }
 
+    // ถามยืนยันก่อนบันทึกจริง
+    const methodLabel = paymentMethod === 'cash' ? 'ชำระหน้าร้าน' : 'โอนเงินพร้อมแนบสลิป';
+    askConfirmBeforeSave(
+      'ยืนยันการส่งข้อมูล?',
+      `ยอดชำระ ${formattedAmount} บาท • วิธี${methodLabel}${appointmentDate ? ` • นัดรับ ${formatDate(appointmentDate)}` : ''} กดยืนยันเพื่อบันทึกข้อมูล`,
+      () => doSubmit()
+    );
+  };
+
+  const doSubmit = async () => {
+    if (isBusy) return;
     setSubmitting(true);
     try {
       let body: any;
@@ -218,48 +272,60 @@ export default function VerifyPaymentScreen() {
       // เคลียร์ reject reason เมื่อส่งสำเร็จ
       setRejectReason(null);
 
-      if (Platform.OS === 'web') {
-        window.alert('บันทึกข้อมูลการชำระเงินเรียบร้อยแล้ว');
-      } else {
-        Alert.alert('สำเร็จ', 'บันทึกข้อมูลการชำระเงินเรียบร้อยแล้ว');
-      }
-
-      // Return to job details
-      router.replace({ pathname: '/job-detail', params: { id: String(numericJobId || rawJobId) } });
+      // แจ้งสำเร็จด้วย modal ปุ่มยืนยัน — กดยืนยันแล้วค่อยกลับหน้ารายละเอียดงาน
+      showAppAlert('สำเร็จ', 'บันทึกข้อมูลการชำระเงินเรียบร้อยแล้ว', 'success', {
+        confirmText: 'ยืนยัน',
+        onConfirm: () => {
+          router.replace({ pathname: '/job-detail', params: { id: String(numericJobId || rawJobId) } });
+        },
+      });
     } catch (err: any) {
-      if (Platform.OS === 'web') window.alert(err.message || 'ไม่สามารถบันทึกได้');
-      else Alert.alert('ข้อผิดพลาด', err.message || 'ไม่สามารถบันทึกได้');
+      showAppAlert('ข้อผิดพลาด', err.message || 'ไม่สามารถบันทึกได้', 'danger');
     } finally {
       setSubmitting(false);
     }
   };
 
   // ── Staff: ยืนยันการชำระเงิน ──
-  const handleVerifyPayment = async () => {
+  const handleVerifyPayment = () => {
+    if (isBusy) return;
+    askConfirmBeforeSave(
+      'ยืนยันการชำระเงิน?',
+      `ยืนยันว่าได้รับยอด ${formattedAmount} บาทครบถ้วนแล้ว กดยืนยันเพื่อบันทึก`,
+      () => doVerifyPayment()
+    );
+  };
+
+  const doVerifyPayment = async () => {
     if (isBusy) return;
     setVerifying(true);
     try {
       const res = await verifyPayment(numericJobId || rawJobId);
       if (res.success) {
         setPaymentVerified(true);
-        if (Platform.OS === 'web') {
-          window.alert('ยืนยันการชำระเงินเรียบร้อยแล้ว');
-        } else {
-          Alert.alert('สำเร็จ', 'ยืนยันการชำระเงินเรียบร้อยแล้ว');
-        }
+        showAppAlert('สำเร็จ', 'ยืนยันการชำระเงินเรียบร้อยแล้ว', 'success', { confirmText: 'ยืนยัน' });
       }
     } catch (err: any) {
-      if (Platform.OS === 'web') window.alert(err.message || 'ไม่สามารถยืนยันได้');
-      else Alert.alert('ข้อผิดพลาด', err.message || 'ไม่สามารถยืนยันได้');
+      showAppAlert('ข้อผิดพลาด', err.message || 'ไม่สามารถยืนยันได้', 'danger');
     } finally {
       setVerifying(false);
     }
   };
 
   // ── Staff: ปฏิเสธการชำระเงิน ──
-  const handleRejectPayment = async () => {
+  const handleRejectPayment = () => {
     if (isBusy) return;
     const reason = rejectInputText.trim() || 'สลิปไม่ชัดเจน / ยอดไม่ตรง';
+    askConfirmBeforeSave(
+      'ยืนยันปฏิเสธ?',
+      `ปฏิเสธการชำระเงินยอด ${formattedAmount} บาท (เหตุผล: ${reason}) ลูกค้าจะได้รับแจ้งให้ส่งข้อมูลใหม่`,
+      () => doRejectPayment(reason),
+      'danger'
+    );
+  };
+
+  const doRejectPayment = async (reason: string) => {
+    if (isBusy) return;
     setRejecting(true);
     try {
       const res = await rejectPayment(numericJobId || rawJobId, reason);
@@ -271,22 +337,26 @@ export default function VerifyPaymentScreen() {
         setRejectReason(reason);
         setShowRejectInput(false);
         setRejectInputText('');
-        if (Platform.OS === 'web') {
-          window.alert('ปฏิเสธการชำระเงินเรียบร้อย ลูกค้าจะได้รับแจ้งให้ส่งข้อมูลใหม่');
-        } else {
-          Alert.alert('สำเร็จ', 'ปฏิเสธการชำระเงินเรียบร้อย ลูกค้าจะได้รับแจ้งให้ส่งข้อมูลใหม่');
-        }
+        showAppAlert('สำเร็จ', 'ปฏิเสธการชำระเงินเรียบร้อย ลูกค้าจะได้รับแจ้งให้ส่งข้อมูลใหม่', 'success', { confirmText: 'ยืนยัน' });
       }
     } catch (err: any) {
-      if (Platform.OS === 'web') window.alert(err.message || 'ไม่สามารถปฏิเสธได้');
-      else Alert.alert('ข้อผิดพลาด', err.message || 'ไม่สามารถปฏิเสธได้');
+      showAppAlert('ข้อผิดพลาด', err.message || 'ไม่สามารถปฏิเสธได้', 'danger');
     } finally {
       setRejecting(false);
     }
   };
 
   // ── Staff: รับชำระเงินสดหน้าร้านทันที ──
-  const handleStaffCashPayment = async () => {
+  const handleStaffCashPayment = () => {
+    if (isBusy) return;
+    askConfirmBeforeSave(
+      'ยืนยันรับเงินสด?',
+      `บันทึกรับชำระเงินสดหน้าร้านยอด ${formattedAmount} บาทและยืนยันทันที กดยืนยันเพื่อบันทึก`,
+      () => doStaffCashPayment()
+    );
+  };
+
+  const doStaffCashPayment = async () => {
     if (isBusy) return;
     setVerifying(true);
     try {
@@ -300,15 +370,10 @@ export default function VerifyPaymentScreen() {
       if (res.success) {
         setPaymentVerified(true);
         setExistingPaymentMethodId(1);
-        if (Platform.OS === 'web') {
-          window.alert('บันทึกรับชำระเงินสดหน้าร้านและยืนยันเรียบร้อยแล้ว');
-        } else {
-          Alert.alert('สำเร็จ', 'บันทึกรับชำระเงินสดหน้าร้านและยืนยันเรียบร้อยแล้ว');
-        }
+        showAppAlert('สำเร็จ', 'บันทึกรับชำระเงินสดหน้าร้านและยืนยันเรียบร้อยแล้ว', 'success', { confirmText: 'ยืนยัน' });
       }
     } catch (err: any) {
-      if (Platform.OS === 'web') window.alert(err.message || 'ไม่สามารถทำรายการได้');
-      else Alert.alert('ข้อผิดพลาด', err.message || 'ไม่สามารถทำรายการได้');
+      showAppAlert('ข้อผิดพลาด', err.message || 'ไม่สามารถทำรายการได้', 'danger');
     } finally {
       setVerifying(false);
     }
@@ -319,7 +384,7 @@ export default function VerifyPaymentScreen() {
       <StatusBar style="light" backgroundColor="#D32F2F" />
 
       {/* Header */}
-      <View className="bg-[#D32F2F] pt-4 pb-6 px-4 flex-row items-center">
+      <View className="bg-[#D32F2F] pt-4 pb-6 px-4 flex-row items-center relative z-10">
         <TouchableOpacity onPress={() => router.back()} className="mr-3">
           <Ionicons name="chevron-back" size={24} color="#ffffff" />
         </TouchableOpacity>
@@ -337,7 +402,7 @@ export default function VerifyPaymentScreen() {
           <Text className="text-slate-500 font-body text-xs mt-3">กำลังโหลดข้อมูล...</Text>
         </View>
       ) : (
-        <ScrollView className="flex-1 -mt-4" contentContainerClassName="p-4 pb-28">
+        <ScrollView className="flex-1 relative z-0" contentContainerClassName="p-4 pb-28">
           {/* Invoice Summary Card */}
           <View className="bg-white rounded-2xl p-5 mb-4 shadow-sm border border-slate-100">
             <View className="flex-row items-center justify-between mb-2">
@@ -843,6 +908,22 @@ export default function VerifyPaymentScreen() {
           </TouchableOpacity>
         )}
       </View>
+
+      {/* In-app alert modal (แทน web.alert — มีปุ่มยืนยัน/ยกเลิก) */}
+      <CustomAlert
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        type={alertConfig.type}
+        confirmText={alertConfig.confirmText || 'ยืนยัน'}
+        cancelText={alertConfig.cancelText}
+        onConfirm={() => {
+          const cb = alertConfig.onConfirm;
+          hideAlert();
+          cb?.();
+        }}
+        onCancel={alertConfig.cancelText ? hideAlert : undefined}
+      />
     </SafeAreaView>
   );
 }

@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { getRepairs } from '@/lib/api';
 import { getStatusDefinitions } from './statusConfig';
@@ -20,12 +20,14 @@ export function useRepairJobs(options: UseRepairJobsOptions = {}) {
   const [isLoading, setIsLoading] = useState(true);
   const [statusGroups, setStatusGroups] = useState<StatusGroup[]>([]);
   const [searchText, setSearchText] = useState('');
+  // จำว่าโหลดครั้งแรกแล้วหรือยัง — refresh รอบหลังต้องเงียบ (ไม่โชว์ spinner เต็มจอจน list โดนถอด)
+  const hasLoadedRef = useRef(false);
 
   const statusDefs = getStatusDefinitions(filterStatusIds);
 
-  const fetchRepairJobs = useCallback(async () => {
+  const fetchRepairJobs = useCallback(async (silent = false) => {
     try {
-      setIsLoading(true);
+      if (!silent) setIsLoading(true);
       const res = await getRepairs();
 
       if (!res.success) {
@@ -93,20 +95,21 @@ export function useRepairJobs(options: UseRepairJobsOptions = {}) {
       }));
 
       setStatusGroups(formattedGroups);
+      hasLoadedRef.current = true;
     } catch (err) {
       console.error('Failed to fetch repair jobs:', err);
     } finally {
-      setIsLoading(false);
+      if (!silent) setIsLoading(false);
     }
   }, []);
 
   const [filterDate, setFilterDate] = useState<Date | null>(null);
 
-  // Auto-fetch on focus + poll
+  // Auto-fetch on focus + poll (รอบหลังโหลดครั้งแรกให้เงียบ — กัน list โดนถอดจน state กาง/พับหาย)
   useFocusEffect(
     useCallback(() => {
-      fetchRepairJobs();
-      const interval = setInterval(fetchRepairJobs, pollingInterval);
+      fetchRepairJobs(hasLoadedRef.current);
+      const interval = setInterval(() => fetchRepairJobs(true), pollingInterval);
       return () => clearInterval(interval);
     }, [fetchRepairJobs, pollingInterval])
   );
@@ -143,6 +146,9 @@ export function useRepairJobs(options: UseRepairJobsOptions = {}) {
     }));
   }, [searchText, filterDate, statusGroups]);
 
+  // Manual refresh (pull-to-refresh มี spinner ของตัวเองอยู่แล้ว → เอาแบบเงียบ)
+  const refetch = useCallback(() => fetchRepairJobs(true), [fetchRepairJobs]);
+
   return {
     isLoading,
     statusGroups,
@@ -151,6 +157,6 @@ export function useRepairJobs(options: UseRepairJobsOptions = {}) {
     filterDate,
     setFilterDate,
     filteredGroups: getFilteredGroups(),
-    refetch: fetchRepairJobs,
+    refetch,
   };
 }

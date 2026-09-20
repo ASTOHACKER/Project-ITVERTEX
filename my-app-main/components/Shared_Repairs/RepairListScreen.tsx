@@ -76,6 +76,8 @@ export default function RepairListScreen({
   const [hideEmptyStatuses, setHideEmptyStatuses] = useState(true);
   const [sortMode, setSortMode] = useState<RepairSortMode>('latest');
   const [expandAll, setExpandAll] = useState<boolean | null>(null);
+  // จำว่าแต่ละ section กาง/พับไว้ยังไง (key = group.id) — ไม่หายเมื่อ refresh/poll เพราะ state อยู่ parent
+  const [expandedMap, setExpandedMap] = useState<Record<string, boolean>>({});
 
   const totalJobsCount = useMemo(() => {
     return filteredGroups.reduce((acc, g) => acc + g.items.length, 0);
@@ -126,6 +128,25 @@ export default function RepairListScreen({
   };
 
   const isShowingExpanded = expandAll !== false;
+
+  // กางอยู่ก็ให้กางเหมือนเดิม / พับไว้ก็พับเหมือนเดิม — ค่าที่ user กดเองชนะ default
+  const isGroupExpanded = (group: { id: string; statusId: number; items: RepairItem[] }) => {
+    if (expandAll !== null) return expandAll;
+    const manual = expandedMap[group.id];
+    if (manual !== undefined) return manual;
+    return selectedStatusTab !== 'all' || defaultExpandAll || group.items.length > 0;
+  };
+
+  const handleToggleGroup = (groupId: string, next: boolean) => {
+    // ถ้าเคยสั่งขยาย/ยุบทั้งหมดไว้ ให้ปลดกลับเป็นราย section แล้วจำค่าที่กด
+    if (expandAll !== null) setExpandAll(null);
+    setExpandedMap((prev) => ({ ...prev, [groupId]: next }));
+  };
+
+  const handleToggleExpandAll = () => {
+    setExpandAll(isShowingExpanded ? false : true);
+    setExpandedMap({});
+  };
 
   const handlePressDetails = (item: RepairItem) => {
     if (customOnPressDetails) {
@@ -383,7 +404,7 @@ export default function RepairListScreen({
 
           {selectedStatusTab === 'all' && (
             <TouchableOpacity
-              onPress={() => setExpandAll(isShowingExpanded ? false : true)}
+              onPress={handleToggleExpandAll}
               activeOpacity={0.7}
               className="h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white"
               accessibilityRole="button"
@@ -426,13 +447,8 @@ export default function RepairListScreen({
                 count={group.items.length}
                 indicatorColor={group.color}
                 items={group.items}
-                defaultExpanded={
-                  expandAll !== null
-                    ? expandAll
-                    : selectedStatusTab !== 'all' ||
-                  defaultExpandAll ||
-                  group.items.length > 0
-                }
+                expanded={isGroupExpanded(group)}
+                onToggle={(next) => handleToggleGroup(group.id, next)}
                 onPressDetails={handlePressDetails}
                 onPressMakeQuote={onPressMakeQuote}
                 onPressVerifyQuote={onPressVerifyQuote}

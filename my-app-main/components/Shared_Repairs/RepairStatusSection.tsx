@@ -17,6 +17,9 @@ interface RepairStatusSectionProps {
   indicatorColor: string;
   items: RepairItem[];
   defaultExpanded?: boolean;
+  /** Controlled mode: parent เป็นเจ้าของ state (คงค่าข้าม refresh/remount) */
+  expanded?: boolean;
+  onToggle?: (next: boolean) => void;
   onPressDetails?: (item: RepairItem) => void;
   onPressMakeQuote?: (item: RepairItem) => void;
   onPressVerifyQuote?: (item: RepairItem) => void;
@@ -32,6 +35,8 @@ export default function RepairStatusSection({
   indicatorColor,
   items,
   defaultExpanded = false,
+  expanded: controlledExpanded,
+  onToggle,
   onPressDetails,
   onPressMakeQuote,
   onPressVerifyQuote,
@@ -39,11 +44,19 @@ export default function RepairStatusSection({
   onPressHandover,
   onPressPaymentCheck,
 }: RepairStatusSectionProps) {
-  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+  const [internalExpanded, setInternalExpanded] = useState(defaultExpanded);
+
+  // controlled เมื่อ parent ส่ง expanded มา — ไม่งั้นใช้ state ภายในเหมือนเดิม (deliver.tsx)
+  const isControlled = controlledExpanded !== undefined;
+  const isExpanded = isControlled ? controlledExpanded : internalExpanded;
 
   const toggleExpand = () => {
-    if (count > 0) {
-      setIsExpanded(!isExpanded);
+    if (count <= 0) return;
+    const next = !isExpanded;
+    if (isControlled) {
+      onToggle?.(next);
+    } else {
+      setInternalExpanded(next);
     }
   };
 

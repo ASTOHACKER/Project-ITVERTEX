@@ -153,7 +153,7 @@ export default function SchedulePickupScreen() {
       <StatusBar style="light" backgroundColor="#D32F2F" />
 
       {/* Header */}
-      <View className="bg-[#D32F2F] pt-4 pb-6 px-4 flex-row items-center">
+      <View className="bg-[#D32F2F] pt-4 pb-6 px-4 flex-row items-center relative z-10">
         <TouchableOpacity onPress={() => router.back()} className="mr-3">
           <Ionicons name="chevron-back" size={24} color="#ffffff" />
         </TouchableOpacity>
@@ -171,7 +171,7 @@ export default function SchedulePickupScreen() {
           <Text className="text-xs text-slate-500 font-body mt-2">กำลังโหลดข้อมูลปฏิทิน...</Text>
         </View>
       ) : (
-        <ScrollView className="flex-1 -mt-4" contentContainerClassName="p-4 pb-32">
+        <ScrollView className="flex-1 relative z-0" contentContainerClassName="p-4 pb-32">
           
           {/* Main Calendar Card */}
           <View className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 mb-4">
