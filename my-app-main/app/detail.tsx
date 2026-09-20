@@ -405,6 +405,7 @@ export default function TechnicianDetailScreen() {
     }
   };
 
+  /* ใช้คู่กับ Quick Action Hub (commented out ชั่วคราว)
   const handleQuickStatusChange = (targetStatus: string, title: string, message: string) => {
     showAlert({
       title,
@@ -419,6 +420,7 @@ export default function TechnicianDetailScreen() {
       },
     });
   };
+  */
 
   const handleConfirm = () => {
     if (!status || !job) return;
@@ -565,18 +567,15 @@ export default function TechnicianDetailScreen() {
           customerSignature={job.customer_signature}
         />
 
-        {/* ── Quick Action Hub (Role-Tailored Productivity Bar) ── */}
+        {/* ── Quick Action Hub (commented out — เอาการ์ดปุ่มด่วนออกชั่วคราว)
         <View className="bg-white rounded-2xl p-4 mb-4 border border-slate-200 shadow-sm">
           <View className="flex-row items-center gap-2 mb-3">
-            {/* <View className="w-7 h-7 rounded-lg bg-red-50 items-center justify-center">
-              <Ionicons name="flash-outline" size={16} color="#DC2626" />
-            </View> */}
             <Text className="text-sm font-bold text-slate-800 font-heading">
               การดำเนินการด่วนสำหรับ {currentRole === 'technician' ? 'ช่างซ่อม' : currentRole === 'staff' ? 'พนักงานหน้าร้าน' : 'ผู้จัดการ'}
             </Text>
           </View>
 
-          {/* Technician Quick Actions */}
+          ── Technician Quick Actions ──
           {currentRole === 'technician' && (
             <View className="flex-col gap-2.5">
               {job.status === 'รอตรวจเช็ค' && (
@@ -672,7 +671,7 @@ export default function TechnicianDetailScreen() {
             </View>
           )}
 
-          {/* Staff Quick Actions */}
+          ── Staff Quick Actions ──
           {currentRole === 'staff' && (
             <View className="flex-col gap-2.5">
               {(job.status === 'รอชำระ' || job.status_id === 7) && (
@@ -744,13 +743,14 @@ export default function TechnicianDetailScreen() {
             </View>
           )}
 
-          {/* Manager Quick Note */}
+          ── Manager Quick Note ──
           {currentRole === 'manager' && (
             <Text className="text-xs text-slate-500 font-body">
               ผู้จัดการมีสิทธิ์ตรวจสอบข้อมูลภาพรวม ประวัติงานซ่อม อะไหล่ และเอกสารทั้งหมด (โหมดตรวจสอบ)
             </Text>
           )}
         </View>
+        ── end Quick Action Hub (commented out) ── */}
 
         {/* Status Dropdown Picker & Confirm Block */}
         <View className="bg-white rounded-xl p-4 mb-6 shadow-sm shadow-black/5 elevation-2">
