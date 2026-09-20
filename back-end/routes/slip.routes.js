@@ -32,5 +32,6 @@ router.post('/', auth, ctrl.upload.single('slip'), ctrl.create);
  *       200: { description: รายการสลิป }
  */
 router.get('/', auth, ctrl.getAll);
+router.delete('/:id', auth, ctrl.remove);
 
 module.exports = router;

@@ -532,6 +532,27 @@ exports.remove = async (req, res, next) => {
     if (isNaN(numId) || numId <= 0) {
       return res.status(400).json({ success: false, message: 'รหัสงานซ่อมไม่ถูกต้อง' });
     }
+
+    const { rows: jobRows } = await pool.query(
+      'SELECT job_id, quotation_id, payment_method_id, slip_image FROM repair_job WHERE job_id = $1',
+      [numId]
+    );
+    if (jobRows.length === 0) {
+      return res.status(404).json({ success: false, message: 'ไม่พบงานซ่อม' });
+    }
+
+    const job = jobRows[0];
+    const qCheck = await pool.query('SELECT quotation_id FROM quotation WHERE job_id = $1', [numId]);
+    const hasTransactions = (qCheck.rows.length > 0) || (job.quotation_id !== null) || (job.payment_method_id !== null) || (job.slip_image !== null);
+
+    if (hasTransactions) {
+      return res.status(400).json({
+        success: false,
+        message: 'ไม่สามารถลบงานซ่อมนี้ได้ เนื่องจากมีข้อมูลใบเสนอราคาหรือประวัติการชำระเงินอ้างอิงอยู่ เพื่อป้องกันข้อมูลสูญหาย',
+      });
+    }
+
+    await pool.query('DELETE FROM repair_job_detail WHERE job_id = $1', [numId]);
     const { rowCount } = await pool.query('DELETE FROM repair_job WHERE job_id = $1', [numId]);
 
     if (rowCount === 0) {

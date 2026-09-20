@@ -89,3 +89,34 @@ exports.getAll = async (req, res, next) => {
     next(err);
   }
 };
+
+/**
+ * DELETE /api/slips/:id
+ */
+exports.remove = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!id || typeof id !== 'string' || !id.trim()) {
+      return res.status(400).json({ success: false, message: 'ID สลิปไม่ถูกต้อง' });
+    }
+    const slipId = id.trim();
+
+    const userId = req.user?.id;
+    const roleId = req.user?.role_id;
+
+    const { rows } = await pool.query('SELECT * FROM slips_records WHERE id = $1', [slipId]);
+    if (rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'ไม่พบสลิป' });
+    }
+
+    const slip = rows[0];
+    if (roleId === 4 && slip.user_id !== userId) {
+      return res.status(403).json({ success: false, message: 'คุณไม่มีสิทธิ์ลบสลิปของลูกค้ารายอื่น' });
+    }
+
+    await pool.query('DELETE FROM slips_records WHERE id = $1', [slipId]);
+    res.json({ success: true, message: 'ลบสลิปสำเร็จ' });
+  } catch (err) {
+    next(err);
+  }
+};

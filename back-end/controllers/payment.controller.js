@@ -38,6 +38,18 @@ exports.create = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'กรุณาระบุรหัสงานซ่อมที่ถูกต้อง' });
     }
 
+    if (pickup_date) {
+      const cleanDateStr = String(pickup_date).trim();
+      if (cleanDateStr && cleanDateStr !== 'null' && cleanDateStr !== 'undefined') {
+        const pickup = new Date(cleanDateStr);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (!isNaN(pickup.getTime()) && pickup < today) {
+          return res.status(400).json({ success: false, message: 'วันนัดรับเครื่องต้องไม่เป็นวันที่ผ่านมาแล้ว' });
+        }
+      }
+    }
+
     const cleanJobCode = (() => {
       if (job_no && typeof job_no === 'string' && job_no.trim()) {
         return job_no.trim().replace(/[^a-zA-Z0-9_-]/g, '');

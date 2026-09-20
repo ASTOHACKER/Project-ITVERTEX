@@ -105,11 +105,10 @@ export default function VerifyQuoteScreen() {
 
             if (fetchedParts.length > 0) setParts(fetchedParts);
             if (fetchedServices.length > 0) setServices(fetchedServices);
-          }
- else {
-            // Fallback default mockup
-            setParts([{ id: '1', name: 'อะไหล่อุปกรณ์ซ่อม', price: Math.max((jobData.total_amount || 1300) - 500, 0) }]);
-            setServices([{ id: '2', name: 'ค่าแรงซ่อมและทดสอบ', price: 500 }]);
+          } else {
+            // ไม่มีรายการใบเสนอราคาจริง ไม่แสดงข้อมูลจำลอง
+            setParts([]);
+            setServices([]);
           }
         }
       } catch (err) {
@@ -122,8 +121,19 @@ export default function VerifyQuoteScreen() {
     fetchQuoteData();
   }, [jobNoParam]);
 
-  // เปิดป๊อปอัปยืนยันก่อนกดส่ง
+  // เปิดป๊อปอัปยืนยันก่อนกดส่ง (ตรวจสอบว่ามีรายการใบเสนอราคาจริง)
   const handleOpenConfirmModal = () => {
+    if (parts.length === 0 && services.length === 0 && (!job || !job.total_amount || job.total_amount <= 0)) {
+      setAlertConfig({
+        visible: true,
+        title: 'ไม่สามารถส่งได้',
+        message: 'ไม่พบรายการหรือยอดเงินในใบเสนอราคาจริง กรุณาสร้างใบเสนอราคาก่อนส่งให้ลูกค้า',
+        type: 'warning',
+        confirmText: 'ตกลง',
+        onConfirm: () => setAlertConfig(prev => ({ ...prev, visible: false })),
+      });
+      return;
+    }
     setConfirmModalVisible(true);
   };
 
@@ -132,6 +142,18 @@ export default function VerifyQuoteScreen() {
   // ยืนยันส่งให้ลูกค้า -> อัปเดตสถานะใน DB เป็น 4 (รอการอนุมัติ)
   const handleConfirmSend = async () => {
     if (sending) return;
+    if (parts.length === 0 && services.length === 0 && (!job || !job.total_amount || job.total_amount <= 0)) {
+      setConfirmModalVisible(false);
+      setAlertConfig({
+        visible: true,
+        title: 'ไม่สามารถส่งได้',
+        message: 'ไม่พบรายการหรือยอดเงินในใบเสนอราคาจริง กรุณาสร้างใบเสนอราคาก่อนส่งให้ลูกค้า',
+        type: 'warning',
+        confirmText: 'ตกลง',
+        onConfirm: () => setAlertConfig(prev => ({ ...prev, visible: false })),
+      });
+      return;
+    }
     setSending(true);
 
     try {
