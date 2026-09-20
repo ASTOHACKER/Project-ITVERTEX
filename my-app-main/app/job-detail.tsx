@@ -425,10 +425,7 @@ export default function JobDetailScreen() {
 
         {/* ปฏิทินกำหนดวันรับเครื่องให้ลูกค้าดู */}
         {job.appointment_date ? (
-          <PickupCalendarCard
-            appointmentDate={job.appointment_date}
-            defaultExpanded={false}
-          />
+          <PickupCalendarCard defaultExpanded={false} />
         ) : (isWaitingRepair || isReadyForPayment || isCancelled) ? (
           <View className="bg-white rounded-2xl p-4 mb-4 border border-slate-100 shadow-sm flex-row items-center">
             <View className="w-10 h-10 rounded-xl bg-amber-50 items-center justify-center mr-3 border border-amber-100">

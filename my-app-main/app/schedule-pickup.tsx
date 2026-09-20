@@ -17,11 +17,6 @@ const THAI_MONTHS = [
   'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
 ];
 
-const THAI_DAYS_OF_WEEK = [
-  'วันอาทิตย์', 'วันจันทร์', 'วันอังคาร', 'วันพุธ',
-  'วันพฤหัสบดี', 'วันศุกร์', 'วันเสาร์'
-];
-
 const DAYS_OF_WEEK_SHORT = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
 
 export default function SchedulePickupScreen() {
@@ -63,30 +58,12 @@ export default function SchedulePickupScreen() {
     loadData();
   }, [targetJobId]);
 
-  // Target Date object
-  const targetDate = useMemo(() => {
-    if (!appointmentDate || appointmentDate === 'null' || appointmentDate === 'undefined') {
-      return null;
-    }
-    const d = new Date(appointmentDate);
-    return isNaN(d.getTime()) ? null : d;
-  }, [appointmentDate]);
-
   const today = useMemo(() => new Date(), []);
 
-  // Calendar month state (defaults to target date's month or current month)
+  // Calendar month state (defaults to current month)
   const [currentMonth, setCurrentMonth] = useState(() => {
-    if (targetDate) {
-      return new Date(targetDate.getFullYear(), targetDate.getMonth(), 1);
-    }
     return new Date(today.getFullYear(), today.getMonth(), 1);
   });
-
-  useEffect(() => {
-    if (targetDate) {
-      setCurrentMonth(new Date(targetDate.getFullYear(), targetDate.getMonth(), 1));
-    }
-  }, [targetDate]);
 
   const getDaysInMonth = (year: number, month: number) => {
     return new Date(year, month + 1, 0).getDate();
@@ -116,12 +93,8 @@ export default function SchedulePickupScreen() {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
   };
 
-  const handleResetToTarget = () => {
-    if (targetDate) {
-      setCurrentMonth(new Date(targetDate.getFullYear(), targetDate.getMonth(), 1));
-    } else {
-      setCurrentMonth(new Date(today.getFullYear(), today.getMonth(), 1));
-    }
+  const handleResetToToday = () => {
+    setCurrentMonth(new Date(today.getFullYear(), today.getMonth(), 1));
   };
 
   const isSameDay = (d1: Date, d2: Date) => {
@@ -132,19 +105,9 @@ export default function SchedulePickupScreen() {
     );
   };
 
-  const formattedPickupDateText = useMemo(() => {
-    if (!targetDate) return 'ยังไม่ได้ระบุวันนัดรับเครื่อง';
-    const dayName = THAI_DAYS_OF_WEEK[targetDate.getDay()];
-    const dateNum = targetDate.getDate();
-    const monthName = THAI_MONTHS[targetDate.getMonth()];
-    const thaiYear = targetDate.getFullYear() + 543;
-    return `${dayName}ที่ ${dateNum} ${monthName} ${thaiYear}`;
-  }, [targetDate]);
-
-  const isViewingDifferentMonth = targetDate && (
-    currentMonth.getFullYear() !== targetDate.getFullYear() ||
-    currentMonth.getMonth() !== targetDate.getMonth()
-  );
+  const isViewingCurrentMonth =
+    currentMonth.getFullYear() === today.getFullYear() &&
+    currentMonth.getMonth() === today.getMonth();
 
   const displayJobNo = jobInfo?.job_number || (targetJobId ? `REP-${String(targetJobId).padStart(6, '0')}` : '');
 
@@ -185,7 +148,7 @@ export default function SchedulePickupScreen() {
               </View>
             </View>
             <Text className="text-xs text-slate-500 font-body mb-4">
-              ลูกค้าสามารถมารับอุปกรณ์ได้ตั้งแต่วันที่ไฮไลท์เป็นต้นไป
+              ลูกค้าสามารถมารับอุปกรณ์ได้ในวันจันทร์–เสาร์ (ร้านหยุดวันอาทิตย์)
             </Text>
 
             {/* Calendar Navigation */}
@@ -201,10 +164,10 @@ export default function SchedulePickupScreen() {
                 <Text className="font-bold font-heading text-slate-800 text-sm">
                   {THAI_MONTHS[currentMonth.getMonth()]} {currentMonth.getFullYear() + 543}
                 </Text>
-                {isViewingDifferentMonth && (
-                  <TouchableOpacity onPress={handleResetToTarget} className="mt-0.5">
+                {!isViewingCurrentMonth && (
+                  <TouchableOpacity onPress={handleResetToToday} className="mt-0.5">
                     <Text className="text-[11px] text-red-600 font-bold underline font-body">
-                      กลับไปเดือนที่นัดรับเครื่อง
+                      กลับไปเดือนปัจจุบัน
                     </Text>
                   </TouchableOpacity>
                 )}
@@ -219,41 +182,34 @@ export default function SchedulePickupScreen() {
             </View>
 
             {/* Days of Week Header */}
-            <View className="flex-row justify-between mb-2 pb-1 border-b border-slate-100">
+            <View className="flex-row mb-2 pb-1 border-b border-slate-100">
               {DAYS_OF_WEEK_SHORT.map((day, idx) => (
-                <View key={idx} className="w-[13%] items-center">
-                  <Text
-                    className={`text-xs font-bold font-heading ${
-                      idx === 0 ? 'text-red-500' : 'text-slate-400'
-                    }`}
-                  >
+                <View key={idx} className="w-[14.28%] items-center">
+                  <Text className="text-xs font-bold font-heading text-slate-400">
                     {day}
                   </Text>
                 </View>
               ))}
             </View>
 
-            {/* Calendar Grid */}
-            <View className="flex-row flex-wrap justify-between">
+            {/* Calendar Grid — fixed 7 columns */}
+            <View className="flex-row flex-wrap">
               {calendarDays.map((date, idx) => {
                 if (!date) {
-                  return <View key={`empty-${idx}`} className="w-[13%] aspect-square mb-2" />;
+                  return <View key={`empty-${idx}`} className="w-[14.28%] aspect-square mb-2" />;
                 }
 
-                const isPickup = targetDate ? isSameDay(date, targetDate) : false;
                 const isCurrentDay = isSameDay(date, today);
                 const isSunday = date.getDay() === 0;
 
                 return (
-                  <View
-                    key={`day-${date.toISOString()}`}
-                    className="w-[13%] aspect-square items-center justify-center mb-2"
-                  >
+                <View
+                  key={`day-${date.toISOString()}`}
+                  className="w-[14.28%] aspect-square items-center justify-center mb-2"
+                >
                     <View
                       className={`w-10 h-10 items-center justify-center rounded-2xl ${
-                        isPickup
-                          ? 'bg-[#D32F2F] shadow-md shadow-red-500/40'
-                          : isCurrentDay
+                        isCurrentDay
                           ? 'bg-red-50 border-2 border-red-300'
                           : isSunday
                           ? 'bg-slate-50/60'
@@ -262,23 +218,16 @@ export default function SchedulePickupScreen() {
                     >
                       <Text
                         className={`font-heading text-xs ${
-                          isPickup
-                            ? 'text-white font-bold text-sm'
-                            : isCurrentDay
+                          isCurrentDay
                             ? 'text-red-600 font-bold'
                             : isSunday
-                            ? 'text-red-400'
+                            ? 'text-slate-400'
                             : 'text-slate-700 font-medium'
                         }`}
                       >
                         {date.getDate()}
                       </Text>
                     </View>
-
-                    {/* Indicator Dot */}
-                    {isPickup && (
-                      <View className="w-1.5 h-1.5 rounded-full bg-[#D32F2F] mt-1" />
-                    )}
                   </View>
                 );
               })}
@@ -287,12 +236,12 @@ export default function SchedulePickupScreen() {
             {/* Color Legend */}
             <View className="flex-row items-center justify-center gap-6 mt-4 pt-3 border-t border-slate-100">
               <View className="flex-row items-center">
-                <View className="w-3.5 h-3.5 rounded-md bg-[#D32F2F] mr-1.5" />
-                <Text className="text-xs text-slate-600 font-body font-medium">วันนัดรับเครื่อง</Text>
-              </View>
-              <View className="flex-row items-center">
                 <View className="w-3.5 h-3.5 rounded-md bg-red-50 border border-red-300 mr-1.5" />
                 <Text className="text-xs text-slate-600 font-body font-medium">วันนี้</Text>
+              </View>
+              <View className="flex-row items-center">
+                <View className="w-3.5 h-3.5 rounded-md bg-slate-200 mr-1.5" />
+                <Text className="text-xs text-slate-600 font-body font-medium">หยุดวันอาทิตย์</Text>
               </View>
             </View>
           </View>
@@ -309,9 +258,9 @@ export default function SchedulePickupScreen() {
                   <Ionicons name="calendar" size={16} color="#D32F2F" />
                 </View>
                 <View className="flex-1">
-                  <Text className="text-xs text-slate-500 font-body">กำหนดวันที่รับเครื่อง</Text>
+                  <Text className="text-xs text-slate-500 font-body">วันที่รับเครื่องได้</Text>
                   <Text className="text-sm font-bold text-slate-800 font-heading">
-                    {formattedPickupDateText}
+                    วันจันทร์–เสาร์ (หยุดวันอาทิตย์)
                   </Text>
                 </View>
               </View>
