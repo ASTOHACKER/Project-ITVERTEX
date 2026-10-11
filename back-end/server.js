@@ -10,7 +10,6 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
 const errorHandler = require('./middleware/errorHandler');
 const authMiddleware = require('./middleware/auth');
-const role = require('./middleware/role');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -44,10 +43,28 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
+// Rate limiter เฉพาะส่วน Auth เพื่อป้องกัน Brute-force Login/Register
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 นาที
+  max: 50,                   // 50 requests ต่อ 15 นาที
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'พยายามเข้าสู่ระบบมากเกินไป กรุณารอ 15 นาทีแล้วลองใหม่',
+  },
+});
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
+app.use('/api/auth/forgot-password', authLimiter);
+app.use('/api/auth/reset-password', authLimiter);
+
 // 6. Static files — สำหรับ uploaded files และ public assets
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use('/pubilc', express.static(path.join(__dirname, 'pubilc')));
-app.use('/public', express.static(path.join(__dirname, 'pubilc')));
+app.use('/public', express.static(path.join(__dirname, 'public')));
+app.use('/pubilc', express.static(path.join(__dirname, 'public'))); // Backward compatibility สำหรับ legacy links
+app.use('/slips', express.static(path.join(__dirname, 'public', 'slips'))); // ให้เข้าถึงรูปสลิปผ่าน /slips/... ได้โดยตรง
+app.use('/signatures', express.static(path.join(__dirname, 'public', 'signatures'))); // ให้เข้าถึงรูปลายเซ็นผ่าน /signatures/... ได้โดยตรง
 
 // ============================================================
 // Swagger API Documentation
@@ -69,12 +86,12 @@ app.use('/api/repairs', authMiddleware, require('./routes/repair.routes'));
 app.use('/api/devices', authMiddleware, require('./routes/device.routes'));
 app.use('/api/quotations', authMiddleware, require('./routes/quotation.routes'));
 app.use('/api/items', authMiddleware, require('./routes/item.routes'));
-// Mini Project: ลงทะเบียน API จัดการสมาชิก โดยตรวจ token ก่อนส่งต่อไปยัง routes
 app.use('/api/staff', authMiddleware, require('./routes/staff.routes'));
 app.use('/api/dashboard', authMiddleware, require('./routes/dashboard.routes'));
 app.use('/api/slips', authMiddleware, require('./routes/slip.routes'));
 app.use('/api/payments', authMiddleware, require('./routes/payment.routes'));
 app.use('/api/lookup', authMiddleware, require('./routes/lookup.routes'));
+app.use('/api/catalog', authMiddleware, require('./routes/catalog.routes'));
 
 // Health check
 app.get('/', (req, res) => {

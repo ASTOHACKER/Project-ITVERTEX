@@ -3,7 +3,6 @@ import { Stack, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -15,6 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import SuccessToast from '@/components/ui/SuccessToast';
 import FormInput from '@/components/ui/FormInput';
+import CustomAlert from '@/components/ui/CustomAlert';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -27,6 +27,19 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [focusedField, setFocusedField] = useState<'email' | 'password' | null>(null);
+
+  // ── Alert Modal State ──
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    type: 'success' | 'warning' | 'danger' | 'info';
+  }>({
+    visible: false,
+    title: '',
+    message: '',
+    type: 'danger',
+  });
 
   // ── Toast ──
   const [showToast, setShowToast] = useState(false);
@@ -44,12 +57,13 @@ export default function LoginScreen() {
   // Helpers
   // ════════════════════════════════════════════════════════
 
-  const showAlert = (title: string, message: string) => {
-    if (Platform.OS === 'web') {
-      window.alert(`${title}\n\n${message}`);
-    } else {
-      Alert.alert(title, message);
-    }
+  const showAlert = (title: string, message: string, type: 'success' | 'warning' | 'danger' | 'info' = 'danger') => {
+    setAlertConfig({
+      visible: true,
+      title,
+      message,
+      type,
+    });
   };
 
   const setError = (field: string, msg: string) => {
@@ -160,7 +174,7 @@ export default function LoginScreen() {
           keyboardShouldPersistTaps="handled"
         >
           {/* ═══ Red Header ═══ */}
-          <View 
+          <View
             className="bg-[#DC2626] pb-10 px-6 relative overflow-hidden"
             style={{ paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) + 40 : 60 }}
           >
@@ -261,6 +275,14 @@ export default function LoginScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <CustomAlert
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        type={alertConfig.type}
+        onConfirm={() => setAlertConfig(prev => ({ ...prev, visible: false }))}
+      />
     </SafeAreaView>
   );
 }

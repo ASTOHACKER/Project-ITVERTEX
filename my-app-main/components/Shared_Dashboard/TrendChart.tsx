@@ -7,12 +7,14 @@ import { LineChart } from 'react-native-gifted-charts';
 
 interface TrendChartProps {
   timeFilter: 'day' | 'month' | 'year';
+  deviceType?: string;
   data?: { value: number; label: string }[];
   isLoading?: boolean;
 }
 
 export default function TrendChart({
   timeFilter,
+  deviceType,
   data = [],
   isLoading = false,
 }: TrendChartProps) {
@@ -23,15 +25,42 @@ export default function TrendChart({
   const maxVal = rawMax <= 4 ? 4 : Math.ceil(rawMax / 4) * 4;
   const stepVal = Math.max(1, Math.round(maxVal / 4));
 
+  // ปรับ spacing และขนาดจุดให้สวยงามตามจำนวนข้อมูล (เช่น 1-31 วัน หรือ 12 เดือน)
+  const isMonthRange = data.length > 20;
+  const spacing = isMonthRange ? 26 : data.length > 10 ? 38 : 60;
+  const pointRadius = isMonthRange ? 3 : 4;
+
+  const deviceLabel = deviceType === 'pc' ? ' • คอมพิวเตอร์' : deviceType === 'laptop' ? ' • โน๊ตบุ๊ค' : deviceType === 'printer' ? ' • ปริ้นเตอร์' : '';
+
+  const subtitleText =
+    (timeFilter === 'day'
+      ? data.length > 20
+        ? 'รายวัน (วันที่ 1 - 31)'
+        : 'รายวัน'
+      : timeFilter === 'month'
+      ? 'รายเดือน (12 เดือน)'
+      : 'รายปี') + deviceLabel;
+
   return (
-    <View className="bg-white p-4 mx-4 mb-4 rounded-xl border border-app-border overflow-hidden">
-      <View className="flex-row justify-between items-center mb-4">
-        <View className="flex-row items-center gap-1.5">
-          <Text className="text-base font-bold text-text-dark font-heading">
-            แนวโน้มจำนวนงานซ่อม
+    <View className="bg-white p-4 mx-4 mb-4 rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <View className="flex-row justify-between items-center mb-3">
+        <View>
+          <View className="flex-row items-center gap-1.5">
+            <Text className="text-base font-bold text-slate-800 font-heading">
+              แนวโน้มจำนวนงานซ่อม
+            </Text>
+            <Text className="text-xs text-slate-400 font-medium">
+              (เครื่อง)
+            </Text>
+          </View>
+          <Text className="text-[11px] text-slate-400 font-body mt-0.5">
+            {subtitleText} {isMonthRange && '• เลื่อนขวาเพื่อดูวันเพิ่มเติม'}
           </Text>
-          <Text className="text-xs text-slate-400 font-medium">
-            (เครื่อง / รายการ)
+        </View>
+
+        <View className="bg-red-50 px-2.5 py-1 rounded-full border border-red-100">
+          <Text className="text-xs font-bold text-primary font-heading">
+            {data.reduce((sum, d) => sum + (Number(d.value) || 0), 0)} เครื่อง
           </Text>
         </View>
       </View>
@@ -40,34 +69,34 @@ export default function TrendChart({
         {isLoading ? (
           <View className="h-[180px] justify-center items-center">
             <ActivityIndicator size="large" color="#D62828" />
-            <Text className="mt-2 font-body text-xs text-text-light">กำลังโหลดข้อมูลแนวโน้ม...</Text>
+            <Text className="mt-2 font-body text-xs text-slate-400">กำลังโหลดข้อมูลแนวโน้ม...</Text>
           </View>
         ) : data.length > 0 ? (
           <LineChart
-            key={timeFilter}
+            key={`${timeFilter}_${data.length}`}
             isAnimated
             areaChart
             data={data}
             hideDataPoints={false}
             dataPointsColor="#D62828"
-            dataPointsRadius={4}
+            dataPointsRadius={pointRadius}
             color="#D62828"
-            thickness={3}
+            thickness={2.5}
             startFillColor="#D62828"
             endFillColor="#D62828"
-            startOpacity={0.35}
-            endOpacity={0.03}
-            initialSpacing={24}
-            spacing={timeFilter === 'day' ? 45 : 65}
+            startOpacity={0.3}
+            endOpacity={0.02}
+            initialSpacing={16}
+            spacing={spacing}
             maxValue={maxVal}
             noOfSections={4}
             stepValue={stepVal}
             roundToDigits={0}
             formatYLabel={(val) => Math.round(Number(val)).toString()}
             yAxisColor="transparent"
-            xAxisColor="#E9ECEF"
-            yAxisTextStyle={{ color: '#888888', fontSize: 10 }}
-            xAxisLabelTextStyle={{ color: '#888888', fontSize: 10 }}
+            xAxisColor="#E2E8F0"
+            yAxisTextStyle={{ color: '#94A3B8', fontSize: 10 }}
+            xAxisLabelTextStyle={{ color: '#64748B', fontSize: isMonthRange ? 9 : 10, fontWeight: '600' }}
             height={180}
             width={chartWidth}
           />

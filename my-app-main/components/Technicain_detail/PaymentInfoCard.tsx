@@ -3,10 +3,10 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Modal } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
+import { getImageUrl } from '@/lib/api';
 
 interface PaymentInfoCardProps {
   paymentMethodId?: number | null;
-  paymentMethodName?: string | null;
   paymentDate?: string | null; // วันที่ชำระ (วันที่พนักงานยืนยันการชำระ)
   statusId?: number | null;
   statusName?: string | null;
@@ -17,7 +17,6 @@ interface PaymentInfoCardProps {
 
 export default function PaymentInfoCard({
   paymentMethodId,
-  paymentMethodName,
   paymentDate,
   statusId,
   statusName,
@@ -26,6 +25,9 @@ export default function PaymentInfoCard({
   totalAmount,
 }: PaymentInfoCardProps) {
   const [modalVisible, setModalVisible] = useState(false);
+
+  // สร้าง full URL สำหรับรูปภาพสลิปให้เข้าถึงได้ถูกต้อง
+  const resolvedSlipUrl = getImageUrl(slipImage || slipFilename);
 
   const formatDate = (dateStr?: string | null) => {
     if (!dateStr || dateStr === 'undefined' || dateStr === 'null' || dateStr === '-') return 'ยังไม่ได้ระบุ';
@@ -138,7 +140,7 @@ export default function PaymentInfoCard({
         {isTransfer && (
           <View className="mt-3 pt-2 border-t border-slate-100">
             <Text className="text-xs text-slate-500 font-body mb-2">หลักฐานการโอนเงิน (สลิป):</Text>
-            {slipImage ? (
+            {resolvedSlipUrl ? (
               <View className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 items-center">
                 <TouchableOpacity
                   onPress={() => setModalVisible(true)}
@@ -146,7 +148,7 @@ export default function PaymentInfoCard({
                   className="w-full items-center"
                 >
                   <Image
-                    source={{ uri: slipImage }}
+                    source={{ uri: resolvedSlipUrl }}
                     style={{ width: '100%', height: 200, borderRadius: 8 }}
                     contentFit="contain"
                   />
@@ -180,9 +182,9 @@ export default function PaymentInfoCard({
           >
             <Ionicons name="close" size={24} color="#ffffff" />
           </TouchableOpacity>
-          {slipImage && (
+          {resolvedSlipUrl && (
             <Image
-              source={{ uri: slipImage }}
+              source={{ uri: resolvedSlipUrl }}
               style={{ width: '90%', height: '75%' }}
               contentFit="contain"
             />

@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const { ROLES } = require('../constants');
 
 /**
  * GET /api/lookup/statuses
@@ -77,7 +78,20 @@ exports.getDeviceTypes = async (req, res, next) => {
  */
 exports.getBrands = async (req, res, next) => {
   try {
-    const { rows } = await pool.query('SELECT * FROM brands ORDER BY brand_id');
+    const { device_type_id } = req.query;
+    if (device_type_id && !isNaN(parseInt(device_type_id, 10))) {
+      const dtId = parseInt(device_type_id, 10);
+      const { rows } = await pool.query(`
+        SELECT DISTINCT b.brand_id, b.brand_name
+        FROM brands b
+        LEFT JOIN brand_device_types bdt ON b.brand_id = bdt.brand_id
+        LEFT JOIN device_models dm ON b.brand_id = dm.brand_id AND dm.device_type_id = $1
+        WHERE bdt.device_type_id = $1 OR dm.device_type_id = $1
+        ORDER BY b.brand_name ASC
+      `, [dtId]);
+      return res.json({ success: true, data: rows });
+    }
+    const { rows } = await pool.query('SELECT * FROM brands ORDER BY brand_name ASC');
     res.json({ success: true, data: rows });
   } catch (err) {
     next(err);
@@ -129,7 +143,7 @@ exports.searchProfiles = async (req, res, next) => {
     const advPhone = (phone || '').trim();
     const advEmail = (email || '').trim();
     if (advName || advPhone || advEmail) {
-      const conditions = ['role_id = 4'];
+      const conditions = [`role_id = ${ROLES.CUSTOMER}`];
       const params = [];
       if (advName) {
         params.push(`%${advName}%`);
@@ -156,16 +170,16 @@ exports.searchProfiles = async (req, res, next) => {
     let query;
     const params = [`%${trimmed}%`];
     if (type === 'phone') {
-      query = `SELECT id, first_name, last_name, phone, email FROM profiles WHERE phone ILIKE $1 AND role_id = 4 LIMIT 10`;
+      query = `SELECT id, first_name, last_name, phone, email FROM profiles WHERE phone ILIKE $1 AND role_id = ${ROLES.CUSTOMER} LIMIT 10`;
     } else if (type === 'name') {
       query = `SELECT id, first_name, last_name, phone, email FROM profiles
-               WHERE CONCAT(COALESCE(first_name, ''), ' ', COALESCE(last_name, '')) ILIKE $1 AND role_id = 4 LIMIT 10`;
+               WHERE CONCAT(COALESCE(first_name, ''), ' ', COALESCE(last_name, '')) ILIKE $1 AND role_id = ${ROLES.CUSTOMER} LIMIT 10`;
     } else if (type === 'email') {
-      query = `SELECT id, first_name, last_name, phone, email FROM profiles WHERE email ILIKE $1 AND role_id = 4 LIMIT 10`;
+      query = `SELECT id, first_name, last_name, phone, email FROM profiles WHERE email ILIKE $1 AND role_id = ${ROLES.CUSTOMER} LIMIT 10`;
     } else {
       // default 'all': single search box (name / phone / email)
       query = `SELECT id, first_name, last_name, phone, email FROM profiles
-               WHERE role_id = 4 AND (
+               WHERE role_id = ${ROLES.CUSTOMER} AND (
                  CONCAT(COALESCE(first_name, ''), ' ', COALESCE(last_name, '')) ILIKE $1
                  OR phone ILIKE $1
                  OR email ILIKE $1

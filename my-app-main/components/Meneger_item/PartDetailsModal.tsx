@@ -9,19 +9,17 @@ interface PartDetailsModalProps {
   item: any;
   onClose: () => void;
   onEdit?: (item: any) => void;
-  onDelete?: (item: any) => void;
 }
 
-export default function PartDetailsModal({ visible, item, onClose, onEdit, onDelete }: PartDetailsModalProps) {
+export default function PartDetailsModal({ visible, item, onClose, onEdit }: PartDetailsModalProps) {
   if (!item) return null;
 
   const isPart = item.item_type_id === 1; // 1 = อะไหล่, 2 = ค่าบริการ
-  const profit = (item.selling_price || 0) - (item.cost_price || 0);
 
   return (
     <Modal visible={visible} transparent={true} animationType="fade" onRequestClose={onClose}>
       <View className="flex-1 bg-black/50 justify-center items-center p-5">
-        <View className="w-full bg-white rounded-2xl p-5 shadow-sm shadow-black/25 elevation-5">
+        <View className="w-full max-w-[380px] bg-white rounded-2xl p-5 shadow-lg shadow-black/25 elevation-5">
           <View className="flex-row justify-between items-center mb-5 border-b border-slate-200 pb-3">
             <Text className="text-lg font-bold text-slate-800">รายละเอียดรายการ</Text>
             <TouchableOpacity onPress={onClose} className="p-1">
@@ -62,13 +60,6 @@ export default function PartDetailsModal({ visible, item, onClose, onEdit, onDel
           </View>
 
           <View className="flex-row justify-between gap-2.5">
-            <TouchableOpacity
-              className="flex-1 flex-row h-12 rounded-xl justify-center items-center border border-red-200 bg-red-50 active:bg-red-100"
-              onPress={() => onDelete?.(item)}
-            >
-              <Ionicons name="trash-outline" size={18} color="#DC2626" />
-              <Text className="text-[#DC2626] font-bold text-sm ml-1 font-heading">ลบ</Text>
-            </TouchableOpacity>
 
             <TouchableOpacity
               className="flex-1 flex-row h-12 rounded-xl justify-center items-center border border-sky-200 bg-sky-50 active:bg-sky-100"

@@ -113,7 +113,7 @@ CREATE TABLE IF NOT EXISTS public.device_models
 -- 2.1 ผู้ใช้งาน
 CREATE TABLE IF NOT EXISTS public.profiles
 (
-    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    id serial NOT NULL,
     email text NOT NULL,
     password text NOT NULL,
     first_name text,
@@ -129,7 +129,7 @@ CREATE TABLE IF NOT EXISTS public.profiles
 CREATE TABLE IF NOT EXISTS public.password_reset_tokens
 (
     id serial NOT NULL,
-    user_id uuid NOT NULL,
+    user_id integer NOT NULL,
     token text NOT NULL,
     expires_at timestamp with time zone NOT NULL,
     used boolean DEFAULT false,
@@ -142,7 +142,7 @@ CREATE TABLE IF NOT EXISTS public.password_reset_tokens
 CREATE TABLE IF NOT EXISTS public.device
 (
     device_id serial NOT NULL,
-    customer_id uuid,
+    customer_id integer,
     device_type_id integer,
     brand_id integer,
     model text,
@@ -185,12 +185,12 @@ CREATE TABLE IF NOT EXISTS public.repair_job
     payment_date date,
     payment_method_id integer,
     payment_verified boolean DEFAULT false,
-    payment_verified_by uuid,
+    payment_verified_by integer,
     payment_verified_at timestamp with time zone,
     payment_reject_reason text,
     status_id integer DEFAULT 1,
     actual_symptom text,
-    repairer_id uuid,
+    repairer_id integer,
     repaired_at timestamp with time zone,
     return_date timestamp with time zone,
     CONSTRAINT repair_job_pkey PRIMARY KEY (job_id)
@@ -201,7 +201,7 @@ CREATE TABLE IF NOT EXISTS public.repair_job_detail
 (
     job_id_detail serial NOT NULL,
     job_id integer,
-    user_id uuid,
+    user_id integer,
     action_type_id integer,
     action_date date DEFAULT CURRENT_DATE,
     remark text,
@@ -238,8 +238,8 @@ CREATE TABLE IF NOT EXISTS public.quotation_details
 -- 2.9 บันทึกสลิปการชำระเงิน
 CREATE TABLE IF NOT EXISTS public.slips_records
 (
-    id uuid NOT NULL DEFAULT gen_random_uuid(),
-    user_id uuid,
+    id serial NOT NULL,
+    user_id integer,
     image_url text NOT NULL,
     uploaded_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT slips_records_pkey PRIMARY KEY (id)
@@ -348,7 +348,7 @@ INSERT INTO public.status (status_id, status_name) VALUES
 (3, 'ดำเนินการเสนอราคา'),
 (4, 'รอการอนุมัติ'),
 (5, 'อนุมัติแล้ว/รอซ่อม'),
-(6, 'กำลังซ่อม'),
+(6, 'รอลูกค้ามารับเครื่อง'),
 (7, 'รอชำระ'),
 (8, 'เสร็จสิ้น'),
 (9, 'ยกเลิกซ่อม')
@@ -524,11 +524,12 @@ ON CONFLICT (item_id) DO UPDATE SET
 -- 5.10 ผู้ใช้งานเริ่มต้น (Seed Profiles)
 -- รหัสผ่านของทุกบัญชีคือ: <email>Z (เช่น technician1@gmail.comZ, staff1@gmail.comZ, Manager1234@gmai.comZ, cus1@gmail.comZ)
 INSERT INTO public.profiles (id, email, password, first_name, last_name, phone, role_id) VALUES
-('8d261a41-f06d-4f80-b4f6-8874031419a0', 'Manager1234@gmai.com', '$2a$10$5cseq1UHtfgMQ.jbD.zTRe//MBxSOJYKtQkMLykyukyfirlVZYUam', 'ผู้จัดการ', 'ใจดี', '0698516971', 1),
-('364486db-c8f8-427e-9c35-6b39362ac8e6', 'technician1@gmail.com', '$2a$10$KiTnNlS41FgAXp7RbZ5SGeASDmZCvhUAQHPriwY2249ROtvm18AVC', 'ช่าง', 'ใจดี', '0896513966', 2),
-('6c29396b-5636-4d8f-9ca0-f2f8a6f8a40d', 'staff1@gmail.com', '$2a$10$kWjXpL33HCwL52bb5HQcN.6hEQFMRLy3fJBOrwJz89xftFfwJyZYS', 'เสมียน', 'ใจดีมาก', '0698512699', 3),
-('319bcdf6-002b-4934-aa7c-10d7f46a4dac', 'cus1@gmail.com', '$2a$10$Yllgh222rcqyyNY.0yinHOJwJa.Z1FZ8TSxWMAX.39YQIFQN1SBlC', 'ลูกค้า', 'ใจดีที่สุด', '0896513688', 4),
-('90a82a98-7154-40bb-ad01-f75519a2f71a', 'customer1@gamill.comz', '$2a$10$90K6qsrQE5pq/OtgsdpmxeET3FH8/fu9dcyYuXuUwWuEbMG4IT7fS', 'สมชาย', 'ใจดี', '0654987100', 4)
+(1, 'Manager1234@gmai.com', '$2a$10$5cseq1UHtfgMQ.jbD.zTRe//MBxSOJYKtQkMLykyukyfirlVZYUam', 'ผู้จัดการ', 'ใจดี', '0698516971', 1),
+(2, 'staff1@gmail.com', '$2a$10$kWjXpL33HCwL52bb5HQcN.6hEQFMRLy3fJBOrwJz89xftFfwJyZYS', 'เสมียน', 'ใจดีมาก', '0698512699', 3),
+(3, 'technician1@gmail.com', '$2a$10$KiTnNlS41FgAXp7RbZ5SGeASDmZCvhUAQHPriwY2249ROtvm18AVC', 'ช่าง', 'ใจดี', '0896513966', 2),
+(4, 'cus1@gmail.com', '$2a$10$Yllgh222rcqyyNY.0yinHOJwJa.Z1FZ8TSxWMAX.39YQIFQN1SBlC', 'ลูกค้า', 'ใจดีที่สุด', '0896513688', 4),
+(5, 'test@gmail.com', '$2a$10$Yllgh222rcqyyNY.0yinHOJwJa.Z1FZ8TSxWMAX.39YQIFQN1SBlC', 'ลูกค้าตัวจริง', 'ใจดี', '0812345678', 4),
+(6, 'customer1@gamill.comz', '$2a$10$90K6qsrQE5pq/OtgsdpmxeET3FH8/fu9dcyYuXuUwWuEbMG4IT7fS', 'สมชาย', 'ใจดี', '0654987100', 4)
 ON CONFLICT (id) DO UPDATE SET
     email = EXCLUDED.email,
     password = EXCLUDED.password,
@@ -555,4 +556,17 @@ SELECT setval('public.device_device_id_seq', COALESCE((SELECT MAX(device_id) FRO
 SELECT setval('public.quotation_quotation_id_seq', COALESCE((SELECT MAX(quotation_id) FROM public.quotation), 1), (SELECT MAX(quotation_id) IS NOT NULL FROM public.quotation));
 SELECT setval('public.quotation_details_details_id_seq', COALESCE((SELECT MAX(details_id) FROM public.quotation_details), 1), (SELECT MAX(details_id) IS NOT NULL FROM public.quotation_details));
 SELECT setval('public.repair_job_detail_job_id_detail_seq', COALESCE((SELECT MAX(job_id_detail) FROM public.repair_job_detail), 1), (SELECT MAX(job_id_detail) IS NOT NULL FROM public.repair_job_detail));
+SELECT setval('public.profiles_id_seq', COALESCE((SELECT MAX(id) FROM public.profiles), 1), (SELECT MAX(id) IS NOT NULL FROM public.profiles));
+SELECT setval('public.slips_records_id_seq', COALESCE((SELECT MAX(id) FROM public.slips_records), 1), (SELECT MAX(id) IS NOT NULL FROM public.slips_records));
+
+-- ============================================================
+-- 7. ดัชนีประสิทธิภาพ (Performance Indexes)
+-- ============================================================
+CREATE INDEX IF NOT EXISTS idx_repair_job_device_id ON public.repair_job (device_id);
+CREATE INDEX IF NOT EXISTS idx_repair_job_status_id ON public.repair_job (status_id);
+CREATE INDEX IF NOT EXISTS idx_repair_job_repairer_id ON public.repair_job (repairer_id);
+CREATE INDEX IF NOT EXISTS idx_quotation_job_id ON public.quotation (job_id);
+CREATE INDEX IF NOT EXISTS idx_quotation_details_quote_id ON public.quotation_details (quote_id);
+CREATE INDEX IF NOT EXISTS idx_profiles_phone ON public.profiles (phone);
+CREATE INDEX IF NOT EXISTS idx_device_customer_id ON public.device (customer_id);
 

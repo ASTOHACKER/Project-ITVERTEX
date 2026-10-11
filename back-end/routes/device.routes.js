@@ -12,8 +12,8 @@ const auth = require('../middleware/auth');
  *     parameters:
  *       - in: query
  *         name: customer_id
- *         schema: { type: string }
- *         description: กรองตาม customer UUID
+ *         schema: { type: integer }
+ *         description: กรองตาม customer ID
  *     responses:
  *       200: { description: รายการอุปกรณ์ }
  */

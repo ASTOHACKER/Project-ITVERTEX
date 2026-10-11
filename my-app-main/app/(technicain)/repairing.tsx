@@ -5,13 +5,11 @@ import {
   RefreshControl,
   ScrollView,
   Text,
-  TouchableOpacity,
   View,
   useWindowDimensions,
 } from 'react-native';
 
 // 2. Third-party / Expo
-import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 
 // 3. API helpers
@@ -23,33 +21,16 @@ import SearchFilterBar from '@/components/ui/SearchFilterBar';
 import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal';
 import CustomAlert from '@/components/ui/CustomAlert';
 import QuotationDetailModal from '@/components/Technicain_detail/QuotationDetailModal';
-import { Colors } from '@/constants/theme';
 
-interface QuotationItem {
-  quotation_id: number;
-  job_id: number;
-  quote_no: string;
-  job_no: string;
-  quote_status_id: number;
-  quote_status_name: string;
-  repair_status_id: number;
-  repair_status_name: string;
-  total_repair_price: string | number;
-  total_cancel_price: string | number;
-  customer_remark: string | null;
-  customer_name: string;
-  phone: string;
-  email?: string;
-  brand?: string;
-  model?: string;
-  device_type?: string;
-  symptom_details?: string;
-  actual_symptom?: string;
-  total_parts: string | number;
-  total_services: string | number;
-  item_count: string | number;
-  created_at: string;
-}
+// Sub-components
+import QuotationFilterTabs from '@/components/Technicain_quotation/QuotationFilterTabs';
+import QuotationCard from '@/components/Technicain_quotation/QuotationCard';
+import QuotationTable from '@/components/Technicain_quotation/QuotationTable';
+import QuotationEmptyState from '@/components/Technicain_quotation/QuotationEmptyState';
+import { canEditOrDeleteQuote } from '@/components/Technicain_quotation/QuotationStatusBadge';
+
+// Types
+import type { QuotationFilter, QuotationItem } from '@/types/quotation';
 
 export default function TechnicianQuotationScreen() {
   const router = useRouter();
@@ -60,7 +41,7 @@ export default function TechnicianQuotationScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [quotations, setQuotations] = useState<QuotationItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState<'all' | 'rejected' | 'pending' | 'approved' | 'cancelled'>('all');
+  const [activeFilter, setActiveFilter] = useState<QuotationFilter>('all');
 
   // Quotation Detail Modal state
   const [detailModalVisible, setDetailModalVisible] = useState(false);
@@ -149,6 +130,15 @@ export default function TechnicianQuotationScreen() {
   });
 
   const handlePromptDelete = (item: QuotationItem) => {
+    if (!canEditOrDeleteQuote(item)) {
+      setAlertConfig({
+        visible: true,
+        title: 'ไม่อนุญาตให้ลบ',
+        message: 'สามารถลบได้เฉพาะใบเสนอราคาที่อยู่ในสถานะ "รอการอนุมัติ" หรือ "ขอแก้ไข" เท่านั้น',
+        type: 'warning',
+      });
+      return;
+    }
     setDeletingId(item.quotation_id);
     setDeletingQuoteNo(item.quote_no || `QUO-${item.quotation_id}`);
     setDeleteModalVisible(true);
@@ -190,6 +180,15 @@ export default function TechnicianQuotationScreen() {
   };
 
   const handleEdit = (item: QuotationItem) => {
+    if (!canEditOrDeleteQuote(item)) {
+      setAlertConfig({
+        visible: true,
+        title: 'ไม่อนุญาตให้แก้ไข',
+        message: 'สามารถแก้ไขได้เฉพาะใบเสนอราคาที่อยู่ในสถานะ "รอการอนุมัติ" หรือ "ขอแก้ไข" เท่านั้น',
+        type: 'warning',
+      });
+      return;
+    }
     router.push({
       pathname: '/make-quote',
       params: {
@@ -213,427 +212,35 @@ export default function TechnicianQuotationScreen() {
     });
   };
 
-  // Device icon matching RepairItemRow (commented out with its icons)
-  // const getDeviceIcon = (deviceType?: string) => {
-  //   const type = (deviceType || '').toLowerCase();
-  //   if (type.includes('printer') || type.includes('พิมพ์')) {
-  //     return 'print-outline' as const;
-  //   }
-  //   if (type.includes('pc') || type.includes('desktop') || type.includes('คอม')) {
-  //     return 'desktop-outline' as const;
-  //   }
-  //   return 'laptop-outline' as const;
-  // };
-
-  // Status Badge matching RepairItemRow pill design
-  const renderStatusBadge = (item: QuotationItem) => {
-    const isModification =
-      item.quote_status_id === 5 ||
-      item.quote_status_id === 4 ||
-      (Boolean(item.customer_remark) && item.repair_status_id === 3);
-
-    let statusColor = Colors.status.status4;
-    let label = 'รอลูกค้าอนุมัติ';
-
-    if (isModification) {
-      statusColor = Colors.warning || '#D97706';
-      label = 'ขอแก้ไข';
-    } else if (item.quote_status_id === 1) {
-      statusColor = Colors.status.status4 || '#A855F7';
-      label = 'รอลูกค้าอนุมัติ';
-    } else if (item.quote_status_id === 2) {
-      statusColor = Colors.status.status5 || '#3B82F6';
-      label = 'อนุมัติแล้ว';
-    } else if (item.quote_status_id === 3) {
-      statusColor = Colors.status.status9 || '#EF4444';
-      label = 'ลูกค้ายกเลิก';
-    } else if (item.quote_status_name) {
-      label = item.quote_status_name;
-    }
-
-    return (
-      <View
-        className="px-2.5 py-1 rounded-full flex-row items-center gap-1.5"
-        style={{ backgroundColor: `${statusColor}15` }}
-      >
-        <View
-          className="w-1.5 h-1.5 rounded-full"
-          style={{ backgroundColor: statusColor }}
-        />
-        <Text className="text-xs font-bold font-heading" style={{ color: statusColor }}>
-          {label}
-        </Text>
-      </View>
-    );
-  };
-
-  const isModificationQuote = (item: QuotationItem) =>
-    item.quote_status_id === 5 ||
-    item.quote_status_id === 4 ||
-    (Boolean(item.customer_remark) && item.repair_status_id === 3);
-
   const resultSummary = useMemo(() => {
     if (searchQuery.trim() || activeFilter !== 'all') return `พบ ${filteredQuotations.length} รายการ`;
     return `ทั้งหมด ${quotations.length} ใบเสนอราคา`;
   }, [filteredQuotations.length, quotations.length, searchQuery, activeFilter]);
 
-  // ── Mobile-first card: single column, thumb reach, 44px targets ──
-  const renderQuotationCard = (item: QuotationItem) => {
-    const isModification = isModificationQuote(item);
-    const grandTotal = Number(item.total_repair_price || 0).toLocaleString();
-    const deviceTitle =
-      [item.brand, item.model].filter(Boolean).join(' ') || item.device_type || 'อุปกรณ์';
-
-    return (
-      <TouchableOpacity
-        key={item.quotation_id}
-        activeOpacity={0.85}
-        onPress={() => handleOpenDetail(item)}
-        className={`rounded-2xl p-4 mb-3 border shadow-sm shadow-black/5 elevation-2 ${
-          isModification ? 'bg-amber-50/60 border-amber-300' : 'bg-white border-slate-200'
-        }`}
-      >
-        {/* Row 1: doc no + status */}
-        <View className="flex-row items-start justify-between gap-2 pb-2.5 border-b border-slate-100 mb-2.5">
-          <View className="flex-1 min-w-0">
-            <Text className="text-[15px] font-bold text-slate-900 font-heading" numberOfLines={1}>
-              {item.quote_no}
-            </Text>
-            <TouchableOpacity
-              onPress={() => handleViewJob(item)}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              className="bg-red-50 self-start px-2 py-1 rounded-md mt-1.5 border border-red-100 flex-row items-center gap-1 active:bg-red-100"
-            >
-              {/* <Ionicons name="build" size={11} color="#D32F2F" /> */}
-              <Text className="text-[11px] font-bold text-[#D32F2F] font-heading">
-                {item.job_no}
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <View className="shrink-0 pt-0.5">{renderStatusBadge(item)}</View>
-        </View>
-
-        {/* Row 2: device */}
-        <View className="flex-row items-center gap-2 mb-1.5">
-          {/* <View className="w-8 h-8 rounded-xl bg-sky-50 border border-sky-100 items-center justify-center shrink-0"> */}
-            {/* <Ionicons name={getDeviceIcon(item.device_type)} size={16} color="#0284C7" /> */}
-          {/* </View> */}
-          <Text className="text-[15px] font-bold text-slate-900 flex-1 font-heading" numberOfLines={1}>
-            {deviceTitle}
-          </Text>
-        </View>
-
-        {/* Row 3: customer + phone */}
-        <View className="flex-row items-center gap-2 mb-2.5">
-          {/* <Ionicons name="person-outline" size={13} color="#64748B" /> */}
-          <Text className="text-[13px] font-medium text-slate-700 font-body flex-1" numberOfLines={1}>
-            {item.customer_name || 'ลูกค้าทั่วไป'}
-          </Text>
-          {Boolean(item.phone && item.phone !== '-') && (
-            <View className="flex-row items-center gap-1 bg-slate-50 px-2 py-1 rounded-md border border-slate-100 shrink-0">
-              {/* <Ionicons name="call-outline" size={11} color="#64748B" /> */}
-              <Text className="text-xs text-slate-600 font-body">{item.phone}</Text>
-            </View>
-          )}
-        </View>
-
-        {/* Row 4: symptom bubble */}
-        <View className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 mb-2.5">
-          <View className="flex-row items-start gap-1.5">
-            {/* <Ionicons name="alert-circle-outline" size={14} color="#D97706" style={{ marginTop: 2 }} /> */}
-            <Text className="text-[13px] text-slate-600 flex-1 leading-5 font-body" numberOfLines={2}>
-              <Text className="font-bold text-slate-700 font-heading">
-                {item.actual_symptom ? 'ตรวจพบ: ' : 'อาการ: '}
-              </Text>
-              {item.actual_symptom || item.symptom_details || '-'}
-            </Text>
-          </View>
-        </View>
-
-        {isModification && item.customer_remark ? (
-          <View className="bg-amber-100/90 border border-amber-300 rounded-xl px-3 py-2 mb-2.5 flex-row items-start gap-1.5">
-            {/* <Ionicons name="chatbubble-ellipses-outline" size={14} color="#92400E" style={{ marginTop: 2 }} /> */}
-            <Text className="text-xs font-medium text-amber-900 flex-1 leading-4" numberOfLines={2}>
-              ลูกค้าขอแก้ไข: &ldquo;{item.customer_remark}&rdquo;
-            </Text>
-          </View>
-        ) : null}
-
-        {/* Row 5: price + count */}
-        <View className="flex-row items-baseline justify-between mb-3">
-          <Text className="text-xs text-slate-500 font-body">
-            ยอดเสนอราคา{item.item_count ? ` • ${item.item_count} รายการ` : ''}
-          </Text>
-          <Text className="text-lg font-bold text-[#D32F2F] font-heading">
-            {grandTotal} <Text className="text-xs font-normal text-slate-500">บาท</Text>
-          </Text>
-        </View>
-
-        {/* Row 6: thumb-first actions, 44px min */}
-        <View className="flex-row items-center gap-2">
-          <TouchableOpacity
-            onPress={() => handleOpenDetail(item)}
-            activeOpacity={0.75}
-            style={{ minHeight: 44 }}
-            className="flex-1 bg-sky-50 border border-sky-200 rounded-xl flex-row items-center justify-center gap-1.5"
-          >
-            {/* <Ionicons name="document-text-outline" size={15} color="#0284c7" /> */}
-            <Text className="text-[13px] font-bold text-sky-700 font-heading">รายละเอียด</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => handleEdit(item)}
-            activeOpacity={0.8}
-            style={{ minHeight: 44, backgroundColor: isModification ? '#F59E0B' : '#2563EB' }}
-            className="flex-1 rounded-xl flex-row items-center justify-center gap-1.5 shadow-sm"
-          >
-            <Ionicons name="create-outline" size={15} color="#ffffff" />
-            <Text className="text-[13px] font-bold text-white font-heading">แก้ไข</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => handlePromptDelete(item)}
-            activeOpacity={0.75}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            style={{ minHeight: 44, minWidth: 44 }}
-            accessibilityLabel={`ลบ ${item.quote_no}`}
-            accessibilityRole="button"
-            className="bg-rose-50 border border-rose-200 rounded-xl items-center justify-center px-3 active:bg-rose-100"
-          >
-            <Ionicons name="trash-outline" size={17} color="#e11d48" />
-          </TouchableOpacity>
-        </View>
-      </TouchableOpacity>
-    );
-  };
-
   return (
     <View className="flex-1 bg-slate-50">
       {/* ── App Standard Header ── */}
-      <Header title="IT VERTEX" subtitle="รายการใบเสนอราคา" />
+      <Header title="รายการใบเสนอราคา" subtitle="จัดการและติดตามสถานะใบเสนอราคา" />
 
-      {/* ── Content Container (Aligned with RepairListScreen) ── */}
-      <View className="flex-1 w-full max-w-5xl mx-auto px-4 pt-2 pb-0">
-        {/* Search Bar matching the rest of the app */}
+      {/* ── Body Container ── */}
+      <View className="flex-1 px-4 pt-3">
+        {/* Search Bar */}
         <SearchFilterBar
           value={searchQuery}
           onChangeText={setSearchQuery}
-          showFilter={false}
+          placeholder="ค้นหาเลขที่เอกสาร, รหัสงาน, ลูกค้า, รุ่น..."
         />
 
-        {/* Horizontal Filter Tabs — 44px touch, thumb scroll */}
-        <View className="mb-2 -mt-2">
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ gap: 8, paddingRight: 12, paddingVertical: 2 }}
-          >
-            {/* Tab: ทั้งหมด */}
-            <TouchableOpacity
-              onPress={() => setActiveFilter('all')}
-              activeOpacity={0.7}
-              style={{ minHeight: 44, justifyContent: 'center' }}
-              className={`flex-row items-center gap-1.5 px-3.5 rounded-xl border ${
-                activeFilter === 'all'
-                  ? 'bg-slate-900 border-slate-900 shadow-sm'
-                  : 'bg-white border-slate-200'
-              }`}
-            >
-              <Text
-                className={`text-xs font-bold font-heading ${
-                  activeFilter === 'all' ? 'text-white' : 'text-slate-700'
-                }`}
-              >
-                ทั้งหมด
-              </Text>
-              <View
-                className={`px-1.5 py-0.2 rounded-full ${
-                  activeFilter === 'all' ? 'bg-slate-700' : 'bg-slate-100'
-                }`}
-              >
-                <Text
-                  className={`text-[10px] font-bold ${
-                    activeFilter === 'all' ? 'text-white' : 'text-slate-600'
-                  }`}
-                >
-                  {quotations.length}
-                </Text>
-              </View>
-            </TouchableOpacity>
-
-            {/* Tab: ขอแก้ไข */}
-            <TouchableOpacity
-              onPress={() => setActiveFilter('rejected')}
-              activeOpacity={0.7}
-              style={{ minHeight: 44, justifyContent: 'center' }}
-              className={`flex-row items-center gap-1.5 px-3.5 rounded-xl border ${
-                activeFilter === 'rejected'
-                  ? 'bg-amber-600 border-amber-600 shadow-sm'
-                  : countRejected > 0
-                  ? 'bg-amber-50 border-amber-300'
-                  : 'bg-white border-slate-200'
-              }`}
-            >
-              <View
-                className="w-1.5 h-1.5 rounded-full"
-                style={{ backgroundColor: activeFilter === 'rejected' ? '#FFFFFF' : '#D97706' }}
-              />
-              <Text
-                className={`text-xs font-bold font-heading ${
-                  activeFilter === 'rejected'
-                    ? 'text-white'
-                    : countRejected > 0
-                    ? 'text-amber-900'
-                    : 'text-slate-700'
-                }`}
-              >
-                ขอแก้ไข
-              </Text>
-              <View
-                className={`px-1.5 py-0.2 rounded-full ${
-                  activeFilter === 'rejected'
-                    ? 'bg-black/20'
-                    : countRejected > 0
-                    ? 'bg-amber-200/70'
-                    : 'bg-slate-100'
-                }`}
-              >
-                <Text
-                  className={`text-[10px] font-bold ${
-                    activeFilter === 'rejected'
-                      ? 'text-white'
-                      : countRejected > 0
-                      ? 'text-amber-950'
-                      : 'text-slate-600'
-                  }`}
-                >
-                  {countRejected}
-                </Text>
-              </View>
-            </TouchableOpacity>
-
-            {/* Tab: รออนุมัติ */}
-            <TouchableOpacity
-              onPress={() => setActiveFilter('pending')}
-              activeOpacity={0.7}
-              className={`flex-row items-center gap-1.5 px-3.5 rounded-xl border ${
-                activeFilter === 'pending'
-                  ? 'shadow-sm'
-                  : 'bg-white border-slate-200'
-              }`}
-              style={
-                activeFilter === 'pending'
-                  ? { backgroundColor: Colors.status.status4, borderColor: Colors.status.status4, minHeight: 44, justifyContent: 'center' }
-                  : { minHeight: 44, justifyContent: 'center' }
-              }
-            >
-              <View
-                className="w-1.5 h-1.5 rounded-full"
-                style={{ backgroundColor: activeFilter === 'pending' ? '#FFFFFF' : Colors.status.status4 }}
-              />
-              <Text
-                className={`text-xs font-bold font-heading ${
-                  activeFilter === 'pending' ? 'text-white' : 'text-slate-700'
-                }`}
-              >
-                รออนุมัติ
-              </Text>
-              <View
-                className={`px-1.5 py-0.2 rounded-full ${
-                  activeFilter === 'pending' ? 'bg-black/20' : 'bg-slate-100'
-                }`}
-              >
-                <Text
-                  className={`text-[10px] font-bold ${
-                    activeFilter === 'pending' ? 'text-white' : 'text-slate-600'
-                  }`}
-                >
-                  {countPending}
-                </Text>
-              </View>
-            </TouchableOpacity>
-
-            {/* Tab: อนุมัติแล้ว */}
-            <TouchableOpacity
-              onPress={() => setActiveFilter('approved')}
-              activeOpacity={0.7}
-              className={`flex-row items-center gap-1.5 px-3.5 rounded-xl border ${
-                activeFilter === 'approved'
-                  ? 'shadow-sm'
-                  : 'bg-white border-slate-200'
-              }`}
-              style={
-                activeFilter === 'approved'
-                  ? { backgroundColor: Colors.status.status5, borderColor: Colors.status.status5, minHeight: 44, justifyContent: 'center' }
-                  : { minHeight: 44, justifyContent: 'center' }
-              }
-            >
-              <View
-                className="w-1.5 h-1.5 rounded-full"
-                style={{ backgroundColor: activeFilter === 'approved' ? '#FFFFFF' : Colors.status.status5 }}
-              />
-              <Text
-                className={`text-xs font-bold font-heading ${
-                  activeFilter === 'approved' ? 'text-white' : 'text-slate-700'
-                }`}
-              >
-                อนุมัติแล้ว
-              </Text>
-              <View
-                className={`px-1.5 py-0.2 rounded-full ${
-                  activeFilter === 'approved' ? 'bg-black/20' : 'bg-slate-100'
-                }`}
-              >
-                <Text
-                  className={`text-[10px] font-bold ${
-                    activeFilter === 'approved' ? 'text-white' : 'text-slate-600'
-                  }`}
-                >
-                  {countApproved}
-                </Text>
-              </View>
-            </TouchableOpacity>
-
-            {/* Tab: ยกเลิก */}
-            <TouchableOpacity
-              onPress={() => setActiveFilter('cancelled')}
-              activeOpacity={0.7}
-              className={`flex-row items-center gap-1.5 px-3.5 rounded-xl border ${
-                activeFilter === 'cancelled'
-                  ? 'shadow-sm'
-                  : 'bg-white border-slate-200'
-              }`}
-              style={
-                activeFilter === 'cancelled'
-                  ? { backgroundColor: Colors.status.status9, borderColor: Colors.status.status9, minHeight: 44, justifyContent: 'center' }
-                  : { minHeight: 44, justifyContent: 'center' }
-              }
-            >
-              <View
-                className="w-1.5 h-1.5 rounded-full"
-                style={{ backgroundColor: activeFilter === 'cancelled' ? '#FFFFFF' : Colors.status.status9 }}
-              />
-              <Text
-                className={`text-xs font-bold font-heading ${
-                  activeFilter === 'cancelled' ? 'text-white' : 'text-slate-700'
-                }`}
-              >
-                ยกเลิก
-              </Text>
-              <View
-                className={`px-1.5 py-0.2 rounded-full ${
-                  activeFilter === 'cancelled' ? 'bg-black/20' : 'bg-slate-100'
-                }`}
-              >
-                <Text
-                  className={`text-[10px] font-bold ${
-                    activeFilter === 'cancelled' ? 'text-white' : 'text-slate-600'
-                  }`}
-                >
-                  {countCancelled}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          </ScrollView>
-        </View>
+        {/* Horizontal Filter Tabs */}
+        <QuotationFilterTabs
+          activeFilter={activeFilter}
+          setActiveFilter={setActiveFilter}
+          totalCount={quotations.length}
+          countRejected={countRejected}
+          countPending={countPending}
+          countApproved={countApproved}
+          countCancelled={countCancelled}
+        />
 
         {/* ── Quotation Content: cards on phone, table on tablet/desktop ── */}
         {loading ? (
@@ -650,170 +257,36 @@ export default function TechnicianQuotationScreen() {
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#D32F2F']} />
             }
           >
-            {/* Result count — scanability on small screens */}
+            {/* Result count */}
             <View className="flex-row items-center justify-between px-1 pb-2">
               <Text className="text-xs font-semibold text-slate-500 font-body">{resultSummary}</Text>
               {!isWide && filteredQuotations.length > 0 ? (
                 <Text className="text-[11px] text-slate-400 font-body">แตะการ์ดเพื่อดูรายละเอียด</Text>
               ) : null}
             </View>
+
             {filteredQuotations.length === 0 ? (
-              <View className="items-center justify-center py-24 px-4 bg-white rounded-2xl border border-slate-200 shadow-sm">
-                <View className="w-16 h-16 rounded-full bg-slate-100 items-center justify-center mb-3">
-                  <Ionicons name="document-text-outline" size={32} color="#94a3b8" />
-                </View>
-                <Text className="text-base font-bold text-slate-700 font-heading text-center">
-                  ไม่พบรายการใบเสนอราคา
-                </Text>
-                <Text className="text-xs text-slate-400 font-body text-center mt-1">
-                  {searchQuery || activeFilter !== 'all'
-                    ? 'ลองเปลี่ยนคำค้นหาหรือตัวกรองสถานะ'
-                    : 'ยังไม่มีการสร้างใบเสนอราคาในระบบ'}
-                </Text>
-              </View>
+              <QuotationEmptyState searchQuery={searchQuery} activeFilter={activeFilter} />
             ) : isWide ? (
-              <View className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm shadow-black/5 elevation-2 mb-6">
-                <ScrollView horizontal showsHorizontalScrollIndicator={true}>
-                  <View style={{ minWidth: 980, width: '100%' }}>
-                    {/* ── Table Header (tablet/desktop only) ── */}
-                    <View className="bg-slate-50 flex-row py-3.5 px-4 border-b border-slate-200 items-center">
-                      <Text className="text-slate-700 font-bold text-xs font-heading w-[140px]">เลขที่เอกสาร</Text>
-                      <Text className="text-slate-700 font-bold text-xs font-heading w-[160px]">ลูกค้า</Text>
-                      <Text className="text-slate-700 font-bold text-xs font-heading flex-1 min-w-[240px]">อุปกรณ์ / ผลตรวจเช็คอาการ</Text>
-                      <Text className="text-slate-700 font-bold text-xs font-heading w-[140px] text-right pr-2">ยอดรวมเสนอราคา</Text>
-                      <Text className="text-slate-700 font-bold text-xs font-heading w-[130px] text-center">สถานะ</Text>
-                      <Text className="text-slate-700 font-bold text-xs font-heading w-[200px] text-center">จัดการ</Text>
-                    </View>
-
-                    {/* ── Table Rows ── */}
-                    {filteredQuotations.map((item, index) => {
-                      const isModification = isModificationQuote(item);
-
-                      const grandTotal = Number(item.total_repair_price || 0).toLocaleString();
-                      const isEven = index % 2 === 0;
-
-                      return (
-                        <View
-                          key={item.quotation_id}
-                          className={`flex-row py-3.5 px-4 items-center border-b border-slate-100 ${
-                            isModification
-                              ? 'bg-amber-50/60'
-                              : isEven
-                              ? 'bg-white'
-                              : 'bg-slate-50/40'
-                          }`}
-                        >
-                          {/* คอลัมน์ 1: เลขที่เอกสาร */}
-                          <View className="w-[140px] pr-2">
-                            <TouchableOpacity
-                              onPress={() => handleOpenDetail(item)}
-                              hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
-                              className="flex-row items-center gap-1 active:opacity-70"
-                            >
-                              <Text className="text-[13px] font-bold text-slate-900 font-heading underline">
-                                {item.quote_no}
-                              </Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                              onPress={() => handleViewJob(item)}
-                              hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
-                              className="bg-red-50 self-start px-2 py-1 rounded-md mt-1.5 border border-red-100 flex-row items-center gap-1 active:bg-red-100"
-                            >
-                              {/* <Ionicons name="build" size={11} color="#D32F2F" /> */}
-                              <Text className="text-[11px] font-bold text-[#D32F2F] font-heading">
-                                {item.job_no}
-                              </Text>
-                            </TouchableOpacity>
-                          </View>
-
-                          {/* คอลัมน์ 2: ลูกค้า */}
-                          <View className="w-[160px] pr-2">
-                            <Text className="text-[13px] font-bold text-slate-800 font-heading" numberOfLines={1}>
-                              {item.customer_name}
-                            </Text>
-                            <Text className="text-xs text-slate-500 font-body mt-0.5">
-                              {item.phone || '-'}
-                            </Text>
-                          </View>
-
-                          {/* คอลัมน์ 3: อุปกรณ์ / อาการ */}
-                          <View className="flex-1 min-w-[240px] pr-3">
-                            <View className="flex-row items-center gap-1.5">
-                              {/* <Ionicons name={getDeviceIcon(item.device_type)} size={14} color="#0284C7" /> */}
-                              <Text className="text-[13px] font-bold text-slate-800 font-heading" numberOfLines={1}>
-                                {[item.brand, item.model].filter(Boolean).join(' ') || item.device_type || 'อุปกรณ์'}
-                              </Text>
-                            </View>
-                            <Text className="text-xs text-slate-600 font-body mt-0.5 pl-5" numberOfLines={2}>
-                              {item.actual_symptom ? (
-                                <Text className="text-amber-800 font-medium">ตรวจพบ: {item.actual_symptom}</Text>
-                              ) : (
-                                `อาการ: ${item.symptom_details || '-'}`
-                              )}
-                            </Text>
-                            {isModification && item.customer_remark ? (
-                              <View className="bg-amber-100/90 rounded-lg px-2 py-1 self-start mt-1.5 ml-5 border border-amber-300">
-                                <Text className="text-[11px] font-bold text-amber-900" numberOfLines={2}>
-                                  ลูกค้าขอแก้ไข: &ldquo;{item.customer_remark}&rdquo;
-                                </Text>
-                              </View>
-                            ) : null}
-                          </View>
-
-                          {/* คอลัมน์ 4: ยอดรวมเสนอราคา */}
-                          <View className="w-[140px] pr-2 items-end justify-center">
-                            <Text className="text-[15px] font-bold text-[#D32F2F] font-heading">
-                              {grandTotal} <Text className="text-xs font-normal text-slate-600">บาท</Text>
-                            </Text>
-                          </View>
-
-                          {/* คอลัมน์ 5: สถานะ */}
-                          <View className="w-[130px] px-1 items-center justify-center">
-                            {renderStatusBadge(item)}
-                          </View>
-
-                          {/* คอลัมน์ 6: ปุ่มจัดการ */}
-                          <View className="w-[200px] flex-row items-center justify-center gap-2">
-                            <TouchableOpacity
-                              style={{ minHeight: 44, justifyContent: 'center' }}
-                              className="bg-sky-50 px-3 rounded-xl flex-row items-center gap-1 border border-sky-200 active:opacity-80"
-                              onPress={() => handleOpenDetail(item)}
-                            >
-                              {/* <Ionicons name="document-text-outline" size={14} color="#0284c7" /> */}
-                              <Text className="text-xs font-bold text-sky-700 font-heading">รายละเอียด</Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                              style={{ minHeight: 44, justifyContent: 'center' }}
-                              className={`px-3 rounded-xl flex-row items-center gap-1 active:opacity-80 ${
-                                isModification ? 'bg-amber-500' : 'bg-blue-600'
-                              }`}
-                              onPress={() => handleEdit(item)}
-                            >
-                              <Ionicons name="create-outline" size={14} color="#ffffff" />
-                              <Text className="text-xs font-bold text-white font-heading">แก้ไข</Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                              style={{ minHeight: 44, minWidth: 44, justifyContent: 'center' }}
-                              className="bg-rose-50 border border-rose-200 rounded-xl flex-row items-center justify-center px-2.5 active:bg-rose-100"
-                              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                              accessibilityLabel={`ลบ ${item.quote_no}`}
-                              accessibilityRole="button"
-                              onPress={() => handlePromptDelete(item)}
-                            >
-                              <Ionicons name="trash-outline" size={15} color="#e11d48" />
-                            </TouchableOpacity>
-                          </View>
-                        </View>
-                      );
-                    })}
-                  </View>
-                </ScrollView>
-              </View>
+              <QuotationTable
+                filteredQuotations={filteredQuotations}
+                onOpenDetail={handleOpenDetail}
+                onViewJob={handleViewJob}
+                onEdit={handleEdit}
+                onPromptDelete={handlePromptDelete}
+              />
             ) : (
               <View className="pb-4">
-                {filteredQuotations.map((item) => renderQuotationCard(item))}
+                {filteredQuotations.map((item) => (
+                  <QuotationCard
+                    key={item.quotation_id}
+                    item={item}
+                    onOpenDetail={handleOpenDetail}
+                    onViewJob={handleViewJob}
+                    onEdit={handleEdit}
+                    onPromptDelete={handlePromptDelete}
+                  />
+                ))}
               </View>
             )}
           </ScrollView>
@@ -826,6 +299,16 @@ export default function TechnicianQuotationScreen() {
         quotationId={selectedQuoteId}
         onClose={() => setDetailModalVisible(false)}
         onEdit={(qId, jNo, jId, cName) => {
+          const targetQuote = quotations.find((q) => q.quotation_id === qId);
+          if (targetQuote && !canEditOrDeleteQuote(targetQuote)) {
+            setAlertConfig({
+              visible: true,
+              title: 'ไม่อนุญาตให้แก้ไข',
+              message: 'สามารถแก้ไขได้เฉพาะใบเสนอราคาที่อยู่ในสถานะ "รอการอนุมัติ" หรือ "ขอแก้ไข" เท่านั้น',
+              type: 'warning',
+            });
+            return;
+          }
           router.push({
             pathname: '/make-quote',
             params: {

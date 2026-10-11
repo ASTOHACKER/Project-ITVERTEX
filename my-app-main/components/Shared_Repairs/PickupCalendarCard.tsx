@@ -76,18 +76,18 @@ export default function PickupCalendarCard({
         className="p-4 flex-row items-center justify-between bg-slate-50/70 border-b border-slate-100"
       >
         <View className="flex-row items-center flex-1 mr-2">
-          <View className="w-10 h-10 rounded-xl bg-red-100/70 items-center justify-center mr-3 border border-red-200">
-            <Ionicons name="calendar" size={20} color="#D32F2F" />
+          <View className="w-10 h-10 rounded-xl bg-sky-50 items-center justify-center mr-3 border border-sky-100">
+            <Ionicons name="calendar-outline" size={20} color="#0284C7" />
           </View>
           <View className="flex-1">
             <View className="flex-row items-center">
               <Text className="text-xs text-slate-500 font-body mr-2">เวลารับเครื่อง</Text>
-              <View className="bg-red-50 px-2 py-0.5 rounded-md border border-red-200">
-                <Text className="text-[10px] font-bold text-red-700">ดูปฏิทิน</Text>
+              <View className="bg-sky-50 px-2 py-0.5 rounded-md border border-sky-200">
+                <Text className="text-[10px] font-bold text-sky-700">ดูปฏิทิน</Text>
               </View>
             </View>
             <Text className="text-sm font-bold text-slate-800 font-heading mt-0.5" numberOfLines={1}>
-              รับได้วันจันทร์–เสาร์
+              รับได้วันจันทร์–เสาร์ (09:00 – 18:00 น.)
             </Text>
           </View>
         </View>

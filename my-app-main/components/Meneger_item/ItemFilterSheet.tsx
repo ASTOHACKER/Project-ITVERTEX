@@ -345,8 +345,8 @@ export default function ItemFilterSheet({
                 {[
                   { id: 'newest', label: 'ใหม่ล่าสุด', icon: 'time-outline' },
                   { id: 'popular', label: 'ใช้บ่อยสุด', icon: 'flame-outline' },
-    { id: 'price_asc', label: 'ราคา: ต่ำไปสูง', icon: 'arrow-up-outline' },
-    { id: 'price_desc', label: 'ราคา: สูงไปต่ำ', icon: 'arrow-down-outline' },
+                  { id: 'price_asc', label: 'ราคา: ต่ำไปสูง', icon: 'arrow-up-outline' },
+                  { id: 'price_desc', label: 'ราคา: สูงไปต่ำ', icon: 'arrow-down-outline' },
                   { id: 'name_asc', label: 'ชื่อ (ก - ฮ)', icon: 'text-outline' },
                 ].map((s) => {
                   const isSelected = draft.sortBy === s.id;
@@ -355,9 +355,8 @@ export default function ItemFilterSheet({
                       key={s.id}
                       activeOpacity={0.7}
                       onPress={() => setDraft((p) => ({ ...p, sortBy: s.id as SortOption }))}
-                      className={`flex-row items-center gap-1.5 px-3 py-2 rounded-xl border ${
-                        isSelected ? 'bg-slate-900 border-slate-900' : 'bg-slate-50 border-slate-200'
-                      }`}
+                      className={`flex-row items-center gap-1.5 px-3 py-2 rounded-xl border ${isSelected ? 'bg-slate-900 border-slate-900' : 'bg-slate-50 border-slate-200'
+                        }`}
                     >
                       <Ionicons name={s.icon as any} size={14} color={isSelected ? '#FFFFFF' : '#64748B'} />
                       <Text className={`text-xs font-heading ${isSelected ? 'text-white font-bold' : 'text-slate-700'}`}>
@@ -390,9 +389,8 @@ export default function ItemFilterSheet({
                       key={cat.id}
                       activeOpacity={0.7}
                       onPress={() => toggleCategory(cat.id)}
-                      className={`px-3 py-2 rounded-xl border flex-row items-center gap-1 ${
-                        isSelected ? 'bg-red-50 border-red-500' : 'bg-slate-50 border-slate-200'
-                      }`}
+                      className={`px-3 py-2 rounded-xl border flex-row items-center gap-1 ${isSelected ? 'bg-red-50 border-red-500' : 'bg-slate-50 border-slate-200'
+                        }`}
                     >
                       <Text className={`text-xs font-heading ${isSelected ? 'text-red-700 font-bold' : 'text-slate-700'}`}>
                         {cat.label}
@@ -422,9 +420,8 @@ export default function ItemFilterSheet({
                       key={u.id}
                       activeOpacity={0.7}
                       onPress={() => setDraft((p) => ({ ...p, usage: u.id as UsageFilter }))}
-                      className={`px-3 py-2 rounded-xl border ${
-                        isSelected ? 'bg-blue-600 border-blue-600' : 'bg-slate-50 border-slate-200'
-                      }`}
+                      className={`px-3 py-2 rounded-xl border ${isSelected ? 'bg-blue-600 border-blue-600' : 'bg-slate-50 border-slate-200'
+                        }`}
                     >
                       <Text className={`text-xs font-heading ${isSelected ? 'text-white font-bold' : 'text-slate-700'}`}>
                         {u.label}
@@ -450,9 +447,8 @@ export default function ItemFilterSheet({
                       key={p.id}
                       activeOpacity={0.7}
                       onPress={() => handleSelectPricePreset(p)}
-                      className={`px-3 py-2 rounded-xl border ${
-                        isSelected ? 'bg-amber-600 border-amber-600' : 'bg-slate-50 border-slate-200'
-                      }`}
+                      className={`px-3 py-2 rounded-xl border ${isSelected ? 'bg-amber-600 border-amber-600' : 'bg-slate-50 border-slate-200'
+                        }`}
                     >
                       <Text className={`text-xs font-heading ${isSelected ? 'text-white font-bold' : 'text-slate-700'}`}>
                         {p.label}
@@ -511,7 +507,7 @@ export default function ItemFilterSheet({
               className="flex-[2] h-12 bg-[#DC2626] rounded-xl items-center justify-center shadow-sm"
             >
               <Text className="text-white font-bold text-sm font-heading">
-                นำตัวกรองไปใช้ ({matchingCount} รายการ)
+                นำไปใช้
               </Text>
             </TouchableOpacity>
           </View>

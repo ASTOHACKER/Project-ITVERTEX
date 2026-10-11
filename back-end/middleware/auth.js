@@ -8,6 +8,11 @@ const pool = require('../config/db');
  */
 async function authMiddleware(req, res, next) {
   try {
+    // หาก request นี้ได้รับการยืนยันตัวตนแล้วใน Request lifecycle เดียวกัน ไม่ต้อง query ซ้ำ
+    if (req.user && req.user.id) {
+      return next();
+    }
+
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -20,8 +25,8 @@ async function authMiddleware(req, res, next) {
     const token = authHeader.split(' ')[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    if (!decoded.id || !uuidRegex.test(decoded.id)) {
+    const userId = parseInt(decoded.id, 10);
+    if (!decoded.id || isNaN(userId) || userId <= 0) {
       return res.status(401).json({
         success: false,
         message: 'Token ไม่ถูกต้อง',

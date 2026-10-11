@@ -4,10 +4,11 @@ import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'rea
 
 // 2. Third-party / Expo
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // 3. API helpers
-import { createDevice, createRepairJob, logRepairJobDetail, lookupProfiles, api } from '@/lib/api';
+import { createDevice, createRepairJob, logRepairJobDetail, lookupProfiles, registerCustomer } from '@/lib/api';
 
 // 4. Components
 import CustomerFormCard from '@/components/Staff_receive/CustomerFormCard';
@@ -16,6 +17,7 @@ import ReceiptPreviewModal from '@/components/Staff_receive/ReceiptPreviewModal'
 import CustomAlert from '@/components/ui/CustomAlert';
 
 export default function StaffReceiveScreen() {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
 
   // Customer Form State
@@ -50,6 +52,8 @@ export default function StaffReceiveScreen() {
     message: string;
     type: 'success' | 'warning' | 'danger' | 'info';
     confirmText?: string;
+    cancelText?: string;
+    onConfirm?: () => void;
   }>({
     visible: false,
     title: '',
@@ -74,6 +78,17 @@ export default function StaffReceiveScreen() {
       return;
     }
 
+    const cleanDigits = phone.replace(/[^0-9]/g, '');
+    if (cleanDigits.length < 9) {
+      setAlertConfig({
+        visible: true,
+        title: 'เบอร์โทรศัพท์ไม่ถูกต้อง',
+        message: 'กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง (9-10 หลัก)',
+        type: 'warning',
+      });
+      return;
+    }
+
     // Auto-resolve or register customer if not selected from suggestions
     let finalCustId = selectedCustomerId;
     if (!finalCustId && phone.trim()) {
@@ -89,7 +104,7 @@ export default function StaffReceiveScreen() {
           const fName = parts[0] || 'ลูกค้า';
           const lName = parts.slice(1).join(' ') || '-';
           const autoEmail = email.trim() || `cus_${cleanDigits || Date.now()}@itvertex.local`;
-          const reg = await api.post('/auth/register', {
+          const reg = await registerCustomer({
             first_name: fName,
             last_name: lName,
             phone: cleanDigits,
@@ -189,12 +204,22 @@ export default function StaffReceiveScreen() {
         await logRepairJobDetail(createdJobId, 1);
       }
 
+      const savedJobId = jobRes.success && jobRes.data?.job_id ? jobRes.data.job_id : null;
       setAlertConfig({
         visible: true,
         title: 'สร้างใบรับซ่อมสำเร็จ',
-        message: `สร้างใบรับซ่อมเลขที่ ${finalJobNo} ลงในระบบเรียบร้อยแล้ว พร้อมส่งต่อให้ช่างตรวจเช็ค`,
+        message: `สร้างใบรับซ่อมเลขที่ ${finalJobNo} ลงในระบบเรียบร้อยแล้ว\nต้องการดูหรือพิมพ์ใบรับซ่อม (PDF) หรือไม่?`,
         type: 'success',
-        confirmText: 'ตกลง',
+        confirmText: 'พิมพ์ใบซ่อม',
+        cancelText: 'รับเครื่องถัดไป',
+        onConfirm: () => {
+          if (savedJobId) {
+            router.push({
+              pathname: '/receipt',
+              params: { jobId: String(savedJobId), job_no: finalJobNo },
+            });
+          }
+        },
       });
 
       // Clear form
@@ -232,8 +257,8 @@ export default function StaffReceiveScreen() {
   return (
     <View className="flex-1 bg-slate-50">
       {/* Top Bar */}
-      <View 
-        className="bg-[#DC2626] px-5 pb-4" 
+      <View
+        className="bg-[#DC2626] px-5 pb-4"
         style={{ paddingTop: insets.top + 10 }}
       >
         <Text className="text-white text-xl font-bold font-heading">รับเครื่องซ่อมใหม่</Text>
@@ -241,7 +266,7 @@ export default function StaffReceiveScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 120 }}
       >
         {/* Customer Form Card */}
         <CustomerFormCard
@@ -302,9 +327,8 @@ export default function StaffReceiveScreen() {
 
         {/* Submit & Generate PDF Button */}
         <TouchableOpacity
-          className={`bg-[#DC2626] h-12 rounded-full flex-row items-center justify-center gap-2 mt-2 shadow-md shadow-red-500/30 elevation-4 ${
-            isSubmitting ? 'opacity-60' : ''
-          }`}
+          className={`bg-[#DC2626] h-12 rounded-full flex-row items-center justify-center gap-2 mt-2 shadow-md shadow-red-500/30 elevation-4 ${isSubmitting ? 'opacity-60' : ''
+            }`}
           activeOpacity={0.8}
           onPress={handleGeneratePdf}
           disabled={isSubmitting}
@@ -339,7 +363,13 @@ export default function StaffReceiveScreen() {
         message={alertConfig.message}
         type={alertConfig.type}
         confirmText={alertConfig.confirmText}
-        onConfirm={() => setAlertConfig((prev) => ({ ...prev, visible: false }))}
+        cancelText={alertConfig.cancelText}
+        onConfirm={() => {
+          const cb = alertConfig.onConfirm;
+          setAlertConfig((prev) => ({ ...prev, visible: false }));
+          cb?.();
+        }}
+        onCancel={() => setAlertConfig((prev) => ({ ...prev, visible: false }))}
       />
     </View>
   );

@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Alert,
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
@@ -17,6 +16,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, Stack, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import CustomAlert from '@/components/ui/CustomAlert';
 
 // 3. Auth helpers
 import { resetPassword } from '@/lib/auth';
@@ -33,22 +33,41 @@ export default function ResetPasswordScreen() {
   const [loading, setLoading] = useState(false);
   const [focusedField, setFocusedField] = useState<'password' | 'confirmPassword' | null>(null);
 
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    type: 'success' | 'warning' | 'danger' | 'info';
+    onConfirm?: () => void;
+  }>({
+    visible: false,
+    title: '',
+    message: '',
+    type: 'danger',
+  });
+
+  const showAlert = (
+    title: string,
+    message: string,
+    onPress?: () => void,
+    type: 'success' | 'warning' | 'danger' | 'info' = 'danger'
+  ) => {
+    setAlertConfig({
+      visible: true,
+      title,
+      message,
+      type,
+      onConfirm: onPress,
+    });
+  };
+
   useEffect(() => {
     if (!token) {
       showAlert('ข้อผิดพลาด', 'ไม่พบ Token สำหรับรีเซ็ตรหัสผ่าน กรุณาทำการขอใหม่', () => {
         router.replace('/(auth)/forgot-password');
-      });
+      }, 'danger');
     }
   }, [token]);
-
-  const showAlert = (title: string, message: string, onPress?: () => void) => {
-    if (Platform.OS === 'web') {
-      window.alert(`${title}\n\n${message}`);
-      if (onPress) onPress();
-    } else {
-      Alert.alert(title, message, onPress ? [{ text: 'ตกลง', onPress }] : undefined);
-    }
-  };
 
   const handleResetPassword = async () => {
     if (!password || !confirmPassword) {
@@ -72,9 +91,9 @@ export default function ResetPasswordScreen() {
 
       showAlert('สำเร็จ', 'เปลี่ยนรหัสผ่านใหม่เรียบร้อยแล้ว กรุณาเข้าสู่ระบบด้วยรหัสผ่านใหม่', () => {
         router.replace('/(auth)/login');
-      });
+      }, 'success');
     } catch (error: any) {
-      showAlert('เกิดข้อผิดพลาด', error.message || 'ไม่สามารถเปลี่ยนรหัสผ่านได้ Token อาจหมดอายุ');
+      showAlert('เกิดข้อผิดพลาด', error.message || 'ไม่สามารถเปลี่ยนรหัสผ่านได้ Token อาจหมดอายุ', undefined, 'danger');
     } finally {
       setLoading(false);
     }
@@ -206,6 +225,17 @@ export default function ResetPasswordScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <CustomAlert
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        type={alertConfig.type}
+        onConfirm={() => {
+          setAlertConfig(prev => ({ ...prev, visible: false }));
+          alertConfig.onConfirm?.();
+        }}
+      />
     </SafeAreaView>
   );
 }

@@ -13,18 +13,15 @@ import ConfirmSendModal from '@/components/ui/ConfirmSendModal';
 import TechnicianQuoteCard from '@/components/Staff_verify_quote/TechnicianQuoteCard';
 import PageHeader from '@/components/ui/PageHeader';
 import CustomAlert from '@/components/ui/CustomAlert';
-
-interface QuoteItem {
-  id: string;
-  name: string;
-  price: number;
-}
+import type { RepairJob } from '@/types/repair';
+import type { QuoteItem } from '@/types/quotation';
 
 export default function VerifyQuoteScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
 
-  const jobNoParam = (params.job_no as string) || (params.job_id as string) || '';
+  const jobIdParam = (params.job_id as string) || (params.id as string) || '';
+  const jobNoParam = (params.job_no as string) || (params.job_number as string) || (jobIdParam ? `REP-${String(jobIdParam).padStart(6, '0')}` : '');
   const initialDeviceModel = (params.device as string) || 'อุปกรณ์ซ่อม';
 
   const [loading, setLoading] = useState(true);
@@ -36,6 +33,7 @@ export default function VerifyQuoteScreen() {
   const [isConfirmModalVisible, setConfirmModalVisible] = useState(false);
 
   // Quote Data
+  const [job, setJob] = useState<RepairJob | null>(null);
   const [parts, setParts] = useState<QuoteItem[]>([]);
   const [services, setServices] = useState<QuoteItem[]>([]);
   const [actualSymptom, setActualSymptom] = useState<string>('');
@@ -47,6 +45,7 @@ export default function VerifyQuoteScreen() {
     message: string;
     type: 'success' | 'warning' | 'danger' | 'info';
     confirmText?: string;
+    onConfirm?: () => void;
   }>({
     visible: false,
     title: '',
@@ -57,8 +56,8 @@ export default function VerifyQuoteScreen() {
   // Fetch quote data from DB
   useEffect(() => {
     const fetchQuoteData = async () => {
-      const numId = parseInt(jobNoParam.replace(/[^0-9]/g, ''), 10);
-      if (isNaN(numId)) {
+      const numId = parseInt(jobIdParam, 10) || (jobNoParam ? parseInt(jobNoParam.split('-').pop() || '', 10) || parseInt(jobNoParam.replace(/[^0-9]/g, ''), 10) : NaN);
+      if (isNaN(numId) || numId <= 0) {
         setLoading(false);
         return;
       }
@@ -68,6 +67,7 @@ export default function VerifyQuoteScreen() {
         const res = await getRepair(numId);
         if (res.success && res.data) {
           const jobData = res.data;
+          setJob(jobData);
 
           const fullDevice = [jobData.brand, jobData.model].filter(Boolean).join(' ') || jobData.device_type || initialDeviceModel;
           setDeviceModel(fullDevice);

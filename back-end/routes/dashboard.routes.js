@@ -53,4 +53,50 @@ router.get('/trend', auth, role('Manager', 'Staff'), ctrl.getTrend);
  */
 router.get('/category', auth, role('Manager', 'Staff'), ctrl.getCategory);
 
+/**
+ * @swagger
+ * /api/dashboard/team-performance:
+ *   get:
+ *     tags: [Dashboard]
+ *     summary: ประสิทธิภาพการทำงานของทีมรายบุคคล (Bar Chart)
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - in: query
+ *         name: date_start
+ *         schema: { type: string, format: date }
+ *       - in: query
+ *         name: date_end
+ *         schema: { type: string, format: date }
+ *       - in: query
+ *         name: device_type
+ *         schema: { type: string, enum: [all, pc, laptop, printer] }
+ *     responses:
+ *       200: { description: team performance data }
+ */
+router.get('/team-performance', auth, role('Manager', 'Staff'), ctrl.getTeamPerformance);
+
+/**
+ * @swagger
+ * /api/dashboard/parts-usage:
+ *   get:
+ *     tags: [Dashboard]
+ *     summary: สถิติการใช้อะไหล่ในงานซ่อม (กี่ชิ้น)
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - in: query
+ *         name: date_start
+ *         schema: { type: string, format: date }
+ *       - in: query
+ *         name: date_end
+ *         schema: { type: string, format: date }
+ *       - in: query
+ *         name: device_type
+ *         schema: { type: string, enum: [all, pc, laptop, printer] }
+ *     responses:
+ *       200: { description: parts usage data }
+ */
+router.get('/parts-usage', auth, role('Manager', 'Staff'), ctrl.getPartsUsage);
+
 module.exports = router;
+
+

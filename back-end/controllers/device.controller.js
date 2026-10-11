@@ -42,7 +42,7 @@ exports.create = async (req, res, next) => {
       serial_number, important_software, device_password,
     } = req.body;
 
-    const parsedCustomerId = customer_id && String(customer_id).trim() !== '' ? String(customer_id).trim() : null;
+    const parsedCustomerId = customer_id && !isNaN(parseInt(customer_id, 10)) ? parseInt(customer_id, 10) : null;
     const parsedDeviceTypeId = device_type_id ? parseInt(device_type_id, 10) : null;
     let parsedBrandId = brand_id ? parseInt(brand_id, 10) : null;
     const parsedWarrantyYear = warranty_year ? Math.max(0, parseInt(warranty_year, 10) || 0) : 0;
@@ -118,7 +118,7 @@ exports.update = async (req, res, next) => {
       serial_number, important_software, device_password,
     } = req.body;
 
-    const parsedCustomerId = customer_id && String(customer_id).trim() !== '' ? String(customer_id).trim() : null;
+    const parsedCustomerId = customer_id && !isNaN(parseInt(customer_id, 10)) ? parseInt(customer_id, 10) : null;
     const parsedDeviceTypeId = device_type_id ? parseInt(device_type_id, 10) : null;
     const parsedBrandId = brand_id ? parseInt(brand_id, 10) : null;
     const parsedWarrantyYear = warranty_year !== undefined ? Math.max(0, parseInt(warranty_year, 10) || 0) : null;

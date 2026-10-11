@@ -89,8 +89,8 @@ export default function NotificationsScreen() {
           });
         }
 
-        // 2. Repair in progress
-        if (statusId === 6 || status.includes('กำลังซ่อม') || statusId === 5 || status.includes('อนุมัติแล้ว')) {
+        // 2. Repair in progress (สถานะ 5: อนุมัติแล้ว/รอซ่อม)
+        if (statusId === 5 || status.includes('อนุมัติแล้ว') || status.includes('รอซ่อม')) {
           notifs.push({
             id: `repair-${jobId}`,
             jobId,
@@ -100,27 +100,56 @@ export default function NotificationsScreen() {
             time: timeStr,
             type: 'repair',
             icon: 'hammer',
+            color: '#6366F1',
+            bgColor: '#EEF2FF',
+          });
+        }
+
+        // 3. Waiting payment (สถานะ 7: รอชำระ)
+        if (statusId === 7 || status.includes('รอชำระ')) {
+          if (!isRejected) {
+            notifs.push({
+              id: `payment-${jobId}`,
+              jobId,
+              jobNo,
+              title: `ซ่อมเสร็จแล้ว รอชำระเงิน (${jobNo})`,
+              message: `${device} ซ่อมเสร็จเรียบร้อยแล้ว กรุณาชำระเงินและแจ้งสลิปในระบบ`,
+              time: timeStr,
+              type: 'ready',
+              icon: 'cash-outline',
+              color: '#D97706',
+              bgColor: '#FEF3C7',
+            });
+          }
+        }
+
+        // 4. Ready for pickup (สถานะ 6: รอลูกค้ามารับเครื่อง)
+        if (statusId === 6 || status.includes('มารับเครื่อง')) {
+          notifs.push({
+            id: `pickup-${jobId}`,
+            jobId,
+            jobNo,
+            title: `ตรวจสอบยอดแล้ว เครื่องพร้อมให้มารับ (${jobNo})`,
+            message: `ทางร้านตรวจสอบการชำระเงินของ ${device} เรียบร้อยแล้ว สามารถติดต่อรับเครื่องที่หน้าร้านและเซ็นรับได้เลย`,
+            time: timeStr,
+            type: 'ready',
+            icon: 'cube',
             color: '#0284C7',
             bgColor: '#E0F2FE',
           });
         }
 
-        // 3. Ready for pickup / Pending payment (ถ้าถูก reject ให้โชว์แค่แจ้งเตือนแดงด้านบน ไม่โชว์เขียวพร้อมรับที่ทำให้เข้าใจผิด)
-        const isPendingPayment = statusId === 7 || status.includes('รอชำระ');
-        const isDelivered = statusId === 8 || status.includes('เสร็จสิ้น');
-        if ((isPendingPayment && !isRejected) || isDelivered) {
+        // 5. Delivered / Completed (สถานะ 8: เสร็จสิ้น)
+        if (statusId === 8 || status.includes('เสร็จสิ้น')) {
           notifs.push({
-            id: `ready-${jobId}`,
+            id: `completed-${jobId}`,
             jobId,
             jobNo,
-            title: statusId === 8 ? `ซ่อมเสร็จและส่งมอบแล้ว (${jobNo})` : `เครื่องซ่อมเสร็จแล้ว พร้อมรับ (${jobNo})`,
-            message:
-              statusId === 8
-                ? `การซ่อมแซม ${device} เสร็จสิ้นสมบูรณ์ ขอบคุณที่ไว้วางใจใช้บริการ IT VERTEX`
-                : `${device} ซ่อมเสร็จเรียบร้อยแล้ว กรุณาชำระเงินและนัดวันรับเครื่องที่ศูนย์บริการ`,
+            title: `ส่งมอบเครื่องเสร็จสิ้นแล้ว (${jobNo})`,
+            message: `การซ่อมแซม ${device} เสร็จสิ้นสมบูรณ์ ขอบคุณที่ไว้วางใจใช้บริการ IT VERTEX`,
             time: timeStr,
             type: 'ready',
-            icon: statusId === 8 ? 'checkmark-circle' : 'gift-outline',
+            icon: 'checkmark-circle',
             color: '#16A34A',
             bgColor: '#DCFCE7',
           });

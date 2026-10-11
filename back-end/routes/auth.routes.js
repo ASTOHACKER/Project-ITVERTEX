@@ -63,6 +63,28 @@ router.get('/me', auth, ctrl.getMe);
 
 /**
  * @swagger
+ * /api/auth/profile:
+ *   put:
+ *     tags: [Auth]
+ *     summary: อัปเดตข้อมูลโปรไฟล์ผู้ใช้งาน
+ *     security: [{ bearerAuth: [] }]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               first_name: { type: string }
+ *               last_name: { type: string }
+ *               phone: { type: string }
+ *     responses:
+ *       200: { description: อัปเดตข้อมูลส่วนตัวสำเร็จ }
+ */
+router.put('/profile', auth, ctrl.updateProfile);
+
+/**
+ * @swagger
  * /api/auth/forgot-password:
  *   post:
  *     tags: [Auth]

@@ -1,14 +1,17 @@
 // 1. React & React Native
-import { Text, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 interface DocumentInfoCardProps {
   jobNo: string;
-  createdAt?: string;
+  createdAt?: string | null;
   paymentDate?: string | null;
   returnDate?: string | null;
-  receivedBy?: string;
-  inspectorName?: string;
-  repairerName?: string;
+  receivedBy?: string | null;
+  inspectorName?: string | null;
+  repairerName?: string | null;
+  onViewPdf?: () => void;
+  pdfButtonText?: string;
 }
 
 export default function DocumentInfoCard({
@@ -19,6 +22,8 @@ export default function DocumentInfoCard({
   receivedBy,
   inspectorName,
   repairerName,
+  onViewPdf,
+  pdfButtonText,
 }: DocumentInfoCardProps) {
   const formatDate = (dateStr?: string | null) => {
     if (!dateStr || dateStr === '-' || dateStr === 'undefined' || dateStr === 'null') return '-';
@@ -84,6 +89,22 @@ export default function DocumentInfoCard({
         <Text className="text-sm text-[#888888] flex-[1.2]">คนซ่อมเครื่อง (ช่าง)</Text>
         <Text className="text-sm text-slate-800 font-medium flex-[2] text-right">{repairerName || '-'}</Text>
       </View>
+
+      {onViewPdf && (
+        <>
+          <View className="h-px border-t-[0.5px] border-slate-200 border-dashed mt-1" />
+          <TouchableOpacity
+            onPress={onViewPdf}
+            className="mt-3 bg-red-50 border border-red-200 rounded-xl py-2.5 px-3 flex-row items-center justify-center active:bg-red-100"
+          >
+            <Ionicons name="document-text-outline" size={18} color="#DC2626" style={{ marginRight: 6 }} />
+            <Text className="text-[#DC2626] font-bold text-xs font-heading">
+              {pdfButtonText || 'ดูใบรับซ่อม / ใบเสร็จ (PDF)'}
+            </Text>
+          </TouchableOpacity>
+        </>
+      )}
     </View>
   );
 }
+

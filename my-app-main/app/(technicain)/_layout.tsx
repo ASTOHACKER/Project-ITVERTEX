@@ -3,7 +3,7 @@ import { getUser, getRoleRedirectPath } from "@/lib/auth";
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, Platform, View } from "react-native";
 
 export default function TechnicianLayout() {
   const router = useRouter();
@@ -55,11 +55,18 @@ export default function TechnicianLayout() {
         headerShown: false,
         tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: Colors.textLight,
-        tabBarStyle: { paddingBottom: 5, height: 60 },
+        tabBarStyle: {
+          backgroundColor: "#ffffff",
+          borderTopWidth: 1,
+          borderTopColor: "#e2e8f0",
+          height: Platform.OS === 'ios' ? 84 : 68,
+          paddingTop: 8,
+          paddingBottom: Platform.OS === 'ios' ? 24 : 10,
+        },
         tabBarLabelStyle: {
-          fontSize: 12,
+          fontSize: 11,
           fontFamily: FONTS.heading,
-          fontWeight: "800",
+          fontWeight: "700",
         },
       }}
     >

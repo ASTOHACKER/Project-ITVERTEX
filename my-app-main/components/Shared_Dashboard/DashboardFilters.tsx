@@ -70,10 +70,10 @@ export default function DashboardFilters({
   return (
     <View className="bg-white p-4 mx-4 mb-4 rounded-xl border border-app-border">
       {/* Header & Time toggle */}
-      <View className="flex-row justify-between items-center mb-3">
+      <View className="flex-row justify-between items-center mb-2.5">
         <View className="flex-row items-center gap-1.5">
-          <Ionicons name="filter" size={16} color="#333333" />
-          <Text className="text-sm font-bold text-text-dark font-heading">ตัวกรองกราฟแนวโน้ม</Text>
+          <Ionicons name="filter" size={16} color="#DC2626" />
+          <Text className="text-sm font-bold text-text-dark font-heading">ตัวกรองกราฟและรายงานทั้งหมด</Text>
         </View>
 
         <View className="flex-row bg-bg rounded-lg p-0.5">
@@ -84,7 +84,7 @@ export default function DashboardFilters({
               onPress={() => onChangeTimeFilter(btn.key)}
             >
               <Text
-                className={`text-xs font-body ${timeFilter === btn.key ? 'text-text-dark font-bold font-heading' : 'text-text-light'}`}
+                className={`text-xs font-body ${timeFilter === btn.key ? 'text-[#DC2626] font-bold font-heading' : 'text-text-light'}`}
               >
                 {btn.label}
               </Text>
@@ -92,6 +92,31 @@ export default function DashboardFilters({
           ))}
         </View>
       </View>
+
+      {/* Sync Status Banner */}
+      {/* <View className="flex-row items-center justify-between bg-slate-50 border border-slate-200/80 rounded-lg px-2.5 py-1.5 mb-3">
+        <View className="flex-row items-center gap-1.5 flex-1 mr-1">
+          <Ionicons name="sync-circle-outline" size={15} color="#0284C7" />
+          <Text className="text-[11px] text-slate-600 font-body shrink" numberOfLines={1}>
+            ซิงค์ทุกกราฟ: {timeFilter === 'day' ? 'รายวัน' : timeFilter === 'month' ? 'รายเดือน' : 'รายปี'} • {deviceType === 'all' ? 'ทุกอุปกรณ์' : deviceType === 'pc' ? 'คอมพิวเตอร์' : deviceType === 'laptop' ? 'โน๊ตบุ๊ค' : 'ปริ้นเตอร์'}{dateStart && dateEnd ? ` (${dateStart} ถึง ${dateEnd})` : ''}
+          </Text>
+        </View>
+        {(deviceType !== 'all' || Boolean(dateStart) || Boolean(dateEnd) || timeFilter !== 'day') && (
+          <TouchableOpacity
+            onPress={() => {
+              onChangeTimeFilter('day');
+              onChangeDeviceType?.('all');
+              onChangeDateStart?.('');
+              onChangeDateEnd?.('');
+            }}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            className="flex-row items-center gap-0.5 pl-1.5"
+          >
+            <Ionicons name="refresh" size={12} color="#DC2626" />
+            <Text className="text-[11px] text-[#DC2626] font-bold">รีเซ็ต</Text>
+          </TouchableOpacity>
+        )}
+      </View> */}
 
       {/* Device type dropdown */}
       <View className="flex-row gap-3">

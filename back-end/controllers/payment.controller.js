@@ -2,9 +2,11 @@ const pool = require('../config/db');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const paymentQueries = require('../queries/payment.queries');
+const { ROLES, REPAIR_STATUS, PAYMENT_METHODS } = require('../constants');
 
-// Ensure pubilc/slips directory exists
-const slipsDir = path.join(__dirname, '..', 'pubilc', 'slips');
+// Ensure public/slips directory exists
+const slipsDir = path.join(__dirname, '..', 'public', 'slips');
 if (!fs.existsSync(slipsDir)) {
   fs.mkdirSync(slipsDir, { recursive: true });
 }
@@ -63,78 +65,69 @@ exports.create = async (req, res, next) => {
 
     let slipFilename = null;
 
-    // 1. จัดการรูปภาพสลิป (บันทึกเป็นชื่อไฟล์ที่สื่อความหมาย slip_REP-XXXXXX_date.ext)
-    if (req.file && req.file.buffer) {
-      const ext = (path.extname(req.file.originalname) || '.jpg').toLowerCase();
+    // 1. จัดการรูปภาพสลิป (รองรับทั้ง req.file และ req.files)
+    const uploadedFile = req.file || req.files?.slip_image?.[0] || req.files?.slip?.[0];
+
+    if (uploadedFile && uploadedFile.buffer) {
+      const ext = (path.extname(uploadedFile.originalname) || '.jpg').toLowerCase();
       slipFilename = `slips/slip_${cleanJobCode}_${dateStr}${ext}`;
-      fs.writeFileSync(path.join(__dirname, '..', 'pubilc', slipFilename), req.file.buffer);
+      await fs.promises.writeFile(path.join(__dirname, '..', 'public', slipFilename), uploadedFile.buffer);
     } else if (req.body.slip_image && typeof req.body.slip_image === 'string' && req.body.slip_image.includes('base64,')) {
       const parts = req.body.slip_image.split(';base64,');
       let ext = '.jpg';
       if (parts[0].includes('png')) ext = '.png';
       else if (parts[0].includes('webp')) ext = '.webp';
       slipFilename = `slips/slip_${cleanJobCode}_${dateStr}${ext}`;
-      fs.writeFileSync(path.join(__dirname, '..', 'pubilc', slipFilename), Buffer.from(parts[1], 'base64'));
+      await fs.promises.writeFile(path.join(__dirname, '..', 'public', slipFilename), Buffer.from(parts[1], 'base64'));
     } else if (req.body.slip_image && typeof req.body.slip_image === 'string' && !req.body.slip_image.includes('/') && !req.body.slip_image.includes('\\')) {
       slipFilename = req.body.slip_image;
+    } else if (req.body.slip && typeof req.body.slip === 'string' && !req.body.slip.includes('/') && !req.body.slip.includes('\\')) {
+      slipFilename = req.body.slip;
     }
 
-    const paymentMethodId = payment_method === 'transfer' ? 2 : 1; // 1: Cash, 2: Transfer
+    const paymentMethodId = payment_method === 'transfer' ? PAYMENT_METHODS.TRANSFER : PAYMENT_METHODS.CASH;
 
-    if (paymentMethodId === 2 && !slipFilename) {
+    if (paymentMethodId === PAYMENT_METHODS.TRANSFER && !slipFilename) {
       return res.status(400).json({ success: false, message: 'กรุณาแนบรูปภาพสลิปหลักฐานการโอนเงิน' });
     }
 
-    // ตรวจสอบว่างานซ่อมเสร็จสิ้นไปแล้วหรือลูกค้าเคยส่งข้อมูลไปแล้วหรือไม่ (กดแล้วเปลี่ยนไม่ได้)
+    // ตรวจสอบว่างานซ่อมเสร็จสิ้นไปแล้วหรือลูกค้าเคยส่งข้อมูลไปแล้วหรือไม่
     const { rows: currentRows } = await pool.query(
-      'SELECT status_id, payment_method_id FROM repair_job WHERE job_id = $1',
+      paymentQueries.CHECK_JOB_PAYMENT_STATUS,
       [numJobId]
     );
-      if (currentRows.length > 0) {
-        const curr = currentRows[0];
-        if (curr.status_id === 8) {
-          return res.status(400).json({ success: false, message: 'งานซ่อมนี้ส่งมอบเสร็จสิ้นแล้ว ไม่สามารถแก้ไขข้อมูลการชำระเงินได้' });
-        }
-        // ถ้าลูกค้าเคยส่งแล้ว (มี payment_method_id) และผู้เรียกเป็น customer (role_id === 4) ไม่อนุญาตให้เปลี่ยน
-        if (curr.payment_method_id && req.user && req.user.role_id === 4) {
-          return res.status(400).json({ success: false, message: 'คุณได้ยืนยันการชำระเงินไปแล้ว ข้อมูลถูกล็อกและไม่สามารถแก้ไขได้' });
-        }
+    if (currentRows.length > 0) {
+      const curr = currentRows[0];
+      if (curr.status_id === REPAIR_STATUS.COMPLETED) {
+        return res.status(400).json({ success: false, message: 'งานซ่อมนี้ส่งมอบเสร็จสิ้นแล้ว ไม่สามารถแก้ไขข้อมูลการชำระเงินได้' });
       }
+      if (curr.payment_method_id && req.user && req.user.role_id === ROLES.CUSTOMER) {
+        return res.status(400).json({ success: false, message: 'คุณได้ยืนยันการชำระเงินไปแล้ว ข้อมูลถูกล็อกและไม่สามารถแก้ไขได้' });
+      }
+    }
 
-      // 2. อัปเดตตาราง repair_job: ดันสถานะเป็น 7 (รอชำระ) พร้อมบันทึกช่องทาง, วันนัดรับ และชื่อไฟล์สลิป (เคลียร์เหตุผลการปฏิเสธเดิมออก)
+    // 2. อัปเดตตาราง repair_job: ดันสถานะเป็น 7 (รอชำระ)
+    const cleanPickupDate = (pickup_date && pickup_date !== 'null' && pickup_date !== 'undefined' && String(pickup_date).trim() !== '') ? pickup_date : null;
+    await pool.query(
+      paymentQueries.UPDATE_PAYMENT_INFO,
+      [paymentMethodId, slipFilename, cleanPickupDate, numJobId]
+    );
+
+    // 3. บันทึก action log ประวัติการชำระเงิน
+    try {
       await pool.query(
-        `UPDATE repair_job
-         SET status_id = 7,
-             payment_method_id = $1,
-             payment_date = CURRENT_DATE,
-             slip_image = COALESCE($2, slip_image),
-             appointment_date = CASE 
-               WHEN $3::text IS NOT NULL AND $3::text != '' AND $3::text != 'undefined' AND $3::text != 'null' 
-               THEN $3::date 
-               ELSE appointment_date 
-             END,
-             payment_verified = false,
-             payment_reject_reason = NULL
-         WHERE job_id = $4`,
-        [paymentMethodId, slipFilename, pickup_date || null, numJobId]
+        paymentQueries.INSERT_PAYMENT_ACTION_LOG,
+        [numJobId, userId || null]
       );
-
-      // 3. บันทึก action log ประวัติการชำระเงิน (action_type_id: 6 = รับชำระเงิน)
-      try {
-        await pool.query(
-          `INSERT INTO repair_job_detail (job_id, user_id, action_type_id, action_date)
-           VALUES ($1, $2, 6, CURRENT_DATE)`,
-          [numJobId, userId || null]
-        );
-      } catch (logErr) {
-        console.warn('Could not log payment action detail:', logErr.message);
-      }
+    } catch (logErr) {
+      console.warn('Could not log payment action detail:', logErr.message);
+    }
 
     // 4. บันทึกลง slips_records ถ้ามีไฟล์สลิป
     if (slipFilename) {
       try {
         await pool.query(
-          `INSERT INTO slips_records (user_id, image_url) VALUES ($1, $2)`,
+          paymentQueries.INSERT_SLIP_RECORD,
           [userId || null, slipFilename]
         );
       } catch (slipErr) {
@@ -160,8 +153,6 @@ exports.create = async (req, res, next) => {
 
 /**
  * PATCH /api/payments/:jobId/verify
- * พนักงานยืนยันว่าการชำระเงินถูกต้อง → อนุญาตให้ไปหน้าส่งมอบเครื่องได้
- * เปลี่ยน payment_verified = true ใน repair_job
  */
 exports.verify = async (req, res, next) => {
   try {
@@ -174,10 +165,7 @@ exports.verify = async (req, res, next) => {
 
     // อัปเดตสถานะว่าพนักงานยืนยันการชำระเงินแล้ว
     const { rows } = await pool.query(
-      `UPDATE repair_job 
-       SET payment_verified = true, payment_verified_by = $1, payment_verified_at = NOW()
-       WHERE job_id = $2
-       RETURNING *`,
+      paymentQueries.VERIFY_PAYMENT,
       [userId, jobId]
     );
 
@@ -185,11 +173,10 @@ exports.verify = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'ไม่พบงานซ่อม' });
     }
 
-    // บันทึก action log (action_type_id: 6 = ยืนยันการชำระเงิน)
+    // บันทึก action log
     try {
       await pool.query(
-        `INSERT INTO repair_job_detail (job_id, user_id, action_type_id, action_date, remark)
-         VALUES ($1, $2, 6, CURRENT_DATE, $3)`,
+        paymentQueries.VERIFY_PAYMENT_ACTION_LOG,
         [jobId, userId, 'พนักงานยืนยันการชำระเงินถูกต้อง']
       );
     } catch (logErr) {
@@ -208,8 +195,6 @@ exports.verify = async (req, res, next) => {
 
 /**
  * PATCH /api/payments/:jobId/reject
- * พนักงานปฏิเสธการชำระเงิน (เช่น สลิปไม่ชัด, ยอดไม่ตรง)
- * → ลบ payment_method_id, slip_image ออก เพื่อให้ลูกค้าส่งใหม่ได้
  */
 exports.reject = async (req, res, next) => {
   try {
@@ -224,16 +209,7 @@ exports.reject = async (req, res, next) => {
 
     // รีเซ็ตข้อมูลการชำระเงิน ให้ลูกค้าส่งใหม่ได้
     const { rows } = await pool.query(
-      `UPDATE repair_job 
-       SET payment_method_id = NULL, 
-           slip_image = NULL, 
-           payment_date = NULL,
-           payment_verified = false,
-           payment_verified_by = NULL,
-           payment_verified_at = NULL,
-           payment_reject_reason = $1
-       WHERE job_id = $2
-       RETURNING *`,
+      paymentQueries.REJECT_PAYMENT,
       [cleanReason, jobId]
     );
 
@@ -244,8 +220,7 @@ exports.reject = async (req, res, next) => {
     // บันทึก action log
     try {
       await pool.query(
-        `INSERT INTO repair_job_detail (job_id, user_id, action_type_id, action_date, remark)
-         VALUES ($1, $2, 6, CURRENT_DATE, $3)`,
+        paymentQueries.REJECT_PAYMENT_ACTION_LOG,
         [jobId, userId, `พนักงานปฏิเสธการชำระเงิน: ${cleanReason}`]
       );
     } catch (logErr) {

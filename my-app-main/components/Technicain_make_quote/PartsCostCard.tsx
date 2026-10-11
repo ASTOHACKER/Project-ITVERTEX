@@ -16,13 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 // 3. API helpers
 import { getItems } from '@/lib/api';
 
-interface PartItem {
-  id: string;
-  name: string;
-  price: number;
-  qty: number;
-  item_id?: number;
-}
+import type { PartItem } from '@/types/quotation';
 
 interface PartsCostCardProps {
   parts: PartItem[];
@@ -212,7 +206,7 @@ export default function PartsCostCard({
                     <View className="flex-row items-center bg-slate-100 rounded-lg border border-slate-300 overflow-hidden">
                       <TouchableOpacity
                         className="px-2.5 h-[34px] justify-center items-center bg-slate-200"
-                        onPress={() => onUpdatePartQty?.(item.id, Math.max(1, item.qty - 1))}
+                        onPress={() => onUpdatePartQty?.(item.id, Math.max(1, (item.qty || 1) - 1))}
                         activeOpacity={0.6}
                       >
                         <Ionicons name="remove" size={16} color="#0369A1" />
@@ -230,14 +224,14 @@ export default function PartsCostCard({
                       />
                       <TouchableOpacity
                         className="px-2.5 h-[34px] justify-center items-center bg-slate-200"
-                        onPress={() => onUpdatePartQty?.(item.id, item.qty + 1)}
+                        onPress={() => onUpdatePartQty?.(item.id, (item.qty || 1) + 1)}
                         activeOpacity={0.6}
                       >
                         <Ionicons name="add" size={16} color="#0369A1" />
                       </TouchableOpacity>
                     </View>
                     <Text className="font-bold text-[15px] text-[#0369A1]">
-                      {(item.price * item.qty).toLocaleString()}
+                      {(item.price * (item.qty || 1)).toLocaleString()}
                       <Text className="text-xs font-normal text-slate-500"> บาท</Text>
                     </Text>
                   </View>

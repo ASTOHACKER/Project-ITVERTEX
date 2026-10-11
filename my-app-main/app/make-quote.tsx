@@ -16,7 +16,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // 3. API helpers
-import { createQuotation, getRepair, logRepairJobDetail, updateQuotation } from '@/lib/api';
+import { createQuotation, getQuotation, getRepair, logRepairJobDetail, updateQuotation } from '@/lib/api';
+import { CANCEL_INSPECTION_FEE } from '@/constants/status';
 
 // 4. Components
 import PartsCostCard from '@/components/Technicain_make_quote/PartsCostCard';
@@ -25,21 +26,7 @@ import SymptomCard from '@/components/Technicain_make_quote/SymptomCard';
 import CustomAlert from '@/components/ui/CustomAlert';
 import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal';
 
-interface PartItem {
-  id: string;
-  name: string;
-  price: number;
-  qty: number;
-  item_id?: number;
-}
-
-interface ServiceItem {
-  id: string;
-  name: string;
-  price: number;
-  qty: number;
-  item_id?: number;
-}
+import type { PartItem, ServiceItem } from '@/types/quotation';
 
 export default function MakeQuoteScreen() {
   const router = useRouter();
@@ -47,10 +34,12 @@ export default function MakeQuoteScreen() {
   const insets = useSafeAreaInsets();
 
   // Params
-  const jobNo = (params.job_no as string) || (params.job_id as string) || (params.id as string) || '';
+  const jobIdParam = (params.job_id as string) || (params.id as string) || '';
+  const jobNoParam = (params.job_no as string) || '';
+  const jobNo = jobNoParam || (jobIdParam ? `REP-${String(jobIdParam).padStart(6, '0')}` : '');
   const customerNameParam = (params.customer_name as string) || '';
 
-  const [jobId, setJobId] = useState<string>('');
+  const [jobId, setJobId] = useState<string>(jobIdParam || '');
   const [quoteId, setQuoteId] = useState<number | null>(
     params.quote_id ? parseInt(String(params.quote_id), 10) : null
   );
@@ -63,6 +52,7 @@ export default function MakeQuoteScreen() {
   const [initialSymptom, setInitialSymptom] = useState('');
   const [actualSymptom, setActualSymptom] = useState('');
   const [customerRemark, setCustomerRemark] = useState('');
+  const [quoteStatusId, setQuoteStatusId] = useState<number | null>(null);
 
   const [partInputName, setPartInputName] = useState('');
   const [partInputPrice, setPartInputPrice] = useState('');
@@ -76,27 +66,27 @@ export default function MakeQuoteScreen() {
 
   // ── Fetch job data ──
   useEffect(() => {
-    if (!jobNo) {
+    if (!jobNo && !jobIdParam) {
       setIsLoading(false);
       return;
     }
     fetchJob();
-  }, [jobNo]);
+  }, [jobNo, jobIdParam]);
 
   async function fetchJob() {
     try {
       setIsLoading(true);
-      const numericId = parseInt(jobNo.replace(/[^0-9]/g, ''), 10);
+      const numericId = parseInt(jobIdParam, 10) || (jobNo ? parseInt(jobNo.split('-').pop() || '', 10) || parseInt(jobNo.replace(/[^0-9]/g, ''), 10) : NaN);
 
-      if (!isNaN(numericId)) {
+      if (!isNaN(numericId) && numericId > 0) {
         const res = await getRepair(numericId);
         if (res.success && res.data) {
           const dataJob = res.data;
-          setJobId(String(dataJob.job_id));
-          if (dataJob.quotation_id) {
-            setQuoteId(dataJob.quotation_id);
-          } else if (dataJob.quotation?.quotation_id) {
-            setQuoteId(dataJob.quotation.quotation_id);
+          setJobId(String(dataJob.job_id || numericId));
+
+          const activeQuoteId = (params.quote_id ? parseInt(String(params.quote_id), 10) : null) || dataJob.quotation_id || dataJob.quotation?.quotation_id || null;
+          if (activeQuoteId) {
+            setQuoteId(activeQuoteId);
           }
 
           const fullDevice =
@@ -119,47 +109,97 @@ export default function MakeQuoteScreen() {
             setCustomerName(dataJob.customer_name);
           }
 
-          // Load previous customer modification remark if any
-          if (dataJob.quotation?.customer_remark || dataJob.customer_remark) {
-            setCustomerRemark(dataJob.quotation?.customer_remark || dataJob.customer_remark || '');
+          // โหลดข้อมูลใบเสนอราคาเดิมผ่าน getQuotation จาก /lib/api หากมี quote_id
+          let quoteData: any = dataJob.quotation;
+          if (activeQuoteId) {
+            try {
+              const qRes = await getQuotation(activeQuoteId);
+              if (qRes.success && qRes.data) {
+                quoteData = qRes.data;
+              }
+            } catch (qErr) {
+              console.warn('Could not fetch quotation directly:', qErr);
+            }
           }
 
-          // Pre-populate previous quote items if modifying
-          if (dataJob.quotation?.items && Array.isArray(dataJob.quotation.items) && dataJob.quotation.items.length > 0) {
-            const loadedParts: PartItem[] = [];
-            const loadedServices: ServiceItem[] = [];
+          if (quoteData) {
+            setQuoteStatusId(quoteData.quote_status_id || null);
 
-            dataJob.quotation.items.forEach((it: any) => {
-              const itemName = it.item_name || '';
-              const isService = itemName.includes('ค่าบริการ') || itemName.includes('ค่าแรง');
-              if (isService) {
-                loadedServices.push({
-                  id: String(it.details_id || Math.random()),
-                  name: itemName,
-                  price: Number(it.unit_price || 0),
-                  qty: Number(it.quantity || 1),
-                  item_id: it.item_id,
-                });
-              } else {
-                loadedParts.push({
-                  id: String(it.details_id || Math.random()),
-                  name: itemName,
-                  price: Number(it.unit_price || 0),
-                  qty: Number(it.quantity || 1),
-                  item_id: it.item_id,
-                });
+            // หากเป็นสถานะที่อนุมัติแล้ว (2) หรือยกเลิก (3) จะไม่อนุญาตให้แก้ไข
+            if (quoteData.quote_status_id === 2 || quoteData.quote_status_id === 3) {
+              const statusName =
+                quoteData.quote_status_name ||
+                (quoteData.quote_status_id === 2 ? 'อนุมัติแล้ว' : 'ลูกค้ายกเลิก');
+              showAlert({
+                title: 'ไม่สามารถแก้ไขใบเสนอราคานี้ได้',
+                message: `ใบเสนอราคานี้อยู่ในสถานะ "${statusName}" แล้ว จึงไม่สามารถทำการแก้ไขหรือเปลี่ยนแปลงรายการได้`,
+                type: 'warning',
+                confirmText: 'ย้อนกลับ',
+                onConfirm: () => {
+                  hideAlert();
+                  router.back();
+                },
+              });
+              return;
+            }
+
+            if (quoteData.actual_symptom) {
+              setActualSymptom(quoteData.actual_symptom);
+            }
+            if (quoteData.customer_remark) {
+              setCustomerRemark(quoteData.customer_remark);
+            }
+
+            // แยกรายการอะไหล่ (item_type_id = 1) และค่าบริการ (item_type_id = 2) จาก Type ID โดยตรง
+            if (quoteData.parts && quoteData.parts.length > 0) {
+              setParts(quoteData.parts.map((p: any) => ({
+                id: String(p.details_id || p.id || Math.random()),
+                name: p.item_name || p.name || 'อะไหล่',
+                price: Number(p.unit_price || p.price || 0),
+                qty: Number(p.quantity || p.qty || 1),
+                item_id: p.item_id,
+              })));
+            } else if (quoteData.items && quoteData.items.length > 0) {
+              const pItems = quoteData.items.filter((it: any) => it.item_type_id === 1);
+              if (pItems.length > 0) {
+                setParts(pItems.map((p: any) => ({
+                  id: String(p.details_id || p.id || Math.random()),
+                  name: p.item_name || p.name || 'อะไหล่',
+                  price: Number(p.unit_price || p.price || 0),
+                  qty: Number(p.quantity || p.qty || 1),
+                  item_id: p.item_id,
+                })));
               }
-            });
+            }
 
-            if (loadedParts.length > 0) setParts(loadedParts);
-            if (loadedServices.length > 0) setServices(loadedServices);
+            if (quoteData.services && quoteData.services.length > 0) {
+              setServices(quoteData.services.map((s: any) => ({
+                id: String(s.details_id || s.id || Math.random()),
+                name: s.item_name || s.name || 'ค่าบริการ',
+                price: Number(s.unit_price || s.price || 0),
+                qty: Number(s.quantity || s.qty || 1),
+                item_id: s.item_id,
+              })));
+            } else if (quoteData.items && quoteData.items.length > 0) {
+              const sItems = quoteData.items.filter((it: any) => it.item_type_id === 2);
+              if (sItems.length > 0) {
+                setServices(sItems.map((s: any) => ({
+                  id: String(s.details_id || s.id || Math.random()),
+                  name: s.item_name || s.name || 'ค่าบริการ',
+                  price: Number(s.unit_price || s.price || 0),
+                  qty: Number(s.quantity || s.qty || 1),
+                  item_id: s.item_id,
+                })));
+              }
+            }
           }
         } else {
-          setJobId(jobNo);
+          setJobId(String(numericId));
           setDeviceName('อุปกรณ์ซ่อม');
         }
       } else {
-        setJobId(jobNo);
+        const fallbackId = parseInt(jobIdParam, 10);
+        if (!isNaN(fallbackId) && fallbackId > 0) setJobId(String(fallbackId));
         setDeviceName('อุปกรณ์ซ่อม');
       }
     } catch (err) {
@@ -225,6 +265,18 @@ export default function MakeQuoteScreen() {
   const handleConfirmDelete = () => {
     if (!itemToDelete) return;
     if (itemToDelete.type === 'part') {
+      if (parts.length <= 1 && services.length > 0) {
+        setDeleteModalVisible(false);
+        setItemToDelete(null);
+        showAlert({
+          title: 'ไม่สามารถลบอะไหล่ทั้งหมดได้',
+          message: 'ค่าบริการมีได้ก็ต้องมีรายการอะไหล่ก่อน หากต้องการลบอะไหล่ทั้งหมด กรุณาลบรายการค่าบริการออกก่อน',
+          type: 'warning',
+          confirmText: 'เข้าใจแล้ว',
+          onConfirm: hideAlert,
+        });
+        return;
+      }
       setParts((prev) => prev.filter((p) => p.id !== itemToDelete.id));
     } else {
       setServices((prev) => prev.filter((s) => s.id !== itemToDelete.id));
@@ -292,6 +344,16 @@ export default function MakeQuoteScreen() {
 
   // Add Service (ค่าบริการไม่มีจำนวน — ล็อก qty = 1 เสมอ)
   const handleAddService = (itemFromDb?: any) => {
+    if (parts.length === 0) {
+      showAlert({
+        title: 'ยังไม่มีรายการอะไหล่',
+        message: 'ค่าบริการมีได้ก็ต้องมีรายการอะไหล่ก่อน กรุณาเพิ่มรายการอะไหล่อย่างน้อย 1 รายการก่อนเพิ่มค่าบริการ',
+        type: 'warning',
+        confirmText: 'เข้าใจแล้ว',
+        onConfirm: hideAlert,
+      });
+      return;
+    }
     if (itemFromDb) {
       setServices((prev) => [
         ...prev,
@@ -337,8 +399,8 @@ export default function MakeQuoteScreen() {
   };
 
   // Totals
-  const totalPartsCost = parts.reduce((sum, p) => sum + p.price * p.qty, 0);
-  const totalServicesCost = services.reduce((sum, s) => sum + s.price * s.qty, 0);
+  const totalPartsCost = parts.reduce((sum, p) => sum + p.price * (p.qty || 1), 0);
+  const totalServicesCost = services.reduce((sum, s) => sum + s.price * (s.qty || 1), 0);
   const grandTotal = totalPartsCost + totalServicesCost;
 
   // Submit Quote
@@ -359,7 +421,29 @@ export default function MakeQuoteScreen() {
     if (parts.length === 0 && services.length === 0) {
       showAlert({
         title: 'ไม่มีรายการค่าใช้จ่าย',
-        message: 'กรุณาเพิ่มรายการอะไหล่หรือค่าบริการอย่างน้อย 1 รายการก่อนส่งข้อมูลเสนอราคา',
+        message: 'กรุณาเพิ่มรายการอะไหล่และค่าบริการอย่างน้อยประเภทละ 1 รายการก่อนส่งข้อมูลเสนอราคา',
+        type: 'warning',
+        confirmText: 'เข้าใจแล้ว',
+        onConfirm: hideAlert,
+      });
+      return;
+    }
+
+    if (services.length > 0 && parts.length === 0) {
+      showAlert({
+        title: 'เงื่อนไขไม่ถูกต้อง',
+        message: 'ค่าบริการมีได้ก็ต้องมีรายการอะไหล่อย่างน้อย 1 รายการก่อน กรุณาเพิ่มรายการอะไหล่',
+        type: 'warning',
+        confirmText: 'เข้าใจแล้ว',
+        onConfirm: hideAlert,
+      });
+      return;
+    }
+
+    if (parts.length > 0 && services.length === 0) {
+      showAlert({
+        title: 'ยังไม่มีรายการค่าบริการ',
+        message: 'ไม่สามารถสร้างหรือแก้ไขใบเสนอราคาที่มีเฉพาะอะไหล่ได้ กรุณาเพิ่มรายการค่าบริการหรือค่าแรงอย่างน้อย 1 รายการ',
         type: 'warning',
         confirmText: 'เข้าใจแล้ว',
         onConfirm: hideAlert,
@@ -375,16 +459,24 @@ export default function MakeQuoteScreen() {
       cancelText: 'ยกเลิก',
       onCancel: hideAlert,
       onConfirm: async () => {
+        if (quoteStatusId === 2 || quoteStatusId === 3) {
+          showAlert({
+            title: 'ไม่สามารถแก้ไขได้',
+            message: 'ใบเสนอราคานี้ได้รับการอนุมัติหรือลูกค้ายกเลิกแล้ว จึงไม่สามารถบันทึกการแก้ไขได้',
+            type: 'warning',
+          });
+          return;
+        }
         setSaving(true);
         try {
-          const numericId = parseInt(jobId, 10);
-          if (isNaN(numericId)) throw new Error('Invalid Job ID');
+          const numericId = parseInt(jobId, 10) || parseInt(jobIdParam, 10) || (jobNo ? parseInt(jobNo.split('-').pop() || '', 10) : 0);
+          if (!numericId || numericId <= 0) throw new Error('ไม่พบรหัสงานซ่อมที่ถูกต้อง');
 
           const quoteData = {
             job_id: numericId,
             type: 'quote',
             total_repair_price: grandTotal,
-            total_cancel_price: 300,
+            total_cancel_price: CANCEL_INSPECTION_FEE,
             symptom: actualSymptom.trim(),
             actual_symptom: actualSymptom.trim(),
             parts: parts.map((p) => ({

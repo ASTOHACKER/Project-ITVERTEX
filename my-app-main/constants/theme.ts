@@ -4,7 +4,6 @@
  */
 
 import { Platform } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 
 const primaryRedLight = '#DC2626'; // Red-600 for Light Mode
 const primaryRedDark = '#F87171';  // Red-400 for Dark Mode
@@ -53,28 +52,21 @@ export const Colors: Record<string, any> = {
   warning: '#D97706',
   border: '#E2E8F0',
   status: {
-    status1: '#65A30D', // 1 รอตรวจเช็ค (Lime-600: legible, high contrast on light bg)
-    status2: '#D97706', // 2 ดำเนินการตรวจเช็ค (Amber-600)
-    status3: '#EA580C', // 3 ดำเนินการเสนอราคา (Orange-600: distinct from Amber)
-    status4: '#9333EA', // 4 รอการอนุมัติ (Purple-600)
-    status5: '#2563EB', // 5 อนุมัติแล้ว/รอซ่อม (Blue-600)
-    status6: '#0284C7', // 6 กำลังซ่อม (Sky-600: distinct from Blue)
-    status7: '#CA8A04', // 7 รอชำระ (Yellow-600: legible contrast on light)
-    status8: '#16A34A', // 8 เสร็จสิ้น (Green-600)
-    status9: '#DC2626', // 9 ยกเลิกซ่อม (Red-600)
-  } as const,
-};
+    // ── กลุ่มที่ 1: โทนสีน้ำเงิน/ฟ้า (ขั้นตอนตรวจเช็ค & กำลังซ่อม) ──
+    status1: '#0284C7', // 1 รอตรวจเช็ค (Sky Blue)
+    status2: '#2563EB', // 2 ดำเนินการตรวจเช็ค (Bright Blue)
+    status3: '#4F46E5', // 3 ดำเนินการเสนอราคา (Indigo Blue)
+    status5: '#1D4ED8', // 5 อนุมัติแล้ว/รอซ่อม (Royal Blue)
 
-export const StatusIcons: Record<string, keyof typeof Ionicons.glyphMap> = {
-  status1: 'document-text-outline',
-  status2: 'search-outline',
-  status3: 'calculator-outline',
-  status4: 'time-outline',
-  status5: 'checkmark-circle-outline',
-  status6: 'hammer-outline',
-  status7: 'cash-outline',
-  status8: 'checkmark-done-circle-outline',
-  status9: 'close-circle-outline',
+    // ── กลุ่มที่ 2: โทนสีส้ม/อำพัน/เหลือง (ขั้นตอนการรอ & ลูกค้าดำเนินการ) ──
+    status4: '#EA580C', // 4 รอการอนุมัติ (Orange - ต้องการความสนใจ)
+    status7: '#D97706', // 7 รอชำระ (Amber)
+    status6: '#CA8A04', // 6 รอลูกค้ามารับเครื่อง (Warm Gold / Yellow)
+
+    // ── กลุ่มที่ 3: โทนสีเสร็จสิ้น & ปิดงาน ──
+    status8: '#16A34A', // 8 เสร็จสิ้น (Emerald Green)
+    status9: '#DC2626', // 9 ยกเลิกซ่อม (Crimson Red)
+  } as const,
 };
 
 export const Fonts = Platform.select({
@@ -114,7 +106,3 @@ export const Spacing = {
   five: 32,
   six: 64,
 } as const;
-
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
-export const MaxContentWidth = 800;
-

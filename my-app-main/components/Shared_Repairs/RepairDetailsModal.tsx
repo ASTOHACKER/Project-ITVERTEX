@@ -1,5 +1,5 @@
 // 1. React & React Native
-import { Modal, Text, TouchableOpacity, View } from 'react-native';
+import { Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 // 2. Third-party / Expo
 import { Ionicons } from '@expo/vector-icons';
@@ -46,18 +46,18 @@ export default function RepairDetailsModal({
 
   return (
     <Modal visible={visible} transparent={true} animationType="fade">
-      <View className="flex-1 bg-black/50 justify-center items-center p-5">
-        <View className="w-full bg-white rounded-2xl p-5 shadow-sm shadow-black/25 elevation-5">
+      <View className="flex-1 bg-black/50 justify-center items-center p-4">
+        <View className="w-full max-w-md bg-white rounded-2xl p-5 shadow-sm shadow-black/25 elevation-5 max-h-[88%]">
           {/* Header */}
-          <View className="flex-row justify-between items-center mb-5 pb-3 border-b border-slate-200">
+          <View className="flex-row justify-between items-center mb-3 pb-3 border-b border-slate-200">
             <Text className="text-lg font-bold text-slate-800">รายละเอียดใบส่งซ่อม</Text>
             <TouchableOpacity onPress={onClose} className="p-1">
               <Ionicons name="close" size={24} color="#64748b" />
             </TouchableOpacity>
           </View>
 
-          {/* Details Container */}
-          <View className="mb-6">
+          {/* Details Scrollable Container */}
+          <ScrollView showsVerticalScrollIndicator={false} className="mb-4">
             <View className="flex-row justify-between items-start py-2">
               <Text className="text-sm text-slate-500 flex-1">เลขใบส่งซ่อม</Text>
               <Text className="text-[15px] font-bold text-[#E53E3E] flex-[2] text-right">{item.job_no}</Text>
@@ -110,7 +110,7 @@ export default function RepairDetailsModal({
                 <Text className="text-xs font-bold" style={{ color: statusColor }}>{status}</Text>
               </View>
             </View>
-          </View>
+          </ScrollView>
 
           {/* Action Buttons */}
           <View className="flex-row gap-2.5">

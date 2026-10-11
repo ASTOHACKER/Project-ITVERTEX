@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -14,6 +13,7 @@ import {
 
 // 2. Third-party / Expo
 import { Ionicons } from '@expo/vector-icons';
+import CustomAlert from '@/components/ui/CustomAlert';
 
 // 3. API helpers
 import { updateItem, createItem } from '@/lib/api';
@@ -31,6 +31,19 @@ export default function AddPartModal({ visible, itemToEdit, onClose, onSuccess }
   const [sellingPrice, setSellingPrice] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    type: 'success' | 'warning' | 'danger' | 'info';
+    onConfirm?: () => void;
+  }>({
+    visible: false,
+    title: '',
+    message: '',
+    type: 'danger',
+  });
+
   useEffect(() => {
     if (itemToEdit) {
       setItemType(itemToEdit.item_type_id === 2 ? 'services' : 'parts');
@@ -47,23 +60,30 @@ export default function AddPartModal({ visible, itemToEdit, onClose, onSuccess }
     setSellingPrice('');
   };
 
-  const showAlert = (title: string, message: string) => {
-    if (Platform.OS === 'web') {
-      window.alert(`${title}\n\n${message}`);
-    } else {
-      Alert.alert(title, message);
-    }
+  const showAlert = (
+    title: string,
+    message: string,
+    type: 'success' | 'warning' | 'danger' | 'info' = 'danger',
+    onConfirm?: () => void
+  ) => {
+    setAlertConfig({
+      visible: true,
+      title,
+      message,
+      type,
+      onConfirm,
+    });
   };
 
   const handleSave = async () => {
     if (loading) return;
     if (!itemName.trim()) {
-      showAlert('ข้อผิดพลาด', 'กรุณากรอกชื่อรายการ');
+      showAlert('ข้อผิดพลาด', 'กรุณากรอกชื่อรายการ', 'warning');
       return;
     }
     const priceNum = parseFloat(sellingPrice);
     if (isNaN(priceNum) || priceNum < 0) {
-      showAlert('ข้อผิดพลาด', 'ราคาขายต้องเป็นตัวเลขและไม่เป็นค่าติดลบ');
+      showAlert('ข้อผิดพลาด', 'ราคาขายต้องเป็นตัวเลขและไม่เป็นค่าติดลบ', 'warning');
       return;
     }
 
@@ -79,20 +99,24 @@ export default function AddPartModal({ visible, itemToEdit, onClose, onSuccess }
         // Mode: Update
         const res = await updateItem(itemToEdit.item_id, payload);
         if (!res.success) throw new Error(res.message);
-        showAlert('สำเร็จ', 'แก้ไขข้อมูลรายการเรียบร้อยแล้ว');
+        showAlert('สำเร็จ', 'แก้ไขข้อมูลรายการเรียบร้อยแล้ว', 'success', () => {
+          resetForm();
+          onSuccess();
+          onClose();
+        });
       } else {
         // Mode: Insert
         const res = await createItem(payload);
         if (!res.success) throw new Error(res.message);
-        showAlert('สำเร็จ', 'เพิ่มรายการใหม่เรียบร้อยแล้ว');
+        showAlert('สำเร็จ', 'เพิ่มรายการใหม่เรียบร้อยแล้ว', 'success', () => {
+          resetForm();
+          onSuccess();
+          onClose();
+        });
       }
-
-      resetForm();
-      onSuccess();
-      onClose();
     } catch (err: any) {
       console.error('Save item error:', err);
-      showAlert('ล้มเหลว', err.message || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+      showAlert('ล้มเหลว', err.message || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล', 'danger');
     } finally {
       setLoading(false);
     }
@@ -104,7 +128,7 @@ export default function AddPartModal({ visible, itemToEdit, onClose, onSuccess }
         className="flex-1 bg-black/50 justify-center items-center p-5"
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View className="w-full bg-white rounded-2xl p-5 shadow-sm shadow-black/25 elevation-5">
+        <View className="w-full max-w-[400px] bg-white rounded-2xl p-5 shadow-lg shadow-black/25 elevation-5">
           <View className="flex-row justify-between items-center mb-5">
             <Text className="text-lg font-bold text-slate-800">
               {itemToEdit ? 'แก้ไขรายการ' : 'เพิ่มรายการใหม่'}
@@ -183,6 +207,17 @@ export default function AddPartModal({ visible, itemToEdit, onClose, onSuccess }
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+
+      <CustomAlert
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        type={alertConfig.type}
+        onConfirm={() => {
+          setAlertConfig((prev) => ({ ...prev, visible: false }));
+          alertConfig.onConfirm?.();
+        }}
+      />
     </Modal>
   );
 }

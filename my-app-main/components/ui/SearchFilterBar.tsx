@@ -13,10 +13,10 @@ interface SearchFilterBarProps {
   placeholder?: string;
 }
 
-export default function SearchFilterBar({ 
-  value, 
-  onChangeText, 
-  onPressFilter, 
+export default function SearchFilterBar({
+  value,
+  onChangeText,
+  onPressFilter,
   showFilter = false,
   activeFilterCount = 0,
   placeholder = 'ค้นหารายการ...'
@@ -45,20 +45,19 @@ export default function SearchFilterBar({
 
       {/* ปุ่มกรอง */}
       {showFilter && (
-        <TouchableOpacity 
-          className={`w-12 h-12 rounded-2xl justify-center items-center relative border shadow-sm ${
-            hasActiveFilters 
-              ? 'bg-red-50 border-[#DC2626]' 
+        <TouchableOpacity
+          className={`w-12 h-12 rounded-2xl justify-center items-center relative border shadow-sm ${hasActiveFilters
+              ? 'bg-red-50 border-[#DC2626]'
               : 'bg-white border-slate-200'
-          }`}
+            }`}
           onPress={onPressFilter}
           activeOpacity={0.7}
           accessibilityLabel="กรองรายการ"
         >
-          <Ionicons 
-            name="filter" 
-            size={22} 
-            color={hasActiveFilters ? '#DC2626' : '#475569'} 
+          <Ionicons
+            name="filter"
+            size={22}
+            color={hasActiveFilters ? '#DC2626' : '#475569'}
           />
           {hasActiveFilters && (
             <View className="absolute -top-1.5 -right-1.5 bg-[#DC2626] rounded-full min-w-[20px] h-[20px] px-1 items-center justify-center border-2 border-white">

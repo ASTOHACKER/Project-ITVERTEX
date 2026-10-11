@@ -1,33 +1,13 @@
 import React from 'react';
 import { Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import type { QuotationLineItem } from '@/types/quotation';
+import type { RepairQuotationSummary } from '@/types/repair';
 
-interface QuotationItem {
-  details_id?: number;
-  item_id?: number;
-  item_name: string;
-  item_type_id: number;
-  item_type_name?: string;
-  quantity: string | number;
-  unit_price: string | number;
-  total_price: string | number;
-}
+export type QuotationItem = QuotationLineItem;
 
 interface QuotationInfoCardProps {
-  quotation?: {
-    quotation_id: number;
-    quote_no?: string;
-    quote_status_id?: number;
-    quote_status_name?: string;
-    total_repair_price?: string | number;
-    total_cancel_price?: string | number;
-    customer_remark?: string | null;
-    items?: QuotationItem[];
-    parts?: QuotationItem[];
-    services?: QuotationItem[];
-    total_parts?: number;
-    total_services?: number;
-  } | null;
+  quotation?: RepairQuotationSummary | null;
   actualSymptom?: string;
 }
 
@@ -60,7 +40,7 @@ export default function QuotationInfoCard({
     );
 
   const grandTotal =
-    Number(quotation.total_repair_price) || totalParts + totalServices;
+    Number(quotation.total_repair_price) || (Number(totalParts) + Number(totalServices));
 
   // Status badge config
   const getStatusBadge = () => {
@@ -90,7 +70,7 @@ export default function QuotationInfoCard({
         bg: 'bg-amber-50',
         border: 'border-amber-300',
         text: 'text-amber-800',
-          label: 'ขอแก้ไข/เพิ่มเติมรายการ',
+        label: 'ขอแก้ไข/เพิ่มเติมรายการ',
         icon: 'alert-circle-outline' as const,
       };
     }
@@ -179,14 +159,14 @@ export default function QuotationInfoCard({
               >
                 <View className="flex-1 pr-2">
                   <Text className="text-xs font-medium text-slate-700" numberOfLines={1}>
-                    {p.item_name}
+                    {p.item_name || p.name || 'อะไหล่'}
                   </Text>
                   <Text className="text-[11px] text-slate-400">
-                    {Number(p.quantity)} x {Number(p.unit_price).toLocaleString()} บ.
+                    {Number(p.quantity || p.qty || 1)} x {Number(p.unit_price || p.price || 0).toLocaleString()} บ.
                   </Text>
                 </View>
                 <Text className="text-xs font-bold text-slate-800">
-                  {Number(p.total_price).toLocaleString()} บ.
+                  {Number(p.total_price || (Number(p.quantity || p.qty || 1) * Number(p.unit_price || p.price || 0))).toLocaleString()} บ.
                 </Text>
               </View>
             ))}
@@ -213,14 +193,14 @@ export default function QuotationInfoCard({
               >
                 <View className="flex-1 pr-2">
                   <Text className="text-xs font-medium text-slate-700" numberOfLines={1}>
-                    {s.item_name}
+                    {s.item_name || s.name || 'ค่าบริการ'}
                   </Text>
                   <Text className="text-[11px] text-slate-400">
-                    {Number(s.quantity)} x {Number(s.unit_price).toLocaleString()} บ.
+                    {Number(s.quantity || s.qty || 1)} x {Number(s.unit_price || s.price || 0).toLocaleString()} บ.
                   </Text>
                 </View>
                 <Text className="text-xs font-bold text-slate-800">
-                  {Number(s.total_price).toLocaleString()} บ.
+                  {Number(s.total_price || (Number(s.quantity || s.qty || 1) * Number(s.unit_price || s.price || 0))).toLocaleString()} บ.
                 </Text>
               </View>
             ))}

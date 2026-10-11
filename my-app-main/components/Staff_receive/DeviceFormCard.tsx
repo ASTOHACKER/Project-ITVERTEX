@@ -8,27 +8,12 @@ import { Dropdown } from 'react-native-element-dropdown';
 
 // 3. API helpers
 import { getLookupBrands, getLookupDeviceTypes, getLookupModels } from '@/lib/api';
+import type { DeviceTypeItem, BrandItem, DeviceModelItem } from '@/types/device';
 
 // 4. Constants & UI
 import { FONTS } from '@/constants/theme';
 import SearchableDropdown from '@/components/ui/SearchableDropdown';
 import CalendarPicker from '@/components/ui/CalendarPicker';
-
-interface DeviceTypeItem {
-  device_type_id: number;
-  device_type_name: string;
-}
-
-interface BrandItem {
-  brand_id: number;
-  brand_name: string;
-}
-
-interface DeviceModelItem {
-  model_id: number;
-  model_name: string;
-  brand_id: number;
-}
 
 interface DeviceFormCardProps {
   deviceTypeId: number | null;
@@ -81,38 +66,57 @@ export default function DeviceFormCard({
   const [brands, setBrands] = useState<BrandItem[]>([]);
   const [models, setModels] = useState<DeviceModelItem[]>([]);
   const [loadingLookup, setLoadingLookup] = useState(false);
+  const [loadingBrands, setLoadingBrands] = useState(false);
   const [loadingModels, setLoadingModels] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
 
   useEffect(() => {
-    fetchLookupData();
+    fetchDeviceTypes();
   }, []);
 
   useEffect(() => {
-    fetchModels();
+    fetchBrands(deviceTypeId);
+  }, [deviceTypeId]);
+
+  useEffect(() => {
+    fetchModels(brandId, deviceTypeId);
   }, [brandId, deviceTypeId]);
 
-  const fetchLookupData = async () => {
+  const fetchDeviceTypes = async () => {
     setLoadingLookup(true);
     try {
-      const [dtRes, bRes] = await Promise.all([
-        getLookupDeviceTypes().catch(() => ({ data: [] })),
-        getLookupBrands().catch(() => ({ data: [] })),
-      ]);
-
+      const dtRes = await getLookupDeviceTypes().catch(() => ({ data: [] }));
       if (dtRes?.data) setDeviceTypes(dtRes.data);
-      if (bRes?.data) setBrands(bRes.data);
     } catch (err) {
-      console.error('Fetch lookup error in DeviceFormCard:', err);
+      console.error('Fetch device types error in DeviceFormCard:', err);
     } finally {
       setLoadingLookup(false);
     }
   };
 
-  const fetchModels = async () => {
+  const fetchBrands = async (dtId: number | null) => {
+    setLoadingBrands(true);
+    try {
+      const bRes = await getLookupBrands(dtId || undefined).catch(() => ({ data: [] }));
+      const newBrands: BrandItem[] = bRes?.data || [];
+      setBrands(newBrands);
+
+      // If current brandId is set and does not exist in newBrands, reset brand and model
+      if (brandId && newBrands.length > 0 && !newBrands.some((b) => b.brand_id === brandId)) {
+        onChangeBrandId(null, '');
+        onChangeModel('');
+      }
+    } catch (err) {
+      console.warn('Fetch brands error:', err);
+    } finally {
+      setLoadingBrands(false);
+    }
+  };
+
+  const fetchModels = async (bId: number | null, dtId: number | null) => {
     try {
       setLoadingModels(true);
-      const res = await getLookupModels(brandId || undefined, deviceTypeId || undefined);
+      const res = await getLookupModels(bId || undefined, dtId || undefined);
       if (res?.data) {
         setModels(res.data);
       }
@@ -136,74 +140,109 @@ export default function DeviceFormCard({
       {/* Header */}
       <View className="bg-orange-50 px-4 py-2.5 flex-row justify-between items-center">
         <Text className="text-sm font-bold text-amber-600">ข้อมูลอุปกรณ์และการรับเครื่อง</Text>
-        {(loadingLookup || loadingModels) && <ActivityIndicator size="small" color="#F59E0B" />}
+        {(loadingLookup || loadingBrands || loadingModels) && <ActivityIndicator size="small" color="#F59E0B" />}
       </View>
 
       <View className="p-4 flex-col gap-3">
-        {/* Device Type Dropdown */}
-        <View className="flex-col gap-1">
-          <Text className="text-xs text-slate-500 font-semibold">ประเภทอุปกรณ์ (Device Type) *</Text>
-          <Dropdown
-            style={styles.dropdown}
-            placeholderStyle={styles.placeholderStyle}
-            selectedTextStyle={styles.selectedTextStyle}
-            inputSearchStyle={styles.inputSearchStyle}
-            containerStyle={styles.dropdownContainer}
-            itemTextStyle={styles.itemTextStyle}
-            data={deviceTypes.map((dt) => ({ label: dt.device_type_name, value: dt.device_type_id }))}
-            search
-            maxHeight={250}
-            labelField="label"
-            valueField="value"
-            placeholder="เลือกประเภทอุปกรณ์..."
-            searchPlaceholder="ค้นหาประเภท..."
-            value={deviceTypeId}
-            onChange={(item) => {
-              onChangeDeviceTypeId(item.value, item.label);
-            }}
-          />
-        </View>
+        {/* Device Type Searchable Dropdown */}
+        <SearchableDropdown
+          label="ประเภทอุปกรณ์ (Device Type)"
+          required
+          placeholder={loadingLookup ? 'กำลังโหลดประเภทอุปกรณ์...' : 'เลือกประเภทอุปกรณ์...'}
+          searchPlaceholder="ค้นหาประเภทอุปกรณ์..."
+          value={deviceTypeId}
+          options={deviceTypes.map((dt) => ({
+            label: dt.device_type_name,
+            value: dt.device_type_id,
+          }))}
+          onSelect={(val, opt) => {
+            const newId = Number(val);
+            onChangeDeviceTypeId(newId, opt?.label || '');
+          }}
+        />
 
-        {/* Brand Dropdown with SearchableDropdown */}
-        <View className="flex-col gap-1">
-          <SearchableDropdown
-            label="ยี่ห้อ (Brand)"
-            required
-            placeholder={loadingLookup ? 'กำลังโหลดยี่ห้อ...' : 'เลือกยี่ห้อ หรือพิมพ์ระบุเอง...'}
-            searchPlaceholder="ค้นหายี่ห้อ หรือพิมพ์ยี่ห้อใหม่..."
-            value={brandId ? brandId : (brandName || null)}
-            options={brands.map((b) => ({ label: b.brand_name, value: b.brand_id }))}
-            onSelect={(val, opt) => {
-              onChangeBrandId(Number(val), opt?.label || '');
-            }}
-            allowCustom={true}
-            onCustomSelect={(customVal) => {
-              const trimmed = customVal.trim();
-              const existing = brands.find(
-                (b) => b.brand_name.toLowerCase() === trimmed.toLowerCase()
+        {/* Brand Dropdown with SearchableDropdown (Filtered by Device Type) */}
+        <SearchableDropdown
+          label="ยี่ห้อ (Brand)"
+          required
+          placeholder={
+            loadingBrands
+              ? 'กำลังโหลดยี่ห้อ...'
+              : deviceTypeId
+                ? 'เลือกยี่ห้อ หรือพิมพ์ระบุเอง...'
+                : 'เลือกยี่ห้อ (แนะนำเลือกประเภทอุปกรณ์ก่อน)...'
+          }
+          searchPlaceholder="ค้นหายี่ห้อ เช่น ASUS, Acer, หรือพิมพ์ 'ประกอบเอง'..."
+          value={brandId ? brandId : (brandName || null)}
+          options={brands.map((b) => {
+            const isCustom = Number(b.brand_id) === 14 || b.brand_name.includes('ประกอบ');
+            return {
+              label: b.brand_name,
+              value: b.brand_id,
+              subtitle: isCustom
+                ? 'คอมประกอบ / DIY / ไม่มีแบรนด์ / สั่งประกอบเอง'
+                : undefined,
+            };
+          })}
+          onSelect={(val, opt) => {
+            onChangeBrandId(Number(val), opt?.label || '');
+          }}
+          allowCustom={true}
+          onCustomSelect={(customVal) => {
+            const trimmed = customVal.trim();
+            const lower = trimmed.toLowerCase();
+            if (
+              lower.includes('ประกอบ') ||
+              lower.includes('diy') ||
+              lower.includes('ไม่มียี่ห้อ') ||
+              lower.includes('custom')
+            ) {
+              const customBrand = brands.find(
+                (b) => Number(b.brand_id) === 14 || b.brand_name.includes('ประกอบ')
               );
-              if (existing) {
-                onChangeBrandId(existing.brand_id, existing.brand_name);
-              } else {
-                onChangeBrandId(null, trimmed);
+              if (customBrand) {
+                onChangeBrandId(customBrand.brand_id, customBrand.brand_name);
+                return;
               }
-            }}
-          />
-        </View>
+            }
+            const existing = brands.find(
+              (b) => b.brand_name.toLowerCase() === lower
+            );
+            if (existing) {
+              onChangeBrandId(existing.brand_id, existing.brand_name);
+            } else {
+              onChangeBrandId(null, trimmed);
+            }
+          }}
+        />
 
-        {/* Model Input with SearchableDropdown */}
-        <View className="flex-col gap-1">
-          <SearchableDropdown
-            label="รุ่น (Model)"
-            placeholder={loadingModels ? 'กำลังโหลดรุ่น...' : 'เลือกรุ่น หรือพิมพ์ระบุเอง...'}
-            searchPlaceholder="ค้นหารุ่น..."
-            value={model}
-            options={models.map((m) => ({ label: m.model_name, value: m.model_name }))}
-            onSelect={(val) => onChangeModel(String(val))}
-            allowCustom={true}
-            onCustomSelect={(val) => onChangeModel(val)}
-          />
-        </View>
+        {/* Model Input with SearchableDropdown (Filtered by Brand & Device Type) */}
+        <SearchableDropdown
+          label={
+            brandId === 14 || (brandName && brandName.includes('ประกอบ'))
+              ? 'รุ่น / สเปกเครื่อง (Model / Spec)'
+              : 'รุ่น (Model)'
+          }
+          placeholder={
+            brandId === 14 || (brandName && brandName.includes('ประกอบ'))
+              ? 'เลือกลักษณะการใช้งาน หรือพิมพ์สเปกเอง (เช่น i5-13400 + RTX 4060)...'
+              : loadingModels
+                ? 'กำลังโหลดรุ่น...'
+                : brandId
+                  ? 'เลือกรุ่น หรือพิมพ์ระบุเอง...'
+                  : 'เลือกรุ่น (แนะนำเลือกยี่ห้อก่อน)...'
+          }
+          searchPlaceholder={
+            brandId === 14 || (brandName && brandName.includes('ประกอบ'))
+              ? 'พิมพ์สเปก เช่น Core i5 / Ryzen 5 / การ์ดจอ หรือเลือกสเปก...'
+              : 'ค้นหารุ่น หรือพิมพ์รุ่นใหม่...'
+          }
+          value={model}
+          options={models.map((m) => ({ label: m.model_name, value: m.model_name }))}
+          onSelect={(val) => onChangeModel(String(val))}
+          allowCustom={true}
+          onCustomSelect={(val) => onChangeModel(val)}
+        />
 
         {/* Serial Number */}
         <View className="flex-col gap-1">

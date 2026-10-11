@@ -3,7 +3,6 @@ const ctrl = require('../controllers/staff.controller');
 const auth = require('../middleware/auth');
 const role = require('../middleware/role');
 
-// Routes สำหรับให้ Manager ดูรายชื่อสมาชิกและแก้ข้อมูลผ่าน staff.controller
 /**
  * @swagger
  * /api/staff:
@@ -14,7 +13,8 @@ const role = require('../middleware/role');
  *     responses:
  *       200: { description: รายชื่อ }
  */
-router.get('/', auth, role('Manager'), ctrl.getAll); //ต้อง role maneger เท่านั้นถึงดูได้ บรรทัด 17 = ดูรายชื่อ
+router.get('/', auth, role('Manager'), ctrl.getAll);
+
 /**
  * @swagger
  * /api/staff/{id}:
@@ -42,4 +42,22 @@ router.get('/', auth, role('Manager'), ctrl.getAll); //ต้อง role maneger
  */
 router.put('/:id', auth, role('Manager'), ctrl.update);
 
+/**
+ * @swagger
+ * /api/staff/{id}:
+ *   delete:
+ *     tags: [Staff]
+ *     summary: ลบข้อมูลพนักงาน (Manager only)
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200: { description: ลบสำเร็จ }
+ */
+router.delete('/:id', auth, role('Manager'), ctrl.remove);
+
 module.exports = router;
+

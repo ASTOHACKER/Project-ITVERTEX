@@ -15,9 +15,10 @@ interface PartTableProps {
   data: any[];
   headerColor?: string;
   onPressDetails?: (item: any) => void;
+  onPressDelete?: (item: any) => void;
 }
 
-export default function PartTable({ title, data, headerColor = '#0F172A', onPressDetails }: PartTableProps) {
+export default function PartTable({ title, data, headerColor = '#0F172A', onPressDetails, onPressDelete }: PartTableProps) {
   return (
     <View className="bg-white mb-6 rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
       {/* Table Header Strip */}
@@ -36,8 +37,8 @@ export default function PartTable({ title, data, headerColor = '#0F172A', onPres
         <Text className="font-bold text-xs text-slate-600 text-right font-heading min-w-[85px]">
           ราคาขาย (บาท)
         </Text>
-        {onPressDetails && (
-          <Text className="font-bold text-xs text-slate-600 text-right w-10 font-heading">
+        {(onPressDetails || onPressDelete) && (
+          <Text className="font-bold text-xs text-slate-600 text-center w-[76px] font-heading">
             จัดการ
           </Text>
         )}
@@ -62,29 +63,28 @@ export default function PartTable({ title, data, headerColor = '#0F172A', onPres
               key={item.item_id || index}
               activeOpacity={0.7}
               onPress={() => onPressDetails?.(item)}
-              className={`flex-row items-center py-3.5 px-4 bg-white ${
-                index === data.length - 1 ? '' : 'border-b border-slate-100'
-              }`}
+              className={`flex-row items-center py-3.5 px-4 bg-white ${index === data.length - 1 ? '' : 'border-b border-slate-100'
+                }`}
             >
               <View className="flex-1 pr-2">
                 <Text className="text-sm font-bold text-slate-800 font-heading leading-5" numberOfLines={2}>
                   {item.item_name}
                 </Text>
-                
+
                 <View className="flex-row items-center gap-1.5 mt-1.5 flex-wrap">
                   {catLabel && (
                     <View className="bg-slate-100 rounded-md px-2 py-0.5 border border-slate-200">
                       <Text className="text-[10px] font-medium text-slate-600 font-body">{catLabel}</Text>
                     </View>
                   )}
-                  {Number(item.used_count) > 0 && (
+                  {/* {Number(item.used_count) > 0 && (
                     <View className="bg-blue-50 rounded-md px-2 py-0.5 border border-blue-200 flex-row items-center gap-1">
                       <Ionicons name="receipt-outline" size={10} color="#2563EB" />
                       <Text className="text-[10px] text-blue-700 font-bold font-heading">
                         ใช้ {item.used_count} ครั้ง
                       </Text>
                     </View>
-                  )}
+                  )} */}
                   {item.item_code && (
                     <Text className="text-[10px] text-slate-400 font-body">
                       {item.item_code}
@@ -97,11 +97,32 @@ export default function PartTable({ title, data, headerColor = '#0F172A', onPres
                 ฿{item.selling_price ? Number(item.selling_price).toLocaleString() : '-'}
               </Text>
 
-              {onPressDetails && (
-                <View className="w-10 items-end justify-center">
-                  <View className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 items-center justify-center">
-                    <Ionicons name="create-outline" size={16} color="#0284C7" />
-                  </View>
+              {(onPressDetails || onPressDelete) && (
+                <View className="w-[76px] flex-row items-center justify-end gap-1.5">
+                  {onPressDetails && (
+                    <TouchableOpacity
+                      activeOpacity={0.7}
+                      onPress={(e) => {
+                        e?.stopPropagation?.();
+                        onPressDetails(item);
+                      }}
+                      className="w-7 h-7 rounded-lg bg-blue-50 border border-blue-200 items-center justify-center active:bg-blue-100"
+                    >
+                      <Ionicons name="create-outline" size={15} color="#0284C7" />
+                    </TouchableOpacity>
+                  )}
+                  {onPressDelete && (
+                    <TouchableOpacity
+                      activeOpacity={0.7}
+                      onPress={(e) => {
+                        e?.stopPropagation?.();
+                        onPressDelete(item);
+                      }}
+                      className="w-7 h-7 rounded-lg bg-red-50 border border-red-200 items-center justify-center active:bg-red-100"
+                    >
+                      <Ionicons name="trash-outline" size={15} color="#DC2626" />
+                    </TouchableOpacity>
+                  )}
                 </View>
               )}
             </TouchableOpacity>

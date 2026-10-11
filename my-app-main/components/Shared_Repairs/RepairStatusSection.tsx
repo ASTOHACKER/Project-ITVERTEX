@@ -23,7 +23,6 @@ interface RepairStatusSectionProps {
   onPressDetails?: (item: RepairItem) => void;
   onPressMakeQuote?: (item: RepairItem) => void;
   onPressVerifyQuote?: (item: RepairItem) => void;
-  onPressSchedule?: (item: RepairItem) => void;
   onPressHandover?: (item: RepairItem) => void;
   onPressPaymentCheck?: (item: RepairItem) => void;
 }
@@ -40,7 +39,6 @@ export default function RepairStatusSection({
   onPressDetails,
   onPressMakeQuote,
   onPressVerifyQuote,
-  onPressSchedule,
   onPressHandover,
   onPressPaymentCheck,
 }: RepairStatusSectionProps) {
@@ -63,7 +61,7 @@ export default function RepairStatusSection({
   const isActive = count > 0 && isExpanded;
 
   // Button visibility driven by statusId only (labels may change, IDs are stable)
-  const isTechnicianQuoting = Boolean(onPressMakeQuote) && (statusId === 1 || statusId === 2);
+  const isTechnicianQuoting = Boolean(onPressMakeQuote) && (statusId === 2);
 
   // 2. พนักงาน: แสดงปุ่มตรวจสอบและส่งต่อใบเสนอราคา ในสถานะ 3
   const isStaffVerifying = Boolean(onPressVerifyQuote) && statusId === 3;
@@ -71,9 +69,9 @@ export default function RepairStatusSection({
   const showQuoteBtn = isTechnicianQuoting || isStaffVerifying;
   const quoteHandler = isTechnicianQuoting ? onPressMakeQuote : onPressVerifyQuote;
 
-  // 3-4. พนักงาน: ส่งมอบ + ตรวจชำระ ในสถานะ 7
-  const showHandoverBtn = Boolean(onPressHandover) && statusId === 7;
-  const showPaymentCheckBtn = Boolean(onPressPaymentCheck) && statusId === 7;
+  // 3-4. พนักงาน: ส่งมอบ (สถานะ 6: รอลูกค้ามารับเครื่อง), ตรวจชำระ (สถานะ 7: รอชำระ), ยกเลิก (สถานะ 9: ตรวจชำระ/ส่งมอบ)
+  const showHandoverBtn = Boolean(onPressHandover) && (statusId === 6 || statusId === 9 || !statusId);
+  const showPaymentCheckBtn = Boolean(onPressPaymentCheck) && (statusId === 7 || statusId === 9 || !statusId);
 
 
   return (
@@ -81,8 +79,8 @@ export default function RepairStatusSection({
       {/* Header Bar — 48px touch target, clearer count */}
       <TouchableOpacity
         className={`flex-row items-center justify-between min-h-[48px] px-4 rounded-2xl border ${count > 0
-            ? 'bg-white border-slate-200 shadow-sm shadow-black/5'
-            : 'bg-slate-100/70 border-slate-200 opacity-60'
+          ? 'bg-white border-slate-200 shadow-sm shadow-black/5'
+          : 'bg-slate-100/70 border-slate-200 opacity-60'
           } mb-2`}
         activeOpacity={count > 0 ? 0.7 : 1}
         onPress={toggleExpand}

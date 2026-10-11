@@ -16,13 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 // 3. API helpers
 import { getItems } from '@/lib/api';
 
-interface ServiceItem {
-  id: string;
-  name: string;
-  price: number;
-  qty: number;
-  item_id?: number;
-}
+import type { ServiceItem } from '@/types/quotation';
 
 interface ServiceFeeCardProps {
   services: ServiceItem[];

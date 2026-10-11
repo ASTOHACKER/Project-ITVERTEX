@@ -16,6 +16,8 @@ interface CategoryChartProps {
   pcPercent?: number;
   laptopPercent?: number;
   printerPercent?: number;
+  deviceType?: string;
+  timeFilter?: string;
 }
 
 export default function CategoryChart({
@@ -28,6 +30,8 @@ export default function CategoryChart({
   pcPercent,
   laptopPercent,
   printerPercent,
+  deviceType,
+  timeFilter,
 }: CategoryChartProps) {
   const { width } = useWindowDimensions();
   const isWide = width >= 640;
@@ -136,7 +140,7 @@ export default function CategoryChart({
               สัดส่วนอุปกรณ์ตามประเภท
             </Text>
             <Text className="text-[11px] text-slate-400 font-body">
-              จำแนกตามชนิดของอุปกรณ์ที่ส่งซ่อม
+              จำแนกตามชนิดอุปกรณ์ • ซิงค์ตามตัวกรอง{deviceType && deviceType !== 'all' ? ` (${deviceType === 'pc' ? 'คอมพิวเตอร์' : deviceType === 'laptop' ? 'โน๊ตบุ๊ค' : 'ปริ้นเตอร์'})` : ''}
             </Text>
           </View>
         </View>

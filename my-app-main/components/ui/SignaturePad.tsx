@@ -28,9 +28,6 @@ export default function SignaturePad({
   onChangeHasSignature,
   onClear,
 }: SignaturePadProps) {
-  const [hasSignature, setHasSignature] = useState(false);
-  const containerRef = useRef<any>(null);
-
   // -------------------------------------------------------------
   // Web Implementation using HTML5 Canvas for ultra-smooth 60fps
   // -------------------------------------------------------------

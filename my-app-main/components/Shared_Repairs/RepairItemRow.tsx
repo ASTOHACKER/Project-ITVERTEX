@@ -46,25 +46,37 @@ export default function RepairItemRow({
     item.symptom_details ||
     'ไม่ระบุอาการเสีย';
 
-  // Device icon helper
-  const getDeviceIcon = () => {
-    const type = (item.device_type || '').toLowerCase();
-    if (type.includes('printer') || type.includes('พิมพ์')) {
-      return 'print-outline';
-    }
-    if (type.includes('pc') || type.includes('desktop') || type.includes('คอม')) {
-      return 'desktop-outline';
-    }
-    return 'laptop-outline';
-  };
+  const isCancelledItem =
+    statusId === 9 ||
+    item.status_id === 9 ||
+    String(item.status || '').includes('ยกเลิก') ||
+    Boolean(item.is_cancelled) ||
+    Number(item.quote_status_id) === 3;
 
-  // Badge text needs dark tone on light tints (lime/yellow) for contrast
+  const effectiveStatusId = Number(statusId || item.status_id);
+  // Badge text needs legible tone for contrast on light tints
   const badgeTextColor =
-    statusId === 1 ? '#4D5E00' : statusId === 3 ? '#92400E' : statusId === 7 ? '#854D0E' : statusColor;
+    isCancelledItem
+      ? '#B91C1C'
+      : effectiveStatusId === 1
+      ? '#0369A1'
+      : effectiveStatusId === 2
+      ? '#1D4ED8'
+      : effectiveStatusId === 3
+      ? '#3730A3'
+      : effectiveStatusId === 4
+      ? '#C2410C'
+      : effectiveStatusId === 6
+      ? '#854D0E'
+      : effectiveStatusId === 7
+      ? '#B45309'
+      : effectiveStatusId === 8
+      ? '#15803D'
+      : statusColor;
 
   return (
     <TouchableOpacity
-      activeOpacity={0.85}
+      activeOpacity={0.7}
       onPress={() => onPressDetails?.(item)}
       accessibilityRole="button"
       accessibilityLabel={`งาน ${item.job_no} ${item.status ?? ''}`}
@@ -73,9 +85,6 @@ export default function RepairItemRow({
       {/* Top Header: Job ID & Status Badge */}
       <View className="flex-row items-center justify-between pb-2.5 border-b border-slate-100 mb-2.5">
         <View className="flex-row items-center gap-1.5">
-          {/* <View className="w-6 h-6 rounded-lg bg-red-50 border border-red-100 items-center justify-center">
-            <Ionicons name="build" size={12} color="#DC2626" />
-          </View> */}
           <Text className="text-[15px] font-bold text-slate-900 tracking-wide">
             {item.job_no}
           </Text>
@@ -85,17 +94,17 @@ export default function RepairItemRow({
         {item.status && (
           <View
             className="px-3 py-1.5 rounded-full flex-row items-center gap-1.5 border"
-            style={{ backgroundColor: `${statusColor}14`, borderColor: `${statusColor}30` }}
+            style={{ backgroundColor: isCancelledItem ? '#FEE2E2' : `${statusColor}14`, borderColor: isCancelledItem ? '#FCA5A5' : `${statusColor}30` }}
           >
             <View
               className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: statusColor }}
+              style={{ backgroundColor: isCancelledItem ? '#DC2626' : statusColor }}
             />
             <Text
               className="text-[13px] font-bold"
               style={{ color: badgeTextColor }}
             >
-              {item.status}
+              {isCancelledItem ? 'ยกเลิกซ่อม' : item.status}
             </Text>
           </View>
         )}
@@ -103,7 +112,6 @@ export default function RepairItemRow({
 
       {/* Main Info: Device Title */}
       <View className="flex-row items-center gap-2 mb-2">
-        {/* <Ionicons name={getDeviceIcon() as any} size={18} color="#0284C7" /> */}
         <Text
           className="text-[16px] font-bold text-slate-900 flex-1 leading-6"
           numberOfLines={1}
@@ -115,13 +123,11 @@ export default function RepairItemRow({
       {/* Customer Name & Phone in one clean line */}
       <View className="flex-row items-center gap-3 mb-2.5 px-0.5">
         <View className="flex-row items-center gap-1.5 flex-1">
-          {/* <Ionicons name="person-outline" size={14} color="#475569" /> */}
           <Text
-            className={`text-[13px] ${
-              item.customer_name && item.customer_name !== 'ไม่ระบุชื่อ'
+            className={`text-[13px] ${item.customer_name && item.customer_name !== 'ไม่ระบุชื่อ'
                 ? 'font-medium text-slate-700'
                 : 'text-slate-400 italic'
-            }`}
+              }`}
             numberOfLines={1}
           >
             {item.customer_name && item.customer_name !== 'ไม่ระบุชื่อ'
@@ -143,7 +149,6 @@ export default function RepairItemRow({
       {/* Symptom Bubble (Easy to read at a glance) */}
       <View className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2.5 mb-3">
         <View className="flex-row items-start gap-2">
-          {/* <Ionicons name="alert-circle-outline" size={15} color="#92400E" style={{ marginTop: 2 }} /> */}
           <Text
             className="text-[13px] text-slate-700 flex-1 leading-5"
             numberOfLines={2}
@@ -160,8 +165,10 @@ export default function RepairItemRow({
         <View className="flex-col">
           {(item.total_amount && Number(item.total_amount) > 0) || (item.price && Number(item.price) > 0) ? (
             <View className="flex-row items-baseline gap-1">
-              <Text className="text-[13px] text-slate-500">ยอดค่าซ่อม:</Text>
-              <Text className="text-[17px] font-bold text-[#DC2626]">
+              <Text className={`text-[13px] ${isCancelledItem ? 'text-amber-800 font-bold' : 'text-slate-500'}`}>
+                {isCancelledItem ? 'ค่าตรวจเช็ค:' : 'ยอดค่าซ่อม:'}
+              </Text>
+              <Text className={`text-[17px] font-bold ${isCancelledItem ? 'text-amber-700' : 'text-[#DC2626]'}`}>
                 ฿{Number(item.total_amount || item.price).toLocaleString()}
               </Text>
             </View>
@@ -212,7 +219,6 @@ export default function RepairItemRow({
               accessibilityLabel={`ทำใบเสนอราคา ${item.job_no}`}
               className="flex-row items-center gap-1.5 bg-sky-600 min-h-[44px] px-4 rounded-xl shadow-sm"
             >
-              {/* <Ionicons name="receipt-outline" size={15} color="#FFFFFF" /> */}
               <Text className="text-sm font-bold text-white">ใบเสนอราคา</Text>
             </TouchableOpacity>
           )}

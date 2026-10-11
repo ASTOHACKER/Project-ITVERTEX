@@ -10,9 +10,10 @@ interface StaffTableProps {
   data: any[];
   headerColor?: string;
   onPressDetails?: (item: any) => void;
+  onPressDelete?: (item: any) => void;
 }
 
-export default function StaffTable({ title, data, headerColor = '#0F172A', onPressDetails }: StaffTableProps) {
+export default function StaffTable({ title, data, headerColor = '#0F172A', onPressDetails, onPressDelete }: StaffTableProps) {
   const getRoleColors = (role: string) => {
     switch (role) {
       case 'ช่าง':
@@ -43,8 +44,8 @@ export default function StaffTable({ title, data, headerColor = '#0F172A', onPre
         <Text className="font-bold text-xs text-slate-600 text-right font-heading" style={{ flex: 1.2 }}>
           ตำแหน่ง
         </Text>
-        {onPressDetails && (
-          <Text className="font-bold text-xs text-slate-600 text-right w-[50px] font-heading">
+        {(onPressDetails || onPressDelete) && (
+          <Text className="font-bold text-xs text-slate-600 text-center w-[76px] font-heading">
             จัดการ
           </Text>
         )}
@@ -96,11 +97,32 @@ export default function StaffTable({ title, data, headerColor = '#0F172A', onPre
                 </View>
               </View>
 
-              {onPressDetails && (
-                <View className="w-[50px] items-end justify-center">
-                  <View className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 items-center justify-center">
-                    <Ionicons name="create-outline" size={16} color="#0284C7" />
-                  </View>
+              {(onPressDetails || onPressDelete) && (
+                <View className="w-[76px] flex-row items-center justify-end gap-1.5">
+                  {onPressDetails && (
+                    <TouchableOpacity
+                      activeOpacity={0.7}
+                      onPress={(e) => {
+                        e?.stopPropagation?.();
+                        onPressDetails(item);
+                      }}
+                      className="w-7 h-7 rounded-lg bg-blue-50 border border-blue-200 items-center justify-center active:bg-blue-100"
+                    >
+                      <Ionicons name="create-outline" size={15} color="#0284C7" />
+                    </TouchableOpacity>
+                  )}
+                  {onPressDelete && (
+                    <TouchableOpacity
+                      activeOpacity={0.7}
+                      onPress={(e) => {
+                        e?.stopPropagation?.();
+                        onPressDelete(item);
+                      }}
+                      className="w-7 h-7 rounded-lg bg-red-50 border border-red-200 items-center justify-center active:bg-red-100"
+                    >
+                      <Ionicons name="trash-outline" size={15} color="#DC2626" />
+                    </TouchableOpacity>
+                  )}
                 </View>
               )}
             </TouchableOpacity>

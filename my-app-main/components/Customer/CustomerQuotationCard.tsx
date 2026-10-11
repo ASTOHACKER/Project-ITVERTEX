@@ -2,7 +2,9 @@
 import { useState } from 'react';
 import {
   ActivityIndicator,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Text,
   TextInput,
   TouchableOpacity,
@@ -11,17 +13,10 @@ import {
 
 // 2. Third-party / Expo
 import { Ionicons } from '@expo/vector-icons';
+import { CANCEL_INSPECTION_FEE } from '@/constants/status';
+import type { QuotationLineItem } from '@/types/quotation';
 
-export interface QuotationItem {
-  name?: string;
-  item_name?: string;
-  item_type_id?: number;
-  description?: string;
-  price?: number;
-  unit_price?: number;
-  quantity?: number;
-  amount?: number;
-}
+export type QuotationItem = QuotationLineItem;
 
 interface CustomerQuotationCardProps {
   items?: QuotationItem[];
@@ -34,6 +29,7 @@ interface CustomerQuotationCardProps {
   statusId?: number;
   quotationId?: number | null;
   quoteStatusId?: number;
+  isCancelled?: boolean;
   customerRemark?: string | null;
   totalRepairPrice?: number;
   totalCancelPrice?: number;
@@ -54,9 +50,10 @@ export default function CustomerQuotationCard({
   statusId,
   quotationId,
   quoteStatusId,
+  isCancelled: propIsCancelled,
   customerRemark,
   totalRepairPrice,
-  totalCancelPrice = 300,
+  totalCancelPrice = CANCEL_INSPECTION_FEE,
   onApprove,
   onCancel,
   onRequestModification,
@@ -67,25 +64,34 @@ export default function CustomerQuotationCard({
   const [submittingRemark, setSubmittingRemark] = useState(false);
 
   // Status flags
-  const isApproved =
-    status === 'อนุมัติแล้ว/รอซ่อม' ||
-    status === 'รอชำระ' ||
-    status === 'เสร็จสิ้น' ||
-    statusId === 5 ||
-    statusId === 6 ||
-    quoteStatusId === 2;
-
+  // 1. ตรวจสอบการยกเลิกก่อนเป็นอันดับแรก (Priority สูงสุด)
   const isCancelled =
+    Boolean(propIsCancelled) ||
+    quoteStatusId === 3 ||
+    statusId === 9 ||
     status === 'ยกเลิกซ่อม' ||
     status === 'ยกเลิก' ||
-    statusId === 9 ||
-    quoteStatusId === 3;
+    Boolean(status?.includes('ยกเลิก'));
+
+  // 2. ตรวจสอบการอนุมัติ (ต้องไม่ใช่รายการที่ยกเลิก)
+  const isApproved =
+    !isCancelled &&
+    (quoteStatusId === 2 ||
+      statusId === 5 ||
+      (statusId === 6 && quoteStatusId !== 3) ||
+      (statusId === 7 && quoteStatusId !== 3) ||
+      (statusId === 8 && quoteStatusId !== 3) ||
+      status === 'อนุมัติแล้ว/รอซ่อม' ||
+      (status === 'รอชำระ' && quoteStatusId !== 3) ||
+      (status === 'เสร็จสิ้น' && quoteStatusId !== 3));
 
   const isModificationRequested =
+    !isCancelled &&
+    !isApproved &&
     Boolean(customerRemark) &&
     (quoteStatusId === 5 || quoteStatusId === 4 || statusId === 3 || status?.includes('เสนอราคา'));
 
-  const isPending = !isApproved && !isCancelled;
+  const isPending = !isApproved && !isCancelled && !isModificationRequested;
 
   // Separate parts (item_type_id = 1) and services (item_type_id = 2)
   const isPartItem = (i: QuotationItem) => {
@@ -126,16 +132,16 @@ export default function CustomerQuotationCard({
   const partsSum = propTotalParts !== undefined
     ? propTotalParts
     : partsList.reduce(
-        (sum, item) => sum + Number(item.price || item.unit_price || 0) * Number(item.quantity || 1),
-        0
-      );
+      (sum, item) => sum + Number(item.price || item.unit_price || 0) * Number(item.quantity || 1),
+      0
+    );
 
   const laborsSum = propTotalServices !== undefined
     ? propTotalServices
     : laborsList.reduce(
-        (sum, item) => sum + Number(item.price || item.unit_price || 0) * Number(item.quantity || 1),
-        0
-      );
+      (sum, item) => sum + Number(item.price || item.unit_price || 0) * Number(item.quantity || 1),
+      0
+    );
 
   const calculatedItemsTotal = items.reduce(
     (sum, item) => sum + Number(item.price || item.unit_price || 0) * Number(item.quantity || 1),
@@ -161,13 +167,17 @@ export default function CustomerQuotationCard({
 
   return (
     <View className="mb-4">
-      <View className="bg-white rounded-2xl border border-red-500 overflow-hidden shadow-sm">
+      <View className={`bg-white rounded-2xl overflow-hidden shadow-sm border ${
+        isCancelled ? 'border-red-300' : isApproved ? 'border-emerald-300' : isModificationRequested ? 'border-amber-300' : 'border-purple-300'
+      }`}>
         {/* Header Bar */}
-        <View className="bg-[#D32F2F] px-4 py-3 flex-row items-center justify-between">
+        <View className={`px-4 py-3 flex-row items-center justify-between ${
+          isCancelled ? 'bg-red-600' : isApproved ? 'bg-emerald-600' : isModificationRequested ? 'bg-amber-600' : 'bg-purple-600'
+        }`}>
           <View className="flex-row items-center">
             <View className="w-2.5 h-2.5 rounded-full bg-white mr-2" />
             <Text className="text-white font-bold text-sm font-heading">
-              ใบเสนอราคา — {isApproved ? 'อนุมัติแล้ว' : isCancelled ? 'ยกเลิกแล้ว' : isModificationRequested ? 'อยู่ระหว่างปรับปรุงตามคำขอ' : 'รอการอนุมัติ'}
+              ใบเสนอราคา — {isCancelled ? 'ยกเลิกการซ่อม' : isApproved ? 'อนุมัติแล้ว' : isModificationRequested ? 'อยู่ระหว่างปรับปรุงตามคำขอ' : 'รอการอนุมัติ'}
             </Text>
           </View>
         </View>
@@ -296,14 +306,19 @@ export default function CustomerQuotationCard({
             </View>
           )}
 
-          {/* ยอดรวมค่าซ่อม */}
+          {/* ยอดรวมค่าซ่อม หรือ ค่าตรวจเช็คกรณีขอยกเลิก */}
           <View className="mt-2 mb-3">
             <Text className="text-slate-400 text-xs font-body mb-1">
-              ยอดรวมค่าซ่อม
+              {isCancelled ? 'ยอดที่ต้องชำระ (ค่าตรวจเช็คเครื่อง)' : 'ยอดรวมค่าซ่อม'}
             </Text>
-            <Text className="text-red-600 text-3xl font-extrabold font-heading">
-              {repairTotal.toLocaleString()} บาท
+            <Text className={`text-3xl font-extrabold font-heading ${isCancelled ? 'text-amber-700' : 'text-red-600'}`}>
+              {(isCancelled ? totalCancelPrice : repairTotal).toLocaleString()} บาท
             </Text>
+            {isCancelled && repairTotal > 0 && (
+              <Text className="text-slate-400 text-xs line-through mt-0.5 font-body">
+                (ยอดประเมินค่าซ่อมเดิม: {repairTotal.toLocaleString()} บาท)
+              </Text>
+            )}
           </View>
 
           {/* หมายเหตุค่าตรวจเช็คกรณียกเลิกซ่อม */}
@@ -329,9 +344,8 @@ export default function CustomerQuotationCard({
                 </View>
               ) : (
                 <TouchableOpacity
-                  className={`w-full h-[52px] px-6 rounded-xl items-center justify-center shadow-md shadow-emerald-700/25 ${
-                    isProcessing ? 'bg-emerald-400 opacity-60' : 'bg-emerald-600 active:bg-emerald-700'
-                  }`}
+                  className={`w-full h-[52px] px-6 rounded-xl items-center justify-center shadow-md shadow-emerald-700/25 ${isProcessing ? 'bg-emerald-400 opacity-60' : 'bg-emerald-600 active:bg-emerald-700'
+                    }`}
                   activeOpacity={0.85}
                   onPress={onApprove}
                   disabled={isProcessing}
@@ -354,9 +368,8 @@ export default function CustomerQuotationCard({
                 {/* ปุ่มขอแก้ไข / เพิ่มเติมรายการ */}
                 {onRequestModification && (
                   <TouchableOpacity
-                    className={`flex-1 border min-h-[46px] py-2.5 px-3 rounded-xl items-center justify-center flex-row gap-1.5 ${
-                      isProcessing ? 'bg-amber-50/50 border-amber-200 opacity-60' : 'bg-amber-50 border-amber-300 active:bg-amber-100'
-                    }`}
+                    className={`flex-1 border min-h-[46px] py-2.5 px-3 rounded-xl items-center justify-center flex-row gap-1.5 ${isProcessing ? 'bg-amber-50/50 border-amber-200 opacity-60' : 'bg-amber-50 border-amber-300 active:bg-amber-100'
+                      }`}
                     activeOpacity={0.8}
                     onPress={() => setShowModal(true)}
                     disabled={isProcessing}
@@ -370,9 +383,8 @@ export default function CustomerQuotationCard({
 
                 {/* ปุ่มไม่ซ่อม / ขอยกเลิก */}
                 <TouchableOpacity
-                  className={`flex-1 border min-h-[46px] py-2.5 px-3 rounded-xl items-center justify-center flex-row gap-1.5 ${
-                    isProcessing ? 'bg-slate-50/50 border-slate-200 opacity-60' : 'bg-slate-50 border-slate-200 active:bg-red-50'
-                  }`}
+                  className={`flex-1 border min-h-[46px] py-2.5 px-3 rounded-xl items-center justify-center flex-row gap-1.5 ${isProcessing ? 'bg-slate-50/50 border-slate-200 opacity-60' : 'bg-slate-50 border-slate-200 active:bg-red-50'
+                    }`}
                   activeOpacity={0.8}
                   onPress={onCancel}
                   disabled={isProcessing}
@@ -415,7 +427,10 @@ export default function CustomerQuotationCard({
 
       {/* Modification Request Modal */}
       <Modal visible={showModal} transparent animationType="fade">
-        <View className="flex-1 bg-slate-900/60 justify-center items-center p-4">
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          className="flex-1 bg-slate-900/60 justify-center items-center p-4"
+        >
           <View className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
             <Text className="text-lg font-bold text-slate-800 mb-1 font-heading">
               ขอแก้ไข / เพิ่มเติมรายการ
@@ -446,9 +461,8 @@ export default function CustomerQuotationCard({
                 <Text className="text-slate-600 font-bold font-heading">ปิด</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                className={`flex-1 py-3 rounded-xl items-center justify-center ${
-                  !remark.trim() ? 'bg-amber-300' : 'bg-amber-500'
-                }`}
+                className={`flex-1 py-3 rounded-xl items-center justify-center ${!remark.trim() ? 'bg-amber-300' : 'bg-amber-500'
+                  }`}
                 onPress={handleSendModification}
                 disabled={submittingRemark || !remark.trim()}
               >
@@ -460,7 +474,7 @@ export default function CustomerQuotationCard({
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );

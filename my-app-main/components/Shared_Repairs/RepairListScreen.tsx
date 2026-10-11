@@ -38,7 +38,6 @@ interface RepairListScreenProps {
   onPressDetails?: (item: RepairItem) => void;
   onPressMakeQuote?: (item: RepairItem) => void;
   onPressVerifyQuote?: (item: RepairItem) => void;
-  onPressSchedule?: (item: RepairItem) => void;
   onPressHandover?: (item: RepairItem) => void;
   onPressPaymentCheck?: (item: RepairItem) => void;
   onOpenFullDocument?: (item: RepairItem) => void;
@@ -52,7 +51,6 @@ export default function RepairListScreen({
   onPressDetails: customOnPressDetails,
   onPressMakeQuote,
   onPressVerifyQuote,
-  onPressSchedule,
   onPressHandover,
   onPressPaymentCheck,
   onOpenFullDocument,
@@ -182,11 +180,10 @@ export default function RepairListScreen({
             activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel={filterDate ? 'เปลี่ยนวันที่กรอง' : 'เลือกวันที่กรอง'}
-            className={`min-h-[48px] px-3.5 rounded-2xl border flex-row items-center justify-center gap-1.5 ${
-              filterDate
-                ? 'bg-red-50 border-[#DC2626]'
-                : 'bg-white border-slate-200'
-            }`}
+            className={`min-h-[48px] px-3.5 rounded-2xl border flex-row items-center justify-center gap-1.5 ${filterDate
+              ? 'bg-red-50 border-[#DC2626]'
+              : 'bg-white border-slate-200'
+              }`}
           >
             <Ionicons
               name="calendar-outline"
@@ -194,12 +191,11 @@ export default function RepairListScreen({
               color={filterDate ? '#DC2626' : '#64748B'}
             />
             <Text
-              className={`text-[13px] font-bold ${
-                filterDate ? 'text-red-700' : 'text-slate-600'
-              }`}
+              className={`text-[13px] font-bold ${filterDate ? 'text-red-700' : 'text-slate-600'
+                }`}
             >
               {filterDate
-                ? `${filterDate.getDate()} ${['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'][filterDate.getMonth()]}`
+                ? `${filterDate.getDate()} ${['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'][filterDate.getMonth()]}`
                 : 'วันที่'}
             </Text>
             {filterDate && (
@@ -247,28 +243,24 @@ export default function RepairListScreen({
               activeOpacity={0.7}
               accessibilityRole="button"
               accessibilityLabel={`งานทั้งหมด ${totalJobsCount} รายการ`}
-              className={`flex-row items-center gap-1.5 px-4 min-h-[44px] rounded-2xl border ${
-                selectedStatusTab === 'all'
-                  ? 'bg-slate-900 border-slate-900 shadow-sm'
-                  : 'bg-white border-slate-200'
-              }`}
+              className={`flex-row items-center gap-1.5 px-4 min-h-[44px] rounded-2xl border ${selectedStatusTab === 'all'
+                ? 'bg-slate-900 border-slate-900 shadow-sm'
+                : 'bg-white border-slate-200'
+                }`}
             >
               <Text
-                className={`text-[13px] font-bold ${
-                  selectedStatusTab === 'all' ? 'text-white' : 'text-slate-700'
-                }`}
+                className={`text-[13px] font-bold ${selectedStatusTab === 'all' ? 'text-white' : 'text-slate-700'
+                  }`}
               >
                 ทั้งหมด
               </Text>
               <View
-                className={`px-2 py-0.5 rounded-full ${
-                  selectedStatusTab === 'all' ? 'bg-slate-700' : 'bg-slate-100'
-                }`}
+                className={`px-2 py-0.5 rounded-full ${selectedStatusTab === 'all' ? 'bg-slate-700' : 'bg-slate-100'
+                  }`}
               >
                 <Text
-                  className={`text-[11px] font-bold ${
-                    selectedStatusTab === 'all' ? 'text-white' : 'text-slate-600'
-                  }`}
+                  className={`text-[11px] font-bold ${selectedStatusTab === 'all' ? 'text-white' : 'text-slate-600'
+                    }`}
                 >
                   {totalJobsCount}
                 </Text>
@@ -279,68 +271,64 @@ export default function RepairListScreen({
             {filteredGroups
               .filter((group) => (hideEmptyStatuses ? group.items.length > 0 : true))
               .map((group) => {
-              const isSelected = selectedStatusTab === group.statusId;
-              const hasItems = group.items.length > 0;
+                const isSelected = selectedStatusTab === group.statusId;
+                const hasItems = group.items.length > 0;
 
-              return (
-                <TouchableOpacity
-                  key={group.id}
-                  onPress={() => setSelectedStatusTab(group.statusId)}
-                  activeOpacity={0.7}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${group.title} ${group.items.length} รายการ`}
-                  className={`flex-row items-center gap-1.5 px-3.5 min-h-[44px] rounded-2xl border ${
-                    isSelected
+                return (
+                  <TouchableOpacity
+                    key={group.id}
+                    onPress={() => setSelectedStatusTab(group.statusId)}
+                    activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${group.title} ${group.items.length} รายการ`}
+                    className={`flex-row items-center gap-1.5 px-3.5 min-h-[44px] rounded-2xl border ${isSelected
                       ? 'border-transparent shadow-sm'
                       : hasItems
-                      ? 'bg-white border-slate-200'
-                      : 'bg-slate-50 border-slate-200 opacity-60'
-                  }`}
-                  style={
-                    isSelected
-                      ? { backgroundColor: group.color }
-                      : undefined
-                  }
-                >
-                  <View
-                    className="w-2.5 h-2.5 rounded-full"
-                    style={{ backgroundColor: isSelected ? '#FFFFFF' : group.color }}
-                  />
-                  <Text
-                    className={`text-[13px] font-bold ${
+                        ? 'bg-white border-slate-200'
+                        : 'bg-slate-50 border-slate-200 opacity-60'
+                      }`}
+                    style={
                       isSelected
+                        ? { backgroundColor: group.color }
+                        : undefined
+                    }
+                  >
+                    <View
+                      className="w-2.5 h-2.5 rounded-full"
+                      style={{ backgroundColor: isSelected ? '#FFFFFF' : group.color }}
+                    />
+                    <Text
+                      className={`text-[13px] font-bold ${isSelected
                         ? 'text-white'
                         : hasItems
-                        ? 'text-slate-700'
-                        : 'text-slate-400'
-                    }`}
-                  >
-                    {group.title}
-                  </Text>
-                  <View
-                    className={`px-2 py-0.5 rounded-full ${
-                      isSelected
-                        ? 'bg-black/20'
-                        : hasItems
-                        ? 'bg-slate-100'
-                        : 'bg-slate-200/50'
-                    }`}
-                  >
-                    <Text
-                      className={`text-[11px] font-bold ${
-                        isSelected
-                          ? 'text-white'
-                          : hasItems
                           ? 'text-slate-700'
                           : 'text-slate-400'
-                      }`}
+                        }`}
                     >
-                      {group.items.length}
+                      {group.title}
                     </Text>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
+                    <View
+                      className={`px-2 py-0.5 rounded-full ${isSelected
+                        ? 'bg-black/20'
+                        : hasItems
+                          ? 'bg-slate-100'
+                          : 'bg-slate-200/50'
+                        }`}
+                    >
+                      <Text
+                        className={`text-[11px] font-bold ${isSelected
+                          ? 'text-white'
+                          : hasItems
+                            ? 'text-slate-700'
+                            : 'text-slate-400'
+                          }`}
+                      >
+                        {group.items.length}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
           </ScrollView>
         </View>
 
@@ -388,9 +376,8 @@ export default function RepairListScreen({
                   key={option.key}
                   onPress={() => setSortMode(option.key)}
                   activeOpacity={0.7}
-                  className={`min-h-[40px] justify-center rounded-xl border px-3 ${
-                    isSelected ? 'border-slate-900 bg-slate-900' : 'border-slate-200 bg-white'
-                  }`}
+                  className={`min-h-[40px] justify-center rounded-xl border px-3 ${isSelected ? 'border-slate-900 bg-slate-900' : 'border-slate-200 bg-white'
+                    }`}
                   accessibilityRole="button"
                   accessibilityLabel={`เรียงงาน ${option.label}`}
                 >
@@ -452,7 +439,6 @@ export default function RepairListScreen({
                 onPressDetails={handlePressDetails}
                 onPressMakeQuote={onPressMakeQuote}
                 onPressVerifyQuote={onPressVerifyQuote}
-                onPressSchedule={onPressSchedule}
                 onPressHandover={onPressHandover}
                 onPressPaymentCheck={onPressPaymentCheck}
               />
@@ -503,10 +489,10 @@ export default function RepairListScreen({
         onOpenFullDocument={
           onOpenFullDocument
             ? () => {
-                if (selectedItem && onOpenFullDocument) {
-                  onOpenFullDocument(selectedItem);
-                }
+              if (selectedItem && onOpenFullDocument) {
+                onOpenFullDocument(selectedItem);
               }
+            }
             : undefined
         }
       />

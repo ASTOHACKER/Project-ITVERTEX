@@ -7,15 +7,15 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  Alert,
   Platform,
 } from 'react-native';
 
 // 2. Third-party / Expo
 import { Ionicons } from '@expo/vector-icons';
+import CustomAlert from '@/components/ui/CustomAlert';
 
 // 3. API helpers
-import { lookupProfiles, lookupProfilesAdvanced, api } from '@/lib/api';
+import { lookupProfiles, lookupProfilesAdvanced, registerCustomer } from '@/lib/api';
 
 type AdvFilterId = 'name' | 'phone' | 'email';
 
@@ -80,6 +80,28 @@ export default function CustomerFormCard({
   const [regPhone, setRegPhone] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
+
+  // Alert State
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    type: 'success' | 'warning' | 'danger' | 'info';
+  }>({
+    visible: false,
+    title: '',
+    message: '',
+    type: 'info',
+  });
+
+  const showAlert = (title: string, message: string, type: 'success' | 'warning' | 'danger' | 'info' = 'danger') => {
+    setAlertConfig({
+      visible: true,
+      title,
+      message,
+      type,
+    });
+  };
 
   // Single unified search (name / phone / email) with 300ms Debounce, min 1 char
   const searchProfiles = (query: string, filterOverride?: 'all' | 'name' | 'phone' | 'email') => {
@@ -260,11 +282,7 @@ export default function CustomerFormCard({
 
   const handleConfirmQuickRegister = async () => {
     if (!regFirstName.trim() || !regPhone.trim()) {
-      if (Platform.OS === 'web') {
-        window.alert('กรุณากรอกชื่อและเบอร์โทรศัพท์ของลูกค้า');
-      } else {
-        Alert.alert('ข้อมูลไม่ครบ', 'กรุณากรอกชื่อและเบอร์โทรศัพท์ของลูกค้า');
-      }
+      showAlert('ข้อมูลไม่ครบ', 'กรุณากรอกชื่อและเบอร์โทรศัพท์ของลูกค้า', 'warning');
       return;
     }
 
@@ -272,7 +290,7 @@ export default function CustomerFormCard({
     try {
       const cleanPhone = regPhone.replace(/[^0-9]/g, '').slice(0, 10);
       const cleanEmail = regEmail.trim() || `cus_${cleanPhone || Date.now()}@itvertex.local`;
-      const res = await api.post('/auth/register', {
+      const res = await registerCustomer({
         first_name: regFirstName.trim(),
         last_name: regLastName.trim() || '-',
         phone: cleanPhone,
@@ -305,22 +323,14 @@ export default function CustomerFormCard({
         setSuggestions([]);
         setShowSuggestions(false);
         setHasSearched(false);
-        if (Platform.OS === 'web') {
-          window.alert('ลงทะเบียนลูกค้าใหม่เรียบร้อยแล้ว');
-        } else {
-          Alert.alert('สำเร็จ', 'ลงทะเบียนลูกค้าใหม่เรียบร้อยแล้ว');
-        }
+        showAlert('สำเร็จ', 'ลงทะเบียนลูกค้าใหม่เรียบร้อยแล้ว', 'success');
       } else {
         throw new Error(res.message || 'ไม่สามารถลงทะเบียนได้');
       }
     } catch (err: any) {
       console.error('Quick register error:', err);
       const msg = err?.message || 'เกิดข้อผิดพลาดในการลงทะเบียนลูกค้า';
-      if (Platform.OS === 'web') {
-        window.alert(msg);
-      } else {
-        Alert.alert('เกิดข้อผิดพลาด', msg);
-      }
+      showAlert('เกิดข้อผิดพลาด', msg, 'danger');
     } finally {
       setIsRegistering(false);
     }
@@ -342,14 +352,8 @@ export default function CustomerFormCard({
               <Text className="text-[11px] font-bold text-emerald-800 ml-1 font-heading">เลือกลูกค้าแล้ว</Text>
             </View>
           ) : (
-            <TouchableOpacity
-              onPress={openQuickRegister}
-              activeOpacity={0.8}
-              className="flex-row items-center bg-blue-600 px-2.5 py-1 rounded-full shadow-sm"
-            >
-              <Ionicons name="person-add-outline" size={12} color="#FFFFFF" />
-              <Text className="text-[11px] font-bold text-white ml-1 font-heading">+ ลูกค้าใหม่</Text>
-            </TouchableOpacity>
+            <View className="flex-row items-center bg-emerald-100 px-2.5 py-1 rounded-full">
+            </View>
           )}
         </View>
       </View>
@@ -397,11 +401,10 @@ export default function CustomerFormCard({
                 onPress={() => setShowFilter((v) => !v)}
                 activeOpacity={0.7}
                 accessibilityLabel="กรองการค้นหา"
-                className={`w-[48px] min-h-[48px] rounded-xl justify-center items-center relative border ${
-                  activeFilterCount > 0 || showFilter
-                    ? 'bg-blue-50 border-blue-600'
-                    : 'bg-white border-slate-200'
-                }`}
+                className={`w-[48px] min-h-[48px] rounded-xl justify-center items-center relative border ${activeFilterCount > 0 || showFilter
+                  ? 'bg-blue-50 border-blue-600'
+                  : 'bg-white border-slate-200'
+                  }`}
               >
                 <Ionicons
                   name="filter"
@@ -434,9 +437,8 @@ export default function CustomerFormCard({
                         key={f.id}
                         onPress={() => handleFilterChange(f.id)}
                         activeOpacity={0.7}
-                        className={`px-3.5 py-1.5 rounded-full border ${
-                          isActive ? 'bg-blue-600 border-blue-600' : 'bg-white border-slate-200'
-                        }`}
+                        className={`px-3.5 py-1.5 rounded-full border ${isActive ? 'bg-blue-600 border-blue-600' : 'bg-white border-slate-200'
+                          }`}
                       >
                         <Text
                           className={`text-xs ${isActive ? 'text-white font-bold font-heading' : 'text-slate-600 font-body'}`}
@@ -764,6 +766,14 @@ export default function CustomerFormCard({
           </View>
         </View>
       </Modal>
+
+      <CustomAlert
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        type={alertConfig.type}
+        onConfirm={() => setAlertConfig((prev) => ({ ...prev, visible: false }))}
+      />
     </View>
   );
 }

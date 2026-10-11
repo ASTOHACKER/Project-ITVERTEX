@@ -2,9 +2,9 @@
 import { Text, View } from 'react-native';
 
 interface CustomerInfoCardProps {
-  customerName: string;
-  phone: string;
-  email?: string;
+  customerName?: string | null;
+  phone?: string | null;
+  email?: string | null;
 }
 
 export default function CustomerInfoCard({ customerName, phone, email }: CustomerInfoCardProps) {

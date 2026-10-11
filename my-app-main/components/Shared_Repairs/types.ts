@@ -21,6 +21,8 @@ export interface RepairItem {
   date?: string;
   technician?: string;
   payment_verified?: boolean;
+  is_cancelled?: boolean;
+  quote_status_id?: number;
 }
 
 export interface StatusGroup {

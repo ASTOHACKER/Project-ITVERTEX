@@ -4,17 +4,7 @@ import { Text, TouchableOpacity, View } from 'react-native';
 // 2. Third-party / Expo
 import { Ionicons } from '@expo/vector-icons';
 
-interface PartItem {
-  id: string;
-  name: string;
-  price: number;
-}
-
-interface ServiceItem {
-  id: string;
-  name: string;
-  price: number;
-}
+import type { PartItem, ServiceItem } from '@/types/quotation';
 
 interface TechnicianQuoteCardProps {
   deviceModel: string;

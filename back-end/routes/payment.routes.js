@@ -30,7 +30,16 @@ const role = require('../middleware/role');
  *     responses:
  *       201: { description: บันทึกการชำระเงินสำเร็จ }
  */
-router.post('/', auth, ctrl.upload.single('slip_image'), ctrl.create);
+// รองรับทั้งชื่อฟิลด์ slip_image (ตามสเปก) และ slip (ที่ frontend เดิมอาจส่งมา)
+router.post(
+  '/',
+  auth,
+  ctrl.upload.fields([
+    { name: 'slip_image', maxCount: 1 },
+    { name: 'slip', maxCount: 1 },
+  ]),
+  ctrl.create
+);
 
 /**
  * @swagger

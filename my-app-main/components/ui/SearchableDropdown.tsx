@@ -4,6 +4,7 @@ import {
   FlatList,
   Modal,
   SafeAreaView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
@@ -138,23 +139,47 @@ export default function SearchableDropdown({
         animationType="slide"
         onRequestClose={() => setModalVisible(false)}
       >
-        <SafeAreaView className="flex-1 bg-black/50 justify-end">
-          <View className="bg-white rounded-t-3xl max-h-[80%] flex-col p-4 shadow-2xl">
+        <View className="flex-1 bg-black/60 justify-end">
+          {/* Backdrop dismiss */}
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={() => setModalVisible(false)}
+            style={StyleSheet.absoluteFill}
+          />
+
+          <View
+            className="bg-white rounded-t-3xl flex-col p-4 pb-8 shadow-2xl"
+            style={{ height: '80%', maxHeight: '85%', width: '100%' }}
+          >
+            {/* Drag Handle Bar */}
+            <View className="w-12 h-1.5 bg-slate-200 rounded-full self-center mb-3" />
+
             {/* Header */}
             <View className="flex-row items-center justify-between pb-3 border-b border-slate-100">
-              <Text className="text-base font-bold text-slate-800">
-                {label || 'เลือกรายการ'}
-              </Text>
+              <View className="flex-row items-center gap-2">
+                <View className="w-8 h-8 rounded-full bg-sky-50 items-center justify-center">
+                  <Ionicons name="list" size={16} color="#0284C7" />
+                </View>
+                <Text className="text-base font-bold text-slate-800">
+                  {label || 'เลือกรายการ'}
+                </Text>
+                <View className="bg-slate-100 px-2 py-0.5 rounded-full ml-1">
+                  <Text className="text-xs text-slate-500 font-medium">
+                    {filteredOptions.length} รายการ
+                  </Text>
+                </View>
+              </View>
               <TouchableOpacity
                 onPress={() => setModalVisible(false)}
-                className="w-8 h-8 rounded-full bg-slate-100 justify-center items-center"
+                activeOpacity={0.7}
+                className="w-8 h-8 rounded-full bg-slate-100 justify-center items-center active:bg-slate-200"
               >
                 <Ionicons name="close" size={20} color="#475569" />
               </TouchableOpacity>
             </View>
 
             {/* Search Input */}
-            <View className="flex-row items-center bg-slate-100 rounded-xl px-3 h-10 my-3 border border-slate-200">
+            <View className="flex-row items-center bg-slate-50 rounded-xl px-3.5 h-11 my-3 border border-slate-200">
               <Ionicons name="search" size={18} color="#64748B" />
               <TextInput
                 value={searchQuery}
@@ -172,7 +197,7 @@ export default function SearchableDropdown({
               />
               {searchQuery.length > 0 && (
                 <TouchableOpacity onPress={() => setSearchQuery('')}>
-                  <Ionicons name="close-circle" size={16} color="#94A3B8" />
+                  <Ionicons name="close-circle" size={18} color="#94A3B8" />
                 </TouchableOpacity>
               )}
             </View>
@@ -189,26 +214,28 @@ export default function SearchableDropdown({
                   className="flex-row items-center p-3 mb-2 bg-sky-50 border border-sky-200 rounded-xl"
                 >
                   <Ionicons name="add-circle" size={20} color="#0284C7" />
-                  <Text className="ml-2 text-xs font-medium text-sky-800">
-                    ใช้ระบุเอง: &ldquo;{searchQuery.trim()}&rdquo;
+                  <Text className="ml-2 text-xs font-semibold text-sky-800 flex-1">
+                    ใช้ตามที่ระบุ: &ldquo;{searchQuery.trim()}&rdquo;
                   </Text>
+                  <Ionicons name="arrow-forward" size={16} color="#0284C7" />
                 </TouchableOpacity>
               )}
 
             {/* List */}
             <FlatList
               data={filteredOptions}
-              keyExtractor={(item) => String(item.value)}
+              keyExtractor={(item, index) => `${item.value}_${index}`}
               keyboardShouldPersistTaps="handled"
+              contentContainerStyle={{ paddingBottom: 40 }}
               ListEmptyComponent={
-                <View className="py-8 items-center justify-center">
-                  <Ionicons name="search-outline" size={36} color="#CBD5E1" />
-                  <Text className="text-xs text-slate-400 mt-2">
-                    ไม่พบรายการที่ค้นหา
+                <View className="py-12 items-center justify-center">
+                  <Ionicons name="search-outline" size={42} color="#CBD5E1" />
+                  <Text className="text-sm font-medium text-slate-400 mt-2">
+                    ไม่พบรายการที่ตรงกับคำค้นหา
                   </Text>
                   {allowCustom && searchQuery.trim().length > 0 && (
-                    <Text className="text-xs text-sky-600 mt-1">
-                      สามารถแตะปุ่ม &ldquo;ใช้ระบุเอง&rdquo; ด้านบน เพื่อใช้ชื่อนี้ได้
+                    <Text className="text-xs text-sky-600 mt-1.5 text-center px-4">
+                      สามารถแตะปุ่ม &ldquo;ใช้ตามที่ระบุ&rdquo; ด้านบน เพื่อใช้ชื่อนี้ได้ทันที
                     </Text>
                   )}
                 </View>
@@ -218,16 +245,19 @@ export default function SearchableDropdown({
                 return (
                   <TouchableOpacity
                     onPress={() => handleSelect(item)}
-                    className={`flex-row items-center justify-between py-3 px-3.5 rounded-xl mb-1 ${
-                      isSelected ? 'bg-sky-50 border border-sky-100' : 'active:bg-slate-50'
+                    activeOpacity={0.7}
+                    className={`flex-row items-center justify-between py-3 px-3.5 rounded-xl mb-1.5 ${
+                      isSelected
+                        ? 'bg-sky-50 border border-sky-300'
+                        : 'bg-white border border-slate-100 active:bg-slate-50'
                     }`}
                   >
                     <View className="flex-1 mr-2">
                       <Text
                         className={`text-sm ${
                           isSelected
-                            ? 'font-bold text-sky-700'
-                            : 'font-normal text-slate-700'
+                            ? 'font-bold text-sky-800'
+                            : 'font-medium text-slate-700'
                         }`}
                       >
                         {item.label}
@@ -238,15 +268,17 @@ export default function SearchableDropdown({
                         </Text>
                       )}
                     </View>
-                    {isSelected && (
-                      <Ionicons name="checkmark-sharp" size={18} color="#0284C7" />
+                    {isSelected ? (
+                      <Ionicons name="checkmark-circle" size={20} color="#0284C7" />
+                    ) : (
+                      <Ionicons name="chevron-forward" size={16} color="#CBD5E1" />
                     )}
                   </TouchableOpacity>
                 );
               }}
             />
           </View>
-        </SafeAreaView>
+        </View>
       </Modal>
     </View>
   );

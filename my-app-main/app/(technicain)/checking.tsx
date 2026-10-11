@@ -31,7 +31,7 @@ export default function CheckingScreen() {
 
   return (
     <RepairListScreen
-      filterStatusIds={[1, 2]}
+      filterStatusIds={[2]}
       subtitle="รายการตรวจเช็ค"
       showHeader={true}
       onPressDetails={handlePressDetails}

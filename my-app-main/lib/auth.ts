@@ -4,16 +4,8 @@ import { api, getToken, saveToken, removeToken } from './api';
 // Auth Helpers
 // ============================================================
 
-export interface User {
-  id: string;
-  email: string;
-  first_name: string | null;
-  last_name: string | null;
-  phone: string | null;
-  role_id: number;
-  role_name: string;
-  created_at?: string;
-}
+import type { User } from '@/types/user';
+export type { User };
 
 /**
  * เข้าสู่ระบบ
@@ -64,6 +56,18 @@ export async function getUser(): Promise<User | null> {
   } catch {
     return null;
   }
+}
+
+/**
+ * แก้ไขข้อมูลส่วนตัวของผู้ใช้ปัจจุบัน
+ */
+export async function updateProfile(data: {
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+}): Promise<any> {
+  const res = await api.put('/auth/profile', data);
+  return res.data;
 }
 
 /**

@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const ctrl = require('../controllers/repair.controller');
 const auth = require('../middleware/auth');
+const role = require('../middleware/role');
 
 /**
  * @swagger
@@ -86,7 +87,7 @@ router.put('/:id', auth, ctrl.update);
  *     responses:
  *       200: { description: ลบสำเร็จ }
  */
-router.delete('/:id', auth, ctrl.remove);
+router.delete('/:id', auth, role('Manager'), ctrl.remove);
 
 /**
  * @swagger

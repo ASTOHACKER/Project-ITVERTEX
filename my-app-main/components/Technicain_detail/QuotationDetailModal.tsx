@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getQuotation } from '@/lib/api';
+import { canEditOrDeleteQuote } from '../Technicain_quotation/QuotationStatusBadge';
 
 interface QuotationDetailModalProps {
   visible: boolean;
@@ -286,7 +287,7 @@ export default function QuotationDetailModal({
 
               {/* Action Buttons */}
               <View className="flex-row gap-2 mt-4 pt-3 border-t border-slate-200">
-                {onEdit ? (
+                {onEdit && canEditOrDeleteQuote(data) ? (
                   <TouchableOpacity
                     className="flex-1 bg-blue-600 py-2.5 rounded-xl flex-row items-center justify-center gap-1.5 active:bg-blue-700"
                     onPress={() => {

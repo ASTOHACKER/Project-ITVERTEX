@@ -2,9 +2,13 @@
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
   ScrollView,
   StatusBar,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -15,7 +19,7 @@ import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // 3. Auth helpers & Components
-import { getCurrentUser, logout } from '@/lib/auth';
+import { getCurrentUser, logout, updateProfile } from '@/lib/auth';
 import ConfirmLogoutModal from '@/components/ui/ConfirmLogoutModal';
 import SuccessToast from '@/components/ui/SuccessToast';
 
@@ -52,6 +56,15 @@ export default function SharedProfileScreen({ roleConfig }: SharedProfileScreenP
   const [showLogoutToast, setShowLogoutToast] = useState(false);
   const [toastUserSubtitle, setToastUserSubtitle] = useState('');
 
+  // Edit Profile States
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editFirstName, setEditFirstName] = useState('');
+  const [editLastName, setEditLastName] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [editError, setEditError] = useState('');
+  const [showSaveToast, setShowSaveToast] = useState(false);
+
   useEffect(() => {
     fetchProfile();
   }, []);
@@ -71,6 +84,58 @@ export default function SharedProfileScreen({ roleConfig }: SharedProfileScreenP
       setLoading(false);
     }
   }
+
+  const handleOpenEdit = () => {
+    setEditFirstName(user?.first_name || '');
+    setEditLastName(user?.last_name || '');
+    setEditPhone(user?.phone || '');
+    setEditError('');
+    setEditModalVisible(true);
+  };
+
+  const handleSaveProfile = async () => {
+    if (!editFirstName.trim()) {
+      setEditError('กรุณากรอกชื่อ');
+      return;
+    }
+    const cleanPhone = editPhone.replace(/[^0-9]/g, '');
+    if (cleanPhone && (cleanPhone.length < 9 || cleanPhone.length > 10)) {
+      setEditError('เบอร์โทรศัพท์ต้องมี 9-10 หลัก');
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      setEditError('');
+      const res = await updateProfile({
+        first_name: editFirstName.trim(),
+        last_name: editLastName.trim(),
+        phone: cleanPhone,
+      });
+
+      if (res?.data) {
+        setUser((prev: any) => ({
+          ...prev,
+          ...res.data,
+        }));
+      } else {
+        setUser((prev: any) => ({
+          ...prev,
+          first_name: editFirstName.trim(),
+          last_name: editLastName.trim(),
+          phone: cleanPhone,
+        }));
+      }
+
+      setEditModalVisible(false);
+      setShowSaveToast(true);
+    } catch (err: any) {
+      setEditError(err.response?.data?.message || err.message || 'บันทึกข้อมูลไม่สำเร็จ');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
 
   const handleBack = () => {
     if (router.canGoBack()) {
@@ -174,7 +239,17 @@ export default function SharedProfileScreen({ roleConfig }: SharedProfileScreenP
         {/* Profile Info Card */}
         <View className="px-5 -mt-6">
           <View className="bg-white rounded-2xl p-5 mb-4 shadow-sm border border-slate-100">
-            <Text className="text-base font-bold text-slate-800 mb-4">ข้อมูลส่วนตัว</Text>
+            <View className="flex-row items-center justify-between mb-4">
+              <Text className="text-base font-bold text-slate-800">ข้อมูลส่วนตัว</Text>
+              <TouchableOpacity
+                onPress={handleOpenEdit}
+                className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-50 border border-red-200"
+                activeOpacity={0.7}
+              >
+                <Ionicons name="pencil" size={13} color="#DC2626" />
+                <Text className="text-xs font-bold text-[#DC2626]">แก้ไขข้อมูล</Text>
+              </TouchableOpacity>
+            </View>
 
             {/* Name */}
             <View className="py-2.5 border-b border-slate-100 flex-row justify-between items-center">
@@ -232,6 +307,112 @@ export default function SharedProfileScreen({ roleConfig }: SharedProfileScreenP
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Edit Profile Modal */}
+      <Modal
+        visible={editModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => !isSaving && setEditModalVisible(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          className="flex-1 bg-black/50 justify-center items-center px-4"
+        >
+          <View className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-xl">
+            <View className="flex-row items-center justify-between pb-3 border-b border-slate-100 mb-4">
+              <View className="flex-row items-center gap-2">
+                <View className="w-8 h-8 rounded-full bg-red-50 items-center justify-center">
+                  <Ionicons name="person" size={16} color="#DC2626" />
+                </View>
+                <Text className="text-base font-bold text-slate-800">แก้ไขข้อมูลส่วนตัว</Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => !isSaving && setEditModalVisible(false)}
+                disabled={isSaving}
+              >
+                <Ionicons name="close" size={22} color="#94A3B8" />
+              </TouchableOpacity>
+            </View>
+
+            {editError ? (
+              <View className="bg-red-50 border border-red-200 rounded-xl p-3 mb-3 flex-row items-center gap-2">
+                <Ionicons name="alert-circle" size={16} color="#DC2626" />
+                <Text className="text-xs text-red-600 flex-1">{editError}</Text>
+              </View>
+            ) : null}
+
+            <View className="gap-3 mb-5">
+              <View>
+                <Text className="text-xs font-medium text-slate-600 mb-1">ชื่อ *</Text>
+                <TextInput
+                  value={editFirstName}
+                  onChangeText={setEditFirstName}
+                  placeholder="กรอกชื่อ"
+                  placeholderTextColor="#94a3b8"
+                  className="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-800"
+                />
+              </View>
+
+              <View>
+                <Text className="text-xs font-medium text-slate-600 mb-1">นามสกุล</Text>
+                <TextInput
+                  value={editLastName}
+                  onChangeText={setEditLastName}
+                  placeholder="กรอกนามสกุล"
+                  placeholderTextColor="#94a3b8"
+                  className="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-800"
+                />
+              </View>
+
+              <View>
+                <Text className="text-xs font-medium text-slate-600 mb-1">เบอร์โทรศัพท์ (9-10 หลัก)</Text>
+                <TextInput
+                  value={editPhone}
+                  onChangeText={setEditPhone}
+                  placeholder="0812345678"
+                  placeholderTextColor="#94a3b8"
+                  keyboardType="phone-pad"
+                  maxLength={10}
+                  className="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-800"
+                />
+              </View>
+            </View>
+
+            <View className="flex-row gap-3">
+              <TouchableOpacity
+                onPress={() => setEditModalVisible(false)}
+                disabled={isSaving}
+                className="flex-1 py-3 rounded-xl border border-slate-200 items-center justify-center"
+              >
+                <Text className="text-sm font-semibold text-slate-600">ยกเลิก</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleSaveProfile}
+                disabled={isSaving}
+                className="flex-1 py-3 rounded-xl bg-[#DC2626] items-center justify-center active:bg-red-700"
+              >
+                {isSaving ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text className="text-sm font-bold text-white">บันทึก</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Save Success Toast */}
+      <SuccessToast
+        visible={showSaveToast}
+        message="บันทึกข้อมูลส่วนตัวเรียบร้อยแล้ว"
+        type="success"
+        icon="checkmark-circle-outline"
+        duration={1500}
+        onHide={() => setShowSaveToast(false)}
+      />
 
       {/* Enhanced Success Toast on Logout */}
       <SuccessToast

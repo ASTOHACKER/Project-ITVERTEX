@@ -1,9 +1,7 @@
 // 1. React & React Native
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
-  Alert,
   Modal,
-  Platform,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -17,10 +15,9 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // 3. API helpers
-import { getRepair, updateRepairSignature, updateRepairStatus, logRepairJobDetail } from '@/lib/api';
+import { getRepair, updateRepairSignature, updateRepairStatus, logRepairJobDetail, verifyPayment } from '@/lib/api';
 
 // 4. Components
-import PageHeader from '@/components/ui/PageHeader';
 import RepairSummaryCard from '@/components/Staff_handover/RepairSummaryCard';
 import CustomAlert from '@/components/ui/CustomAlert';
 import SignaturePad from '@/components/ui/SignaturePad';
@@ -29,8 +26,8 @@ export default function DeliverHandoverScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
 
-  const jobNo = (params.job_no as string) || 'REP-260527-007';
-  const jobIdParam = (params.job_id as string) || '';
+  const jobIdParam = (params.job_id as string) || (params.id as string) || '';
+  const jobNo = (params.job_no as string) || (jobIdParam ? `REP-${String(jobIdParam).padStart(6, '0')}` : '');
   const initialDeviceModel = (params.device as string) || 'อุปกรณ์ซ่อม';
   const initialCustomerName = (params.customer_name as string) || 'ไม่ระบุชื่อ';
   const initialTotalPrice = Number(params.price) || 0;
@@ -39,6 +36,18 @@ export default function DeliverHandoverScreen() {
   const [customerName, setCustomerName] = useState<string>(initialCustomerName);
   const [totalPrice, setTotalPrice] = useState<number>(initialTotalPrice);
 
+  const resolveJobId = (): number => {
+    const parsed = parseInt(jobIdParam, 10);
+    if (!isNaN(parsed) && parsed > 0) return parsed;
+    if (jobNo) {
+      const fromSplit = parseInt(jobNo.split('-').pop() || '', 10);
+      if (!isNaN(fromSplit) && fromSplit > 0) return fromSplit;
+      const fromRegex = parseInt(jobNo.replace(/[^0-9]/g, ''), 10);
+      if (!isNaN(fromRegex) && fromRegex > 0) return fromRegex;
+    }
+    return 0;
+  };
+
   // Fetch real job data if jobNo present
   useEffect(() => {
     fetchJobDetails();
@@ -46,9 +55,8 @@ export default function DeliverHandoverScreen() {
 
   const fetchJobDetails = async () => {
     try {
-      const targetIdStr = jobIdParam || jobNo.replace(/[^0-9]/g, '');
-      const numericId = parseInt(targetIdStr, 10);
-      if (isNaN(numericId)) return;
+      const numericId = resolveJobId();
+      if (!numericId || numericId <= 0) return;
 
       const res = await getRepair(numericId);
       if (res.success && res.data) {
@@ -67,7 +75,6 @@ export default function DeliverHandoverScreen() {
 
   // Signature state
   const [signatureImage, setSignatureImage] = useState<string | null>(null);
-  const [isSigning, setIsSigning] = useState(false);
   const [signatureError, setSignatureError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -85,27 +92,6 @@ export default function DeliverHandoverScreen() {
     message: '',
     type: 'info',
   });
-
-  // ── Signature handlers ──
-
-  const handleSignature = (signature: string) => {
-    setSignatureImage(signature);
-    setIsSigning(false);
-    setSignatureError(null);
-    if (isModalOpen) {
-      setIsModalOpen(false);
-    }
-  };
-
-  const handleEmpty = () => {
-    setIsSigning(false);
-    Alert.alert('ยังไม่มีลายเซ็น', 'กรุณาเซ็นในกรอบก่อนกดบันทึก');
-  };
-
-  const handleSignatureError = (error: Error) => {
-    setIsSigning(false);
-    setSignatureError(error.message || 'ไม่สามารถเปิดพื้นที่สำหรับเซ็นได้');
-  };
 
 
 
@@ -126,10 +112,9 @@ export default function DeliverHandoverScreen() {
     try {
       setUploading(true);
 
-      const targetIdStr = jobIdParam || jobNo.replace(/[^0-9]/g, '');
-      const numericId = parseInt(targetIdStr, 10);
+      const numericId = resolveJobId();
 
-      if (!isNaN(numericId)) {
+      if (numericId > 0) {
         const sigRes = await updateRepairSignature(numericId, {
           customer_receive_signature: signatureImage,
         });
@@ -139,6 +124,13 @@ export default function DeliverHandoverScreen() {
 
         // Action 7 = ส่งมอบเครื่องให้ลูกค้า
         await logRepairJobDetail(numericId, 7);
+
+        // ยืนยันการชำระเงิน (กรณีจ่ายเงินสดหน้าร้านขณะรับเครื่อง)
+        try {
+          await verifyPayment(numericId);
+        } catch {
+          // ถ้าชำระเงินผ่านการโอนและยืนยันไปแล้ว จะไม่ติด error
+        }
 
         await updateRepairStatus(numericId, {
           status_id: 8, // เสร็จสิ้น
@@ -168,7 +160,8 @@ export default function DeliverHandoverScreen() {
     const isSuccess = alertConfig.type === 'success';
     setAlertConfig((prev) => ({ ...prev, visible: false }));
     if (isSuccess) {
-      const targetIdStr = jobIdParam || jobNo.replace(/[^0-9]/g, '');
+      const targetId = resolveJobId();
+      const targetIdStr = String(targetId || jobIdParam || '');
       router.replace({
         pathname: '/receipt' as any,
         params: {
@@ -208,7 +201,6 @@ export default function DeliverHandoverScreen() {
       <ScrollView
         className="flex-1 px-4 pt-4"
         contentContainerStyle={{ paddingBottom: 30 }}
-        scrollEnabled={!isSigning}
       >
         {/* Repair Summary Card */}
         <RepairSummaryCard

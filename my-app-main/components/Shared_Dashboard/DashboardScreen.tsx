@@ -10,6 +10,8 @@ import { Ionicons } from '@expo/vector-icons';
 import {
   getDashboardCategory,
   getDashboardMetrics,
+  getDashboardPartsUsage,
+  getDashboardTeamPerformance,
   getDashboardTrend,
   getRepairs,
 } from '@/lib/api';
@@ -19,6 +21,8 @@ import CategoryChart from '@/components/Shared_Dashboard/CategoryChart';
 import DashboardFilters from '@/components/Shared_Dashboard/DashboardFilters';
 import Header from '@/components/Shared_Dashboard/Header';
 import MetricCards from '@/components/Shared_Dashboard/MetricCards';
+import PartsUsageChart, { type PartUsageItem } from '@/components/Shared_Dashboard/PartsUsageChart';
+import TeamPerformanceChart, { type TeamMemberPerformance } from '@/components/Shared_Dashboard/TeamPerformanceChart';
 import TrendChart from '@/components/Shared_Dashboard/TrendChart';
 
 interface DashboardScreenProps {
@@ -31,8 +35,8 @@ const STATUS_CONFIG: Record<number, { label: string; color: string; bg: string }
   2: { label: 'ตรวจเช็ค', color: '#D97706', bg: '#FFFBEB' },
   3: { label: 'เสนอราคา', color: '#F59E0B', bg: '#FEF3C7' },
   4: { label: 'รออนุมัติ', color: '#A855F7', bg: '#FAF5FF' },
-  5: { label: 'รอซ่อม', color: '#3B82F6', bg: '#EFF6FF' },
-  6: { label: 'กำลังซ่อม', color: '#0EA5E9', bg: '#F0F9FF' },
+  5: { label: 'อนุมัติ/รอซ่อม', color: '#6366F1', bg: '#EEF2FF' },
+  6: { label: 'รอมารับเครื่อง', color: '#0EA5E9', bg: '#F0F9FF' },
   7: { label: 'รอชำระ', color: '#EAB308', bg: '#FEFCE8' },
   8: { label: 'เสร็จสิ้น', color: '#22C55E', bg: '#F0FDF4' },
   9: { label: 'ยกเลิก', color: '#EF4444', bg: '#FEF2F2' },
@@ -63,18 +67,49 @@ export default function DashboardScreen({ role }: DashboardScreenProps) {
     other?: number;
     total?: number;
   }>({ pc: 0, laptop: 0, printer: 0, other: 0, total: 0 });
-
-  // Status Pipeline counts & Recent repairs
-  const [statusCounts, setStatusCounts] = useState<Record<number, number>>({
-    1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0,
-  });
+  const [teamData, setTeamData] = useState<TeamMemberPerformance[]>([]);
+  const [partsUsageData, setPartsUsageData] = useState<PartUsageItem[]>([]);
   const [recentRepairs, setRecentRepairs] = useState<any[]>([]);
 
-  const fetchOverviewData = useCallback(async () => {
+  // กรองข้อมูลทั้งหมดแบบ Synchronized ไปพร้อมกัน (Trend + Category + Metrics + Team Performance + Parts Usage)
+  const fetchSynchronizedData = useCallback(async () => {
     try {
-      const [metricsRes, categoryRes, repairsRes] = await Promise.all([
-        getDashboardMetrics(role),
-        getDashboardCategory(),
+      setIsLoading(true);
+
+      const filterParams = {
+        role,
+        period: timeFilter,
+        device_type: deviceType,
+        date_start: dateStart,
+        date_end: dateEnd,
+      };
+
+      const [metricsRes, trendRes, categoryRes, teamRes, partsRes, repairsRes] = await Promise.all([
+        getDashboardMetrics(filterParams),
+        getDashboardTrend({
+          period: timeFilter,
+          device_type: deviceType,
+          date_start: dateStart,
+          date_end: dateEnd,
+        }),
+        getDashboardCategory({
+          period: timeFilter,
+          device_type: deviceType,
+          date_start: dateStart,
+          date_end: dateEnd,
+        }),
+        getDashboardTeamPerformance({
+          period: timeFilter,
+          device_type: deviceType,
+          date_start: dateStart,
+          date_end: dateEnd,
+        }),
+        getDashboardPartsUsage({
+          period: timeFilter,
+          device_type: deviceType,
+          date_start: dateStart,
+          date_end: dateEnd,
+        }),
         getRepairs(),
       ]);
 
@@ -82,58 +117,44 @@ export default function DashboardScreen({ role }: DashboardScreenProps) {
         setMetrics(metricsRes.data);
       }
 
-      if (categoryRes?.success && categoryRes.data) {
-        setCategoryData(categoryRes.data);
-      }
-
-      if (repairsRes?.success && Array.isArray(repairsRes.data)) {
-        const allJobs = repairsRes.data;
-        const counts: Record<number, number> = {
-          1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0,
-        };
-        allJobs.forEach((job: any) => {
-          const sId = Number(job.status_id);
-          if (counts[sId] !== undefined) {
-            counts[sId]++;
-          }
-        });
-        setStatusCounts(counts);
-        setRecentRepairs(allJobs.slice(0, 5));
-      }
-    } catch (err) {
-      console.error('Dashboard overview fetch error:', err);
-    }
-  }, [role]);
-
-  // โหลดข้อมูลกราฟแนวโน้ม (เฉพาะกราฟเส้น) ตามตัวกรองที่เลือก
-  const fetchTrendData = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const trendRes = await getDashboardTrend({
-        period: timeFilter,
-        device_type: deviceType,
-        date_start: dateStart,
-        date_end: dateEnd,
-      });
-
       if (trendRes?.success && Array.isArray(trendRes.data)) {
         setTrendData(trendRes.data);
       } else {
         setTrendData([]);
       }
+
+      if (categoryRes?.success && categoryRes.data) {
+        setCategoryData(categoryRes.data);
+      }
+
+      if (teamRes?.success && Array.isArray(teamRes.data)) {
+        setTeamData(teamRes.data);
+      } else {
+        setTeamData([]);
+      }
+
+      if (partsRes?.success && Array.isArray(partsRes.data)) {
+        setPartsUsageData(partsRes.data);
+      } else {
+        setPartsUsageData([]);
+      }
+
+      if (repairsRes?.success && Array.isArray(repairsRes.data)) {
+        setRecentRepairs(repairsRes.data.slice(0, 5));
+      }
     } catch (err) {
-      console.error('Trend fetch error:', err);
+      console.error('Dashboard synchronized fetch error:', err);
     } finally {
       setIsLoading(false);
     }
-  }, [timeFilter, deviceType, dateStart, dateEnd]);
+  }, [role, timeFilter, deviceType, dateStart, dateEnd]);
 
   useFocusEffect(
     useCallback(() => {
-      fetchOverviewData();
-      fetchTrendData();
-    }, [fetchOverviewData, fetchTrendData])
+      fetchSynchronizedData();
+    }, [fetchSynchronizedData])
   );
+
 
   return (
     <View className="flex-1 bg-slate-50">
@@ -145,6 +166,17 @@ export default function DashboardScreen({ role }: DashboardScreenProps) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingTop: 16, paddingBottom: 60 }}
       >
+        {/* Filters */}
+        <DashboardFilters
+          timeFilter={timeFilter}
+          onChangeTimeFilter={setTimeFilter}
+          deviceType={deviceType}
+          onChangeDeviceType={setDeviceType}
+          dateStart={dateStart}
+          dateEnd={dateEnd}
+          onChangeDateStart={setDateStart}
+          onChangeDateEnd={setDateEnd}
+        />
         {/* KPI Metrics */}
         <MetricCards
           totalRevenue={metrics.totalRevenue}
@@ -153,53 +185,10 @@ export default function DashboardScreen({ role }: DashboardScreenProps) {
           pendingJobs={metrics.pendingJobs}
         />
 
-        {/* ── Status Pipeline Distribution Card ── */}
-        {/* <View className="mx-4 bg-white rounded-2xl p-4 mb-4 border border-slate-200 shadow-sm">
-          <View className="flex-row items-center justify-between mb-3">
-            <View className="flex-row items-center gap-2">
-              <View className="w-7 h-7 rounded-lg bg-red-50 items-center justify-center">
-                <Ionicons name="git-network-outline" size={16} color="#DC2626" />
-              </View>
-              <Text className="text-sm font-bold text-slate-800 font-heading">
-                สถานะงานซ่อมในระบบ (Operations Pipeline)
-              </Text>
-            </View>
-            <Text className="text-xs text-slate-400 font-body">9 ขั้นตอน</Text>
-          </View> */}
-
-          {/* Grid of 9 Statuses */}
-          {/* <View className="flex-row flex-wrap gap-2">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((sId) => {
-              const cfg = STATUS_CONFIG[sId];
-              const count = statusCounts[sId] || 0;
-              return (
-                <View
-                  key={sId}
-                  className="flex-row items-center justify-between px-3 py-2 rounded-xl border flex-1 min-w-[30%]"
-                  style={{ backgroundColor: cfg.bg, borderColor: `${cfg.color}30` }}
-                >
-                  <View className="flex-row items-center gap-1.5">
-                    <View className="w-2 h-2 rounded-full" style={{ backgroundColor: cfg.color }} />
-                    <Text className="text-[11px] font-medium text-slate-700 font-heading" numberOfLines={1}>
-                      {cfg.label}
-                    </Text>
-                  </View>
-                  <Text className="text-xs font-bold font-heading ml-2" style={{ color: cfg.color }}>
-                    {count}
-                  </Text>
-                </View>
-              );
-            })}
-          </View> */}
-        {/* </View> */}
-
         {/* ── Recent Repairs Feed ── */}
         <View className="mx-4 bg-white rounded-2xl p-4 mb-4 border border-slate-200 shadow-sm">
           <View className="flex-row items-center justify-between mb-3">
             <View className="flex-row items-center gap-2">
-              {/* <View className="w-7 h-7 rounded-lg bg-blue-50 items-center justify-center">
-                <Ionicons name="time-outline" size={16} color="#0284C7" />
-              </View> */}
               <Text className="text-sm font-bold text-slate-800 font-heading">
                 งานซ่อมล่าสุด (Recent Jobs)
               </Text>
@@ -266,21 +255,10 @@ export default function DashboardScreen({ role }: DashboardScreenProps) {
           </View>
         </View>
 
-        {/* Filters */}
-        <DashboardFilters
-          timeFilter={timeFilter}
-          onChangeTimeFilter={setTimeFilter}
-          deviceType={deviceType}
-          onChangeDeviceType={setDeviceType}
-          dateStart={dateStart}
-          dateEnd={dateEnd}
-          onChangeDateStart={setDateStart}
-          onChangeDateEnd={setDateEnd}
-        />
-
         {/* Trend Chart */}
         <TrendChart
           timeFilter={timeFilter}
+          deviceType={deviceType}
           data={trendData}
           isLoading={isLoading}
         />
@@ -292,6 +270,24 @@ export default function DashboardScreen({ role }: DashboardScreenProps) {
           printerPercent={categoryData.printer}
           otherCount={categoryData.other}
           total={categoryData.total}
+          deviceType={deviceType}
+          timeFilter={timeFilter}
+          isLoading={isLoading}
+        />
+
+        {/* Team Performance Bar Chart */}
+        <TeamPerformanceChart
+          data={teamData}
+          deviceType={deviceType}
+          timeFilter={timeFilter}
+          isLoading={isLoading}
+        />
+
+        {/* Parts Usage Chart (สถิติการใช้อะไหล่) */}
+        <PartsUsageChart
+          data={partsUsageData}
+          deviceType={deviceType}
+          timeFilter={timeFilter}
           isLoading={isLoading}
         />
       </ScrollView>

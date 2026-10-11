@@ -42,10 +42,7 @@ export function useRepairJobs(options: UseRepairJobsOptions = {}) {
       });
 
       (res.data || []).forEach((row: any) => {
-        let stId = row.status_id;
-        // หากหน้าจอที่เรียกใช้ไม่ได้กรอง status 6 แยกไว้ ให้รวมอยู่กับ 5 (อนุมัติแล้ว/รอซ่อม)
-        if (stId === 6 && !groupsMap['6']) stId = 5;
-
+        const stId = row.status_id;
         // Skip if this status is not in our filter
         if (!groupsMap[String(stId)]) return;
 
@@ -61,26 +58,39 @@ export function useRepairJobs(options: UseRepairJobsOptions = {}) {
           });
         }
 
+        const customerName =
+          row.customer_name ||
+          `${row.first_name || ''} ${row.last_name || ''}`.trim() ||
+          'ไม่ระบุชื่อ';
+
+        const isCancelledRow = Boolean(
+          row.is_cancelled ||
+          stId === 9 ||
+          Number(row.quote_status_id) === 3 ||
+          String(row.status_name || '').includes('ยกเลิก')
+        );
+
         const item: RepairItem = {
-          id: String(row.job_id),
-          job_no: `REP-${String(row.job_id).padStart(6, '0')}`,
-          customer_name:
-            `${row.first_name || ''} ${row.last_name || ''}`.trim() || 'ไม่ระบุชื่อ',
+          id: String(row.job_id || row.id),
+          job_no: row.job_number || row.job_no || `REP-${String(row.job_id || row.id).padStart(6, '0')}`,
+          customer_name: customerName,
           phone: row.phone || 'ไม่ระบุเบอร์',
           device_type: row.device_type || 'อุปกรณ์',
           device:
-            `${row.brand || ''} ${row.model || ''}`.trim() || row.device_type || 'อุปกรณ์',
+            row.device || `${row.brand || ''} ${row.model || ''}`.trim() || row.device_type || 'อุปกรณ์',
           brand: row.brand || '',
           model: row.model || '',
           symptom: row.symptoms || row.symptom_details || row.symptom || '',
           actual_symptom: row.actual_symptom || '',
           total_amount: row.total_amount,
           created_at: row.created_at,
-          status: statusDef?.title || 'รอตรวจเช็ค',
+          status: statusDef?.title || row.status_name || row.status || 'รอตรวจเช็ค',
           status_id: stId,
+          is_cancelled: isCancelledRow,
+          quote_status_id: row.quote_status_id ? Number(row.quote_status_id) : undefined,
           price: Number(row.total_amount) || 0,
           date: formattedDate,
-          technician: row.technician_name || 'ช่างประจำศูนย์',
+          technician: row.technician_name || row.repairer_name || 'ช่างประจำศูนย์',
         };
 
         groupsMap[String(stId)].push(item);

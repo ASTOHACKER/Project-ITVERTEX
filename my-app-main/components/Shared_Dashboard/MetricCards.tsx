@@ -65,7 +65,7 @@ export default function MetricCards({
     },
     {
       title: 'งานซ่อมทั้งหมด',
-      value: totalJobs.toLocaleString(),
+      value: `${totalJobs.toLocaleString()} เครื่อง`,
       icon: 'cube',
       color: '#0284C7',
       bgColor: '#F0F9FF',
@@ -73,7 +73,7 @@ export default function MetricCards({
     },
     {
       title: 'ซ่อมสำเร็จแล้ว',
-      value: completedJobs.toLocaleString(),
+      value: `${completedJobs.toLocaleString()} เครื่อง`,
       icon: 'checkmark-done-circle',
       color: '#16A34A',
       bgColor: '#F0FDF4',
@@ -81,7 +81,7 @@ export default function MetricCards({
     },
     {
       title: 'รอดำเนินการ',
-      value: pendingJobs.toLocaleString(),
+      value: `${pendingJobs.toLocaleString()} เครื่อง`,
       icon: 'time',
       color: '#D97706',
       bgColor: '#FFFBEB',

@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, Image,
   ActivityIndicator, ScrollView,
-  FlatList, Modal, Dimensions
+  FlatList, Modal, Dimensions, Platform
 } from 'react-native';
 
 // 2. Third-party / Expo
@@ -18,20 +18,14 @@ import { getCurrentUser } from '@/lib/auth';
 
 const { width } = Dimensions.get('window');
 
-type SlipRecord = {
-  id: string;
-  user_id: string;
-  image_url: string;
-  uploaded_at: string;
-  user_email?: string;
-};
+import type { SlipRecord } from '@/types/payment';
 
 export default function SlipsPage() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [mySlips, setMySlips] = useState<SlipRecord[]>([]);
-  const [currentUser, setCurrentUser] = useState<{ id: string; email: string } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ id: number | string; email: string } | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   // Popup states
@@ -72,7 +66,7 @@ export default function SlipsPage() {
     }
   };
 
-  const fetchMySlips = async (_userId?: string) => {
+  const fetchMySlips = async (_userId?: number | string) => {
     try {
       setLoading(true);
       const res = await getSlips();
@@ -119,7 +113,20 @@ export default function SlipsPage() {
 
     try {
       setUploading(true);
-      const res = await createSlip({ image_url: imageUri });
+      const formData = new FormData();
+      if (Platform.OS === 'web') {
+        const fetchRes = await fetch(imageUri);
+        const blob = await fetchRes.blob();
+        formData.append('slip', blob, 'slip.jpg');
+      } else {
+        const filename = imageUri.split('/').pop() || 'slip.jpg';
+        const match = /\.(\w+)$/.exec(filename);
+        const ext = match ? match[1] : 'jpg';
+        const type = `image/${ext === 'jpg' ? 'jpeg' : ext}`;
+        formData.append('slip', { uri: imageUri, name: filename, type } as any);
+      }
+
+      const res = await createSlip(formData);
 
       if (!res.success) throw new Error(res.message || 'อัปโหลดไม่สำเร็จ');
 
@@ -164,7 +171,7 @@ export default function SlipsPage() {
           {new Date(item.uploaded_at).toLocaleString('th-TH')}
         </Text>
         <Text className="text-[11px] text-slate-400" numberOfLines={1}>
-          ID: {item.user_id?.slice(0, 8)}...
+          ID: #{item.id}
         </Text>
       </View>
       <TouchableOpacity className="bg-red-500 py-2.5 items-center" onPress={() => handleDeleteSlip(item)}>
@@ -191,7 +198,7 @@ export default function SlipsPage() {
         {currentUser && (
           <View className="w-full bg-blue-600 rounded-xl p-3 mb-5 items-center">
             <Text className="text-white font-bold text-sm">{currentUser.email}</Text>
-            <Text className="text-blue-200 text-xs mt-0.5">ID: {currentUser.id.slice(0, 8)}...</Text>
+            <Text className="text-blue-200 text-xs mt-0.5">ID: #{currentUser.id}</Text>
           </View>
         )}
 
@@ -249,7 +256,7 @@ export default function SlipsPage() {
         ) : (
           <FlatList
             data={mySlips}
-            keyExtractor={item => item.id}
+            keyExtractor={item => String(item.id)}
             renderItem={renderSlipCard}
             scrollEnabled={false}
             className="w-full"

@@ -1,213 +1,128 @@
-// 1. React & React Native
-import { useEffect, useState } from 'react';
-import { Modal, Text, TouchableOpacity, View } from 'react-native';
-
-// 2. Third-party / Expo
+// components/ui/CalendarPicker.tsx
+import React, { useState, useMemo } from 'react';
+import {
+  Modal,
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Dimensions,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 interface CalendarPickerProps {
   visible: boolean;
-  initialDate?: string; // YYYY-MM-DD (Gregorian)
-  onSelect: (dateStr: string) => void; // YYYY-MM-DD, or '' when cleared
+  initialDate?: string;
+  onSelect: (dateString: string) => void;
   onClose: () => void;
 }
 
 const THAI_MONTHS = [
-  'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
-  'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม',
+  'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน',
+  'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม',
+  'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม',
 ];
+const DAYS_SHORT = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
 
-const WEEKDAYS = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
-
-function parseDate(str?: string): { y: number; m: number; d: number } | null {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec((str || '').trim());
-  if (!match) return null;
-  const y = Number(match[1]);
-  const m = Number(match[2]);
-  const d = Number(match[3]);
-  if (m < 1 || m > 12 || d < 1 || d > 31) return null;
-  const dt = new Date(y, m - 1, d);
-  if (dt.getFullYear() !== y || dt.getMonth() !== m - 1 || dt.getDate() !== d) {
-    return null;
-  }
-  return { y, m, d };
-}
-
-function toDateStr(y: number, m: number, d: number): string {
-  const mm = String(m).padStart(2, '0');
-  const dd = String(d).padStart(2, '0');
-  return `${y}-${mm}-${dd}`;
+function daysInMonth(year: number, month: number) {
+  return new Date(year, month + 1, 0).getDate();
 }
 
 export default function CalendarPicker({ visible, initialDate, onSelect, onClose }: CalendarPickerProps) {
-  const today = new Date();
-  const [viewYear, setViewYear] = useState(today.getFullYear());
-  const [viewMonth, setViewMonth] = useState(today.getMonth()); // 0-11
-  const [selected, setSelected] = useState<string>('');
-
-  // Reset view every time the modal opens
-  useEffect(() => {
-    if (!visible) return;
-    const parsed = parseDate(initialDate);
-    if (parsed) {
-      setViewYear(parsed.y);
-      setViewMonth(parsed.m - 1);
-      setSelected(toDateStr(parsed.y, parsed.m, parsed.d));
-    } else {
-      setViewYear(today.getFullYear());
-      setViewMonth(today.getMonth());
-      setSelected('');
+  const init = useMemo(() => {
+    if (initialDate) {
+      const d = new Date(initialDate);
+      if (!isNaN(d.getTime())) return d;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visible]);
+    return new Date();
+  }, [initialDate]);
 
-  const goMonth = (delta: number) => {
-    const next = new Date(viewYear, viewMonth + delta, 1);
-    setViewYear(next.getFullYear());
-    setViewMonth(next.getMonth());
+  const [year, setYear] = useState(init.getFullYear());
+  const [month, setMonth] = useState(init.getMonth());
+  const [selectedDay, setSelectedDay] = useState<number | null>(
+    initialDate ? init.getDate() : null
+  );
+
+  const totalDays = daysInMonth(year, month);
+  const firstDow = new Date(year, month, 1).getDay();
+
+  const blanks = Array.from({ length: firstDow }, (_, i) => i);
+  const days = Array.from({ length: totalDays }, (_, i) => i + 1);
+
+  const prev = () => {
+    if (month === 0) { setMonth(11); setYear(y => y - 1); }
+    else setMonth(m => m - 1);
+  };
+  const next = () => {
+    if (month === 11) { setMonth(0); setYear(y => y + 1); }
+    else setMonth(m => m + 1);
   };
 
-  const goToday = () => {
-    setViewYear(today.getFullYear());
-    setViewMonth(today.getMonth());
-  };
-
-  const pickDay = (day: number) => {
-    const dateStr = toDateStr(viewYear, viewMonth + 1, day);
-    setSelected(dateStr);
-    onSelect(dateStr);
+  const handleConfirm = () => {
+    if (selectedDay == null) return;
+    const mm = String(month + 1).padStart(2, '0');
+    const dd = String(selectedDay).padStart(2, '0');
+    onSelect(`${year}-${mm}-${dd}`);
     onClose();
   };
-
-  const handleClear = () => {
-    setSelected('');
-    onSelect('');
-    onClose();
-  };
-
-  const handleToday = () => {
-    const dateStr = toDateStr(today.getFullYear(), today.getMonth() + 1, today.getDate());
-    setSelected(dateStr);
-    onSelect(dateStr);
-    onClose();
-  };
-
-  const firstWeekday = new Date(viewYear, viewMonth, 1).getDay();
-  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
-  const todayStr = toDateStr(today.getFullYear(), today.getMonth() + 1, today.getDate());
-
-  const cells: (number | null)[] = [
-    ...Array<null>(firstWeekday).fill(null),
-    ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
-  ];
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View className="flex-1 bg-black/50 justify-center items-center p-4">
-        <View className="bg-white rounded-2xl w-full max-w-sm p-5 shadow-lg border border-slate-200">
+      <View style={styles.overlay}>
+        <View style={styles.card}>
           {/* Header */}
-          <View className="flex-row items-center justify-between mb-3 pb-2 border-b border-slate-100">
-            <View className="flex-row items-center gap-2">
-              <Ionicons name="calendar" size={20} color="#DC2626" />
-              <Text className="text-base font-bold text-slate-900 font-heading">เลือกวันที่</Text>
-            </View>
-            <TouchableOpacity onPress={onClose} accessibilityLabel="ปิดปฏิทิน">
-              <Ionicons name="close" size={20} color="#94A3B8" />
+          <View style={styles.headerRow}>
+            <TouchableOpacity onPress={prev} style={styles.arrowBtn}>
+              <Ionicons name="chevron-back" size={22} color="#334155" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>
+              {THAI_MONTHS[month]} {year + 543}
+            </Text>
+            <TouchableOpacity onPress={next} style={styles.arrowBtn}>
+              <Ionicons name="chevron-forward" size={22} color="#334155" />
             </TouchableOpacity>
           </View>
 
-          {/* Month navigation */}
-          <View className="flex-row items-center justify-between mb-2">
-            <TouchableOpacity
-              onPress={() => goMonth(-1)}
-              className="w-9 h-9 rounded-full bg-slate-100 items-center justify-center"
-              accessibilityLabel="เดือนก่อนหน้า"
-            >
-              <Ionicons name="chevron-back" size={18} color="#334155" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={goToday} activeOpacity={0.7}>
-              <Text className="text-sm font-bold text-slate-800 font-heading">
-                {THAI_MONTHS[viewMonth]} {viewYear}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => goMonth(1)}
-              className="w-9 h-9 rounded-full bg-slate-100 items-center justify-center"
-              accessibilityLabel="เดือนถัดไป"
-            >
-              <Ionicons name="chevron-forward" size={18} color="#334155" />
-            </TouchableOpacity>
-          </View>
-
-          {/* Weekday header */}
-          <View className="flex-row mb-1">
-            {WEEKDAYS.map((wd, i) => (
-              <View key={i} className="flex-1 items-center py-1">
-                <Text
-                  className={`text-[11px] font-bold font-heading ${
-                    i === 0 ? 'text-[#DC2626]' : 'text-slate-500'
-                  }`}
-                >
-                  {wd}
-                </Text>
+          {/* Day-of-week labels */}
+          <View style={styles.row}>
+            {DAYS_SHORT.map(d => (
+              <View key={d} style={styles.cell}>
+                <Text style={styles.dowLabel}>{d}</Text>
               </View>
             ))}
           </View>
 
-          {/* Day grid */}
-          <View className="flex-row flex-wrap">
-            {cells.map((day, idx) => {
-              if (day === null) {
-                return <View key={`blank-${idx}`} className="w-[14.28%] aspect-square" />;
-              }
-              const dateStr = toDateStr(viewYear, viewMonth + 1, day);
-              const isSelected = selected === dateStr;
-              const isToday = todayStr === dateStr;
-              const isSunday = new Date(viewYear, viewMonth, day).getDay() === 0;
+          {/* Calendar grid */}
+          <View style={styles.grid}>
+            {blanks.map(i => (
+              <View key={`b-${i}`} style={styles.cell} />
+            ))}
+            {days.map(day => {
+              const sel = day === selectedDay;
               return (
-                <View key={day} className="w-[14.28%] aspect-square items-center justify-center p-[2px]">
-                  <TouchableOpacity
-                    onPress={() => pickDay(day)}
-                    className={`w-full h-full rounded-full items-center justify-center ${
-                      isSelected ? 'bg-[#DC2626]' : isToday ? 'border border-[#DC2626]' : ''
-                    }`}
-                    activeOpacity={0.7}
-                  >
-                    <Text
-                      className={`text-[13px] ${
-                        isSelected
-                          ? 'text-white font-bold font-heading'
-                          : isSunday
-                            ? 'text-[#DC2626] font-body'
-                            : 'text-slate-700 font-body'
-                      }`}
-                    >
-                      {day}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
+                <TouchableOpacity
+                  key={day}
+                  style={[styles.cell, sel && styles.selectedCell]}
+                  onPress={() => setSelectedDay(day)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.dayText, sel && styles.selectedDayText]}>{day}</Text>
+                </TouchableOpacity>
               );
             })}
           </View>
 
-          {/* Selected value */}
-          <Text className="text-[11px] text-slate-500 font-body text-center mt-2">
-            {selected ? `ที่เลือก: ${selected} (ค.ศ.)` : 'แตะวันที่เพื่อเลือก (ค.ศ. ตรงกับรูปแบบ YYYY-MM-DD)'}
-          </Text>
-
           {/* Footer */}
-          <View className="flex-row items-center gap-2 mt-3">
-            <TouchableOpacity
-              onPress={handleClear}
-              className="flex-1 py-2.5 rounded-xl border border-slate-200 items-center"
-            >
-              <Text className="text-xs font-bold text-slate-600 font-heading">ล้างค่า</Text>
+          <View style={styles.footer}>
+            <TouchableOpacity onPress={onClose} style={styles.cancelBtn}>
+              <Text style={styles.cancelText}>ยกเลิก</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={handleToday}
-              className="flex-1 py-2.5 rounded-xl bg-[#DC2626] items-center"
+              onPress={handleConfirm}
+              style={[styles.confirmBtn, !selectedDay && { opacity: 0.4 }]}
+              disabled={!selectedDay}
             >
-              <Text className="text-xs font-bold text-white font-heading">วันนี้</Text>
+              <Text style={styles.confirmText}>ยืนยัน</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -215,3 +130,67 @@ export default function CalendarPicker({ visible, initialDate, onSelect, onClose
     </Modal>
   );
 }
+
+const CELL_SIZE = (Dimensions.get('window').width - 80) / 7;
+
+const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  card: {
+    width: '90%',
+    maxWidth: 380,
+    backgroundColor: '#fff',
+    borderRadius: 18,
+    paddingVertical: 20,
+    paddingHorizontal: 16,
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 12,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  arrowBtn: { padding: 6 },
+  headerTitle: { fontSize: 16, fontWeight: '700', color: '#0F172A' },
+  row: { flexDirection: 'row' },
+  grid: { flexDirection: 'row', flexWrap: 'wrap' },
+  cell: {
+    width: CELL_SIZE,
+    height: CELL_SIZE,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dowLabel: { fontSize: 12, fontWeight: '600', color: '#94A3B8' },
+  dayText: { fontSize: 14, color: '#334155' },
+  selectedCell: { backgroundColor: '#DC2626', borderRadius: 999 },
+  selectedDayText: { color: '#fff', fontWeight: '700' },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 10,
+    marginTop: 16,
+  },
+  cancelBtn: {
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: '#F1F5F9',
+  },
+  cancelText: { fontSize: 14, color: '#64748B', fontWeight: '600' },
+  confirmBtn: {
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: '#DC2626',
+  },
+  confirmText: { fontSize: 14, color: '#fff', fontWeight: '700' },
+});

@@ -18,7 +18,6 @@ interface SignaturesCardProps {
 }
 
 export default function SignaturesCard({
-  customerName,
   customerSignature,
 }: SignaturesCardProps) {
   return (
