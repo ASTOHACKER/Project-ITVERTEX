@@ -1,3 +1,6 @@
+// Mini Project: IT VERTEX ระบบจัดการงานซ่อม
+// หน้าต่างนี้ใช้แก้ role ของสมาชิก ชื่อและเบอร์โทรแสดงให้อ่านอย่างเดียว
+
 // 1. React & React Native
 import { useEffect, useState } from 'react';
 import {
@@ -61,6 +64,7 @@ export default function EditStaffModal({ visible, item, isSaving, onClose, onSav
     const firstName = spaceIndex !== -1 ? trimmedName.substring(0, spaceIndex).trim() : trimmedName;
     const lastName = spaceIndex !== -1 ? trimmedName.substring(spaceIndex + 1).trim() : '';
 
+    // ส่งข้อมูลสมาชิกพร้อม role ใหม่กลับไปให้หน้าจัดการพนักงานบันทึกผ่าน API
     onSave({
       ...item,
       role,

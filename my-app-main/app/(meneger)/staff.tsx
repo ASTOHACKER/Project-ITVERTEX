@@ -1,3 +1,6 @@
+// Mini Project: IT VERTEX ระบบจัดการงานซ่อม
+// หน้านี้ให้ Manager ดูรายชื่อบุคลากร/ลูกค้า และเปลี่ยน role ของสมาชิกในระบบ
+
 // 1. React & React Native
 import { useCallback, useState } from 'react';
 import {
@@ -45,6 +48,7 @@ const roleToThai = (role_id?: number | string | null): StaffRoleThai => {
   }
 };
 
+// แปลง role ที่เลือกในหน้าจอเป็น role_id ที่ backend ใช้บันทึก
 const roleToDb = (role: StaffRoleThai): number => {
   switch (role) {
     case 'ช่าง': return 3;
@@ -129,6 +133,7 @@ export default function StaffScreen() {
     setIsEditModalVisible(true);
   };
 
+  // บันทึก role ที่เลือก แล้วโหลดรายชื่อใหม่เพื่อให้ตารางแสดงข้อมูลล่าสุด
   const handleSaveStaff = async (updatedMember: StaffMember) => {
     setIsSaving(true);
     try {
@@ -139,7 +144,7 @@ export default function StaffScreen() {
         phone: updatedMember.phone,
       };
 
-      const res = await updateStaff(updatedMember.id, payload);
+      const res = await updateStaff(updatedMember.id, payload); // เรียกตอน hadlesavestaff
 
       if (!res.success) throw new Error(res.message);
 

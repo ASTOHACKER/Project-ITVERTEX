@@ -1,10 +1,14 @@
 const pool = require('../config/db');
 
+// Mini Project: IT VERTEX ระบบจัดการงานซ่อม
+// Controller นี้อ่านรายชื่อสมาชิกจาก profiles และบันทึกการแก้ไข role/ข้อมูลสมาชิก
+
 /**
  * GET /api/staff
  */
 exports.getAll = async (req, res, next) => {
   try {
+    // JOIN ตาราง roles เพื่อส่งทั้ง role_id และชื่อ role กลับไปแสดงในหน้า Manager
     const { rows } = await pool.query(
       `SELECT p.id, p.email, p.first_name, p.last_name, p.phone, p.role_id, r.name AS role_name, p.created_at
        FROM profiles p
@@ -27,6 +31,7 @@ exports.update = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'ID ผู้ใช้งานไม่ถูกต้อง' });
     }
 
+    // รับเฉพาะฟิลด์ที่ส่งมา; ฟิลด์ที่ไม่ส่งจะเป็น null และคงค่าเดิมด้วย COALESCE
     const { first_name, last_name, phone, role_id } = req.body;
     const cleanFirstName = first_name ? String(first_name).trim() : null;
     const cleanLastName = last_name ? String(last_name).trim() : null;

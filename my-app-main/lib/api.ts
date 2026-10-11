@@ -276,6 +276,7 @@ export function deleteItem(id: number) {
 }
 
 // --- Staff ---
+// API สำหรับหน้า Manager: อ่านรายชื่อสมาชิก และอัปเดตข้อมูลตาม id
 // GET /api/staff          → รายชื่อพนักงาน (Manager only)
 // PUT /api/staff/:id      → อัปเดตข้อมูลพนักงาน
 

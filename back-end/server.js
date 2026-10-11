@@ -69,6 +69,7 @@ app.use('/api/repairs', authMiddleware, require('./routes/repair.routes'));
 app.use('/api/devices', authMiddleware, require('./routes/device.routes'));
 app.use('/api/quotations', authMiddleware, require('./routes/quotation.routes'));
 app.use('/api/items', authMiddleware, require('./routes/item.routes'));
+// Mini Project: ลงทะเบียน API จัดการสมาชิก โดยตรวจ token ก่อนส่งต่อไปยัง routes
 app.use('/api/staff', authMiddleware, require('./routes/staff.routes'));
 app.use('/api/dashboard', authMiddleware, require('./routes/dashboard.routes'));
 app.use('/api/slips', authMiddleware, require('./routes/slip.routes'));
