@@ -291,11 +291,6 @@ export default function RegisterScreen() {
               onTogglePassword={() => setShowPassword(!showPassword)}
             />
 
-            <PasswordStrengthIndicator
-              rules={passwordRules}
-              ruleDefs={ruleDefs}
-            />
-
             <FormInput
               label="ยืนยันรหัสผ่าน (Confirm Password)"
               placeholder="กรอกรหัสผ่านอีกครั้งเพื่อยืนยัน"
@@ -317,6 +312,13 @@ export default function RegisterScreen() {
               onTogglePassword={() => setShowConfirmPassword(!showConfirmPassword)}
               error={errors.confirmPassword}
             />
+
+            <PasswordStrengthIndicator
+              rules={passwordRules}
+              ruleDefs={ruleDefs}
+            />
+
+
 
             {/* Submit Button */}
             <TouchableOpacity
