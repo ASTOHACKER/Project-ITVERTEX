@@ -60,6 +60,7 @@ export default function DashboardScreen({ role }: DashboardScreenProps) {
     pendingJobs: 0,
   });
   const [trendData, setTrendData] = useState<{ value: number; label: string }[]>([]);
+  const [revenueTrendData, setRevenueTrendData] = useState<{ value: number; label: string }[]>([]);
   const [categoryData, setCategoryData] = useState<{
     pc: number;
     laptop: number;
@@ -84,10 +85,17 @@ export default function DashboardScreen({ role }: DashboardScreenProps) {
         date_end: dateEnd,
       };
 
-      const [metricsRes, trendRes, categoryRes, teamRes, partsRes, repairsRes] = await Promise.all([
+      const [metricsRes, trendRes, revenueTrendRes, categoryRes, teamRes, partsRes, repairsRes] = await Promise.all([
         getDashboardMetrics(filterParams),
         getDashboardTrend({
           period: timeFilter,
+          device_type: deviceType,
+          date_start: dateStart,
+          date_end: dateEnd,
+        }),
+        getDashboardTrend({
+          period: timeFilter,
+          metric_type: 'revenue',
           device_type: deviceType,
           date_start: dateStart,
           date_end: dateEnd,
@@ -121,6 +129,12 @@ export default function DashboardScreen({ role }: DashboardScreenProps) {
         setTrendData(trendRes.data);
       } else {
         setTrendData([]);
+      }
+
+      if (revenueTrendRes?.success && Array.isArray(revenueTrendRes.data)) {
+        setRevenueTrendData(revenueTrendRes.data);
+      } else {
+        setRevenueTrendData([]);
       }
 
       if (categoryRes?.success && categoryRes.data) {
@@ -261,6 +275,15 @@ export default function DashboardScreen({ role }: DashboardScreenProps) {
           deviceType={deviceType}
           data={trendData}
           isLoading={isLoading}
+        />
+
+        {/* Revenue Trend Chart */}
+        <TrendChart
+          timeFilter={timeFilter}
+          deviceType={deviceType}
+          data={revenueTrendData}
+          isLoading={isLoading}
+          mode="revenue"
         />
 
         {/* Category Distribution Chart */}
