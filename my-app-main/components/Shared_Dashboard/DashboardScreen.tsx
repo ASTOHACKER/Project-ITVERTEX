@@ -11,8 +11,9 @@ import {
   getDashboardCategory,
   getDashboardMetrics,
   getDashboardPartsUsage,
-  getDashboardTeamPerformance,
+  getDashboardSymptoms,
   getDashboardTrend,
+  getDashboardWorkActivity,
   getRepairs,
 } from '@/lib/api';
 
@@ -22,8 +23,9 @@ import DashboardFilters from '@/components/Shared_Dashboard/DashboardFilters';
 import Header from '@/components/Shared_Dashboard/Header';
 import MetricCards from '@/components/Shared_Dashboard/MetricCards';
 import PartsUsageChart, { type PartUsageItem } from '@/components/Shared_Dashboard/PartsUsageChart';
-import TeamPerformanceChart, { type TeamMemberPerformance } from '@/components/Shared_Dashboard/TeamPerformanceChart';
+import SymptomsChart, { type SymptomItem } from '@/components/Shared_Dashboard/SymptomsChart';
 import TrendChart from '@/components/Shared_Dashboard/TrendChart';
+import WorkActivityChart, { type WorkActivityMember } from '@/components/Shared_Dashboard/WorkActivityChart';
 
 interface DashboardScreenProps {
   /** 'staff' or 'manager' — passed to getDashboardMetrics */
@@ -68,7 +70,8 @@ export default function DashboardScreen({ role }: DashboardScreenProps) {
     other?: number;
     total?: number;
   }>({ pc: 0, laptop: 0, printer: 0, other: 0, total: 0 });
-  const [teamData, setTeamData] = useState<TeamMemberPerformance[]>([]);
+  const [workActivityData, setWorkActivityData] = useState<WorkActivityMember[]>([]);
+  const [symptomsData, setSymptomsData] = useState<SymptomItem[]>([]);
   const [partsUsageData, setPartsUsageData] = useState<PartUsageItem[]>([]);
   const [recentRepairs, setRecentRepairs] = useState<any[]>([]);
 
@@ -85,7 +88,7 @@ export default function DashboardScreen({ role }: DashboardScreenProps) {
         date_end: dateEnd,
       };
 
-      const [metricsRes, trendRes, revenueTrendRes, categoryRes, teamRes, partsRes, repairsRes] = await Promise.all([
+      const [metricsRes, trendRes, revenueTrendRes, categoryRes, workRes, symptomsRes, partsRes, repairsRes] = await Promise.all([
         getDashboardMetrics(filterParams),
         getDashboardTrend({
           period: timeFilter,
@@ -106,7 +109,13 @@ export default function DashboardScreen({ role }: DashboardScreenProps) {
           date_start: dateStart,
           date_end: dateEnd,
         }),
-        getDashboardTeamPerformance({
+        getDashboardWorkActivity({
+          period: timeFilter,
+          device_type: deviceType,
+          date_start: dateStart,
+          date_end: dateEnd,
+        }),
+        getDashboardSymptoms({
           period: timeFilter,
           device_type: deviceType,
           date_start: dateStart,
@@ -141,10 +150,16 @@ export default function DashboardScreen({ role }: DashboardScreenProps) {
         setCategoryData(categoryRes.data);
       }
 
-      if (teamRes?.success && Array.isArray(teamRes.data)) {
-        setTeamData(teamRes.data);
+      if (workRes?.success && Array.isArray(workRes.data)) {
+        setWorkActivityData(workRes.data);
       } else {
-        setTeamData([]);
+        setWorkActivityData([]);
+      }
+
+      if (symptomsRes?.success && Array.isArray(symptomsRes.data)) {
+        setSymptomsData(symptomsRes.data);
+      } else {
+        setSymptomsData([]);
       }
 
       if (partsRes?.success && Array.isArray(partsRes.data)) {
@@ -298,9 +313,17 @@ export default function DashboardScreen({ role }: DashboardScreenProps) {
           isLoading={isLoading}
         />
 
-        {/* Team Performance Bar Chart */}
-        <TeamPerformanceChart
-          data={teamData}
+        {/* Work Activity Bar Chart (แทนกราฟประสิทธิภาพทีม) */}
+        <WorkActivityChart
+          data={workActivityData}
+          deviceType={deviceType}
+          timeFilter={timeFilter}
+          isLoading={isLoading}
+        />
+
+        {/* Symptoms Chart (อาการเสียที่พบบ่อย) */}
+        <SymptomsChart
+          data={symptomsData}
           deviceType={deviceType}
           timeFilter={timeFilter}
           isLoading={isLoading}

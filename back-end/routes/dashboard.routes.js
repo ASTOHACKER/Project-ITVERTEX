@@ -77,6 +77,50 @@ router.get('/team-performance', auth, role('Manager', 'Staff'), ctrl.getTeamPerf
 
 /**
  * @swagger
+ * /api/dashboard/work-activity:
+ *   get:
+ *     tags: [Dashboard]
+ *     summary: วันเคลื่อนงานรายบุคคล (ใช้แทนการลงเวลาเข้างาน)
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - in: query
+ *         name: date_start
+ *         schema: { type: string, format: date }
+ *       - in: query
+ *         name: date_end
+ *         schema: { type: string, format: date }
+ *       - in: query
+ *         name: device_type
+ *         schema: { type: string, enum: [all, pc, laptop, printer] }
+ *     responses:
+ *       200: { description: work activity data }
+ */
+router.get('/work-activity', auth, role('Manager', 'Staff'), ctrl.getWorkActivity);
+
+/**
+ * @swagger
+ * /api/dashboard/symptoms:
+ *   get:
+ *     tags: [Dashboard]
+ *     summary: อาการเสียที่พบบ่อย (จัดกลุ่มคีย์เวิร์ด)
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - in: query
+ *         name: date_start
+ *         schema: { type: string, format: date }
+ *       - in: query
+ *         name: date_end
+ *         schema: { type: string, format: date }
+ *       - in: query
+ *         name: device_type
+ *         schema: { type: string, enum: [all, pc, laptop, printer] }
+ *     responses:
+ *       200: { description: symptoms data }
+ */
+router.get('/symptoms', auth, role('Manager', 'Staff'), ctrl.getSymptoms);
+
+/**
+ * @swagger
  * /api/dashboard/parts-usage:
  *   get:
  *     tags: [Dashboard]

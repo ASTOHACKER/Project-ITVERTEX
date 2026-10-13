@@ -420,6 +420,40 @@ export function getDashboardPartsUsage(params?: DashboardPartsUsageParams) {
   return api.get(`/dashboard/parts-usage${qStr ? `?${qStr}` : ''}`);
 }
 
+export interface DashboardWorkActivityParams {
+  period?: 'day' | 'month' | 'year' | string;
+  device_type?: string;
+  date_start?: string;
+  date_end?: string;
+}
+
+export function getDashboardWorkActivity(params?: DashboardWorkActivityParams) {
+  const query = new URLSearchParams();
+  if (params?.period) query.append('period', params.period);
+  if (params?.device_type && params.device_type !== 'all') query.append('device_type', params.device_type);
+  if (params?.date_start) query.append('date_start', params.date_start);
+  if (params?.date_end) query.append('date_end', params.date_end);
+  const qStr = query.toString();
+  return api.get(`/dashboard/work-activity${qStr ? `?${qStr}` : ''}`);
+}
+
+export interface DashboardSymptomsParams {
+  period?: 'day' | 'month' | 'year' | string;
+  device_type?: string;
+  date_start?: string;
+  date_end?: string;
+}
+
+export function getDashboardSymptoms(params?: DashboardSymptomsParams) {
+  const query = new URLSearchParams();
+  if (params?.period) query.append('period', params.period);
+  if (params?.device_type && params.device_type !== 'all') query.append('device_type', params.device_type);
+  if (params?.date_start) query.append('date_start', params.date_start);
+  if (params?.date_end) query.append('date_end', params.date_end);
+  const qStr = query.toString();
+  return api.get(`/dashboard/symptoms${qStr ? `?${qStr}` : ''}`);
+}
+
 
 
 // --- Slips ---

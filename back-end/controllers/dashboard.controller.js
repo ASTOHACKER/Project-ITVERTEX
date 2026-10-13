@@ -306,6 +306,59 @@ exports.getCategory = async (req, res, next) => {
 };
 
 /**
+ * GET /api/dashboard/work-activity
+ * ดูวันเคลื่อนงานรายบุคคลจาก repair_job_detail (ใช้แทนการลงเวลาเข้างาน
+ * โดยไม่ต้องเพิ่มตารางใหม่) — หน่วย: วัน
+ */
+exports.getWorkActivity = async (req, res, next) => {
+  try {
+    const { conditions, params } = buildDateAndDeviceConditions(req.query, 'd.action_date', 'dt.device_type_name');
+
+    const query = dashboardQueries.BUILD_WORK_ACTIVITY_QUERY(conditions);
+    const { rows } = await pool.query(query, params);
+
+    res.json({
+      success: true,
+      data: rows.map((r) => ({
+        id: r.id,
+        name: r.name || 'เจ้าหน้าที่',
+        role_name: r.role_name,
+        active_days: Number(r.active_days) || 0,
+        total_actions: Number(r.total_actions) || 0,
+        jobs_touched: Number(r.jobs_touched) || 0,
+        unit: 'วัน',
+      })),
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * GET /api/dashboard/symptoms
+ * ดูอาการเสียที่พบบ่อย (จัดกลุ่มข้อความอิสระเป็นหมวดคีย์เวิร์ด) — หน่วย: เครื่อง
+ */
+exports.getSymptoms = async (req, res, next) => {
+  try {
+    const { conditions, params } = buildDateAndDeviceConditions(req.query, 'rj.created_at', 'dt.device_type_name');
+
+    const query = dashboardQueries.BUILD_SYMPTOMS_QUERY(conditions);
+    const { rows } = await pool.query(query, params);
+
+    res.json({
+      success: true,
+      data: rows.map((r) => ({
+        label: r.label,
+        jobs_count: Number(r.jobs_count) || 0,
+        unit: 'เครื่อง',
+      })),
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
  * GET /api/dashboard/team-performance
  * ดู Performance ทีมรายบุคคล (Bar Chart)
  * หน่วย: เครื่อง
